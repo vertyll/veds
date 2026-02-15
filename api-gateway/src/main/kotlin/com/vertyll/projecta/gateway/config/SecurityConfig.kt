@@ -4,10 +4,12 @@ import com.vertyll.projecta.gateway.security.JwtAuthFilter
 import com.vertyll.projecta.sharedinfrastructure.role.RoleType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
@@ -74,7 +76,9 @@ class SecurityConfig(
             .csrf { it.disable() } // Disable CSRF for API Gateway
             .formLogin { it.disable() } // Disable default login form
             .httpBasic { it.disable() } // Disable HTTP Basic Auth
-            .authorizeExchange { exchanges ->
+            .exceptionHandling {
+                it.authenticationEntryPoint(HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED))
+            }.authorizeExchange { exchanges ->
                 exchanges
                     // Public endpoints that don't require authentication
                     .pathMatchers(*PUBLIC_AUTH_ENDPOINTS)

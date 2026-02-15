@@ -86,7 +86,7 @@ jobs:
             podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest > /dev/null 2>&1
             
             echo "Recreating container..."
-            podman-compose -f microservices.yml up -d --force-recreate --no-deps project-a-auth-service > /dev/null 2>&1
+            podman-compose -f project-a-microservices.yml up -d --force-recreate --no-deps project-a-auth-service > /dev/null 2>&1
             
             echo "Waiting for container to start..."
             sleep 15
