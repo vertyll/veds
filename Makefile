@@ -1,7 +1,7 @@
 SERVICES = api-gateway auth-service mail-service role-service user-service
 SHARED = shared-infrastructure
 
-.PHONY: build-all test-all clean-all format-all check-style-all run-all stop-all
+.PHONY: build-all test-all clean-all format-all check-style-all
 
 build-all:
 	@for dir in $(SERVICES) $(SHARED); do \
@@ -32,15 +32,3 @@ check-style-all:
 		echo "Checking style $$dir..."; \
 		(cd $$dir && ./gradlew ktlintCheck detekt) || exit 1; \
 	done
-
-run-all:
-	@echo "Starting all services in background..."
-	@for dir in $(SERVICES); do \
-		echo "Starting $$dir..."; \
-		(cd $$dir && ./gradlew bootRun --args='--spring.profiles.active=dev' > /dev/null 2>&1 &); \
-	done
-	@echo "All services are starting. Check logs in individual service directories if needed."
-
-stop-all:
-	@echo "Stopping all microservices..."
-	@jps | grep "Boot" | cut -d " " -f 1 | xargs kill -9 2>/dev/null || echo "No services running."
