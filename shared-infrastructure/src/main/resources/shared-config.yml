@@ -29,7 +29,7 @@ projecta:
         auth-header-name: Authorization
         cookie:
           httpOnly: true
-          secure: false
+          secure: ${JWT_COOKIE_SECURE:false}
           sameSite: Strict
           path: "/"
     services:
