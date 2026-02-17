@@ -41,20 +41,14 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Provides shared ports and adapters interfaces for consistent hexagonal architecture implementation
 - Integration events definitions for inter-service communication
 
-#### Template Service
-- A template for implementing hexagonal architecture
-- Example domain models, repositories, and services
-- Sample event definitions and Kafka integration
-- Basic Saga pattern implementation
-
 #### Auth Service
 - Responsible for user authentication, authorization using JWT and refresh tokens (http only secure cookie)
 - Manages the user credentials, account activation, and session management
 - Database stores:
-  - User credentials (email, hashed passwords)
-  - Refresh tokens (http only secure cookie)
-  - Verification tokens (for account activation, password reset, etc.)
-  - User roles (mirrored from Role Service)
+    - User credentials (email, hashed passwords)
+    - Refresh tokens (http only secure cookie)
+    - Verification tokens (for account activation, password reset, etc.)
+    - User roles (mirrored from Role Service)
 - Provides endpoints for registration, login, logout, account activation, password reset, and email change
 - Publishes authentication events that trigger workflows in other services
 - Implements hexagonal architecture with clear separation between business logic and external adapters
@@ -62,8 +56,8 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 #### Role Service
 - Manages the roles and permissions throughout the system
 - Database stores:
-  - Role definitions
-  - User-role assignments
+    - Role definitions
+    - User-role assignments
 - Provides APIs for creating, updating, and assigning roles
 - Publishes role-related events to Kafka for other services to consume
 - Reacts to user events to assign default roles automatically
@@ -72,9 +66,9 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 #### User Service
 - Manages user profiles and user-related information not needed for authentication
 - Database stores:
-  - User personal information (first name, last name, etc.)
-  - User preferences
-  - Other user-specific data not required for authentication
+    - User personal information (first name, last name, etc.)
+    - User preferences
+    - Other user-specific data not required for authentication
 - Consumes user-related events from other services
 - Provides APIs for managing user profiles
 - Publishes user profile events when changes occur
@@ -83,12 +77,18 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 #### Mail Service
 - Responsible for sending emails based on templates
 - Database stores:
-  - Email logs
-  - Delivery status
+    - Email logs
+    - Delivery status
 - Consumes mail request events from other services
 - Supports various email templates (welcome, password reset, account activation, etc.)
 - Acts as a reactive service in the choreography flow
 - Uses hexagonal architecture to decouple email sending logic from external mail providers
+
+#### Template Service
+- A template for implementing hexagonal architecture
+- Example domain models, repositories, and services
+- Sample event definitions and Kafka integration
+- Basic Saga pattern implementation
 
 ## Technology Stack
 
@@ -105,55 +105,54 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 ### Prerequisites
 
 - Docker and Docker Compose / Podman and Podman Compose
-- JDK 25 (LTS)
+- JDK
 - Gradle
 
 ### Getting Started
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/project-a-microservices.git
-   # and
-   cd project-a-microservices
-   ```
+```bash
+git clone https://github.com/yourusername/project-a-microservices.git
+# and
+cd project-a-microservices
+```
 
 2. Start the infrastructure:
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+docker-compose up -d
+```
 
 3. Build and run microservices:
    Each microservice is now an independent Gradle project. To build or run a specific service, navigate to its directory:
 
-   **Building:**
-   ```bash
-   cd <service-name>
-   ./gradlew build
-   ```
+**Building:**
+```bash
+cd <service-name>
+./gradlew build
+```
 
-   **Local Running:**
-   ```bash
-   cd <service-name>
-   ./gradlew bootRun --args='--spring.profiles.active=dev'
-   ```
+**Local Running:**
+```bash
+cd <service-name>
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
 
-   **Available Services:**
-   - `api-gateway`
-   - `auth-service`
-   - `user-service`
-   - `role-service`
-   - `mail-service`
-   - `template-service`
-   - `shared-infrastructure` (library)
+**Available Services:**
+- `api-gateway`
+- `auth-service`
+- `user-service`
+- `role-service`
+- `mail-service`
+- `shared-infrastructure` (library)
 
 4. Access the services:
-   - API Gateway: http://localhost:8080
-   - Auth Service: http://localhost:8082
-   - User Service: http://localhost:8083
-   - Role Service: http://localhost:8084
-   - Mail Service: http://localhost:8085
-   - Kafka UI: http://localhost:8090
-   - MailDev: http://localhost:1080
+- API Gateway: http://localhost:8080
+- Auth Service: http://localhost:8082
+- User Service: http://localhost:8083
+- Role Service: http://localhost:8084
+- Mail Service: http://localhost:8085
+- Kafka UI: http://localhost:8090
+- MailDev: http://localhost:1080
 
 ### Global Management (Convenience)
 
@@ -162,23 +161,21 @@ For convenience, you can use the provided `Makefile` in the root directory:
 - Build all services: `make build-all`
 - Run tests in all services: `make test-all`
 - Clean all services: `make clean-all`
-- Run all services: `make run-all`
-- Stop all services: `make stop-all`
 
 ### Development Workflow
 
 1. Make changes to the relevant service code
 2. Build the service:
-   ```bash
-   cd <service-name>
-   ./gradlew build
-   ```
+```bash
+cd <service-name>
+./gradlew build
+```
 3. Restart the service container or locally start the microservice:
-   ```bash
-   docker-compose up -d --build <service-name>
-   # or
-   ./gradlew bootRun --args='--spring.profiles.active=dev'
-   ```
+```bash
+docker-compose up -d --build <service-name>
+# or
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
 
 ## Architecture Design
 
@@ -277,13 +274,13 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 
 ### API: ETag / If-Match
 - Role Service
-  - `PUT /roles/{id}` requires `If-Match` header with the ETag received from a prior GET.
-    - Missing `If-Match` → `428 Precondition Required`.
-    - Version mismatch (precondition failed) → `412 Precondition Failed`.
-  - `GET /roles/{id}`, `GET /roles/name/{name}` return `ETag: W/"<version>"`.
-  - Collections (e.g., `GET /roles`, `GET /roles/user/{userId}`) return a collection ETag derived from item versions (hash-based weak ETag) for efficient caching.
+    - `PUT /roles/{id}` requires `If-Match` header with the ETag received from a prior GET.
+        - Missing `If-Match` → `428 Precondition Required`.
+        - Version mismatch (precondition failed) → `412 Precondition Failed`.
+    - `GET /roles/{id}`, `GET /roles/name/{name}` return `ETag: W/"<version>"`.
+    - Collections (e.g., `GET /roles`, `GET /roles/user/{userId}`) return a collection ETag derived from item versions (hash-based weak ETag) for efficient caching.
 - User Service
-  - `GET /users/{id}`, `GET /users/email/{email}` return `ETag: W/"<version>"` for clients that want to track staleness. (Updates to user profile are event-driven and do not use If-Match directly.)
+    - `GET /users/{id}`, `GET /users/email/{email}` return `ETag: W/"<version>"` for clients that want to track staleness. (Updates to user profile are event-driven and do not use If-Match directly.)
 
 Example client flow (Role update):
 1. Read current state
@@ -312,10 +309,10 @@ Error semantics at the API layer:
 ### Sagas (Internal, no ETag)
 - Sagas are backend-internal processes (event-driven), not HTTP resources — therefore **ETag/If-Match is not used in Sagas**.
 - Concurrency control:
-  - `@Version` on Saga and/or SagaStep where applicable, persisted via load → mutate → save.
-  - Idempotency for steps:
-    - Database-level unique constraint on `(sagaId, stepName)` prevents duplicate step insertion.
-    - Service-level soft check in `recordSagaStep` returns the existing step if already present (safe retries/duplicates).
+    - `@Version` on Saga and/or SagaStep where applicable, persisted via load → mutate → save.
+    - Idempotency for steps:
+        - Database-level unique constraint on `(sagaId, stepName)` prevents duplicate step insertion.
+        - Service-level soft check in `recordSagaStep` returns the existing step if already present (safe retries/duplicates).
 - Compensation steps are recorded and published through Outbox when needed.
 
 ### Outbox Pattern
