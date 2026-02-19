@@ -1,0 +1,28 @@
+# Global ignore
+**/.gradle
+**/build
+**/out
+**/.idea
+**/.vscode
+**/.DS_Store
+*.swp
+*.log
+
+# Docker specific
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.override.yml
+
+# Git
+.git
+.gitignore
+
+# Project specific
+gradle/
+gradlew
+gradlew.bat
+README.md
+Makefile
+screenshots/
+config/
