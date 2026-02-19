@@ -19,9 +19,9 @@ docker-compose.override.yml
 .gitignore
 
 # Project specific
-gradle/
-gradlew
-gradlew.bat
+!gradle/
+!gradlew
+!gradlew.bat
 README.md
 Makefile
 screenshots/
