@@ -170,10 +170,8 @@ For convenience, you can use the provided `Makefile` in the root directory:
 cd <service-name>
 ./gradlew build
 ```
-3. Restart the service container or locally start the microservice:
+3. Start the microservice:
 ```bash
-docker-compose up -d --build <service-name>
-# or
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
