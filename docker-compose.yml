@@ -19,6 +19,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   user-db:
     image: postgres:17-alpine
@@ -39,6 +40,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   role-db:
     image: postgres:17-alpine
@@ -59,6 +61,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   mail-db:
     image: postgres:17-alpine
@@ -79,6 +82,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # Kafka and Zookeeper for event-driven communication
   kafka:
@@ -119,7 +123,7 @@ services:
       start_period: 30s
 
   schema-registry:
-    image: docker.io/confluentinc/cp-schema-registry:7.4.0
+    image: docker.io/confluentinc/cp-schema-registry:7.7.1
     container_name: schema-registry
     depends_on:
       kafka:
@@ -137,6 +141,27 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 30s
+
+  # Kafka UI tool
+  kafka-ui:
+    image: docker.io/provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka-dev
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      DYNAMIC_CONFIG_ENABLED: "true"
+    restart: unless-stopped
+    networks:
+      - microservices-network
 
   # Web service for mail testing
   mail-dev:
@@ -146,23 +171,6 @@ services:
     ports:
       - "1025:1025"
       - "1080:1080"
-    networks:
-      - microservices-network
-
-  # Kafka UI tool
-  kafka-ui:
-    image: docker.io/provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    depends_on:
-      - kafka
-      - schema-registry
-    ports:
-      - "8090:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: kafka-dev
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
-      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
     networks:
       - microservices-network
 
