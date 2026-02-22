@@ -33,6 +33,8 @@ class SecurityConfig(
         http
             .csrf { it.disable() }
             .cors { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/actuator/**")
