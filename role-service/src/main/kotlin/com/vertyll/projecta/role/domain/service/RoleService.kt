@@ -13,6 +13,7 @@ import com.vertyll.projecta.role.domain.repository.UserRoleRepository
 import com.vertyll.projecta.role.infrastructure.exception.ApiException
 import com.vertyll.projecta.role.infrastructure.kafka.RoleEventProducer
 import com.vertyll.projecta.sharedinfrastructure.role.RoleType
+import com.vertyll.projecta.sharedinfrastructure.util.OptimisticLockingValidator
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -153,9 +154,8 @@ class RoleService(
                         status = HttpStatus.NOT_FOUND,
                     )
                 }
-
-        if (headerVersion != null && role.version != headerVersion) {
-            throw ApiException(
+        OptimisticLockingValidator.validate(role.version, headerVersion) {
+            ApiException(
                 message = OPTIMISTIC_LOCKING_FAILURE,
                 status = HttpStatus.PRECONDITION_FAILED,
             )
