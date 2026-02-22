@@ -66,7 +66,8 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql" }
-
+# Cache
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 # Thymeleaf
 thymeleaf-extras-springsecurity6 = { module = "org.thymeleaf.extras:thymeleaf-extras-springsecurity6" }
 
@@ -144,7 +145,8 @@ spring-boot-gateway = [
     "spring-cloud-starter-loadbalancer",
     "spring-boot-starter-webflux",
     "spring-boot-starter-actuator",
-    "spring-boot-starter-security"
+    "spring-boot-starter-security",
+    "caffeine"
 ]
 
 # Gateway Kotlin extensions
