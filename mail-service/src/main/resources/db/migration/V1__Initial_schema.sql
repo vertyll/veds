@@ -48,10 +48,10 @@ CREATE TABLE IF NOT EXISTS saga (
     id VARCHAR(255) PRIMARY KEY,
     type VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL,
-    payload TEXT NULL,
+    payload TEXT NOT NULL,
+    last_error TEXT NULL,
     started_at TIMESTAMP NOT NULL,
     completed_at TIMESTAMP NULL,
-    last_error TEXT NULL,
     updated_at TIMESTAMP NOT NULL,
     version BIGINT NULL
 );
