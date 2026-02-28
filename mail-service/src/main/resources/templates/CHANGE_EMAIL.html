@@ -54,9 +54,9 @@
 </div>
 <div class="content">
     <p>Hello <!--/*@thymesVar id="username" type="templates"*/-->
-    <span th:text="${username}">User</span>,</p>
+    <span th:text="${firstName}">User</span>,</p>
 
-    <p>We received a request to change the email address associated with your Project A account.</p>
+    <p>We received a request to change the email address associated with your VEDS account.</p>
     <p>Your current email: <!--/*@thymesVar id="current_email" type="templates"*/-->
     <strong th:text="${current_email}">current@example.com</strong></p>
     <p>New email address: <!--/*@thymesVar id="new_email" type="templates"*/-->
@@ -65,17 +65,17 @@
     <p>To confirm this change, please use the confirmation code below:</p>
 
     <!--/*@thymesVar id="activation_code" type="templates"*/-->
-    <div class="confirmation-code" th:text="${activation_code}">CONFIRMATION_CODE</div>
+    <div class="confirmation-code" th:text="${confirmationToken}">CONFIRMATION_CODE</div>
 
     <p>This code will expire in 24 hours.</p>
 
     <p>If you did not request this email change, please ignore this email or contact support if you have concerns about
         your account security.</p>
 
-    <p>Best regards,<br>The Project A Team</p>
+    <p>Best regards,<br>The VEDS Team</p>
 </div>
 <div class="footer">
-    <p>&copy; 2025 Project A. All rights reserved.</p>
+    <p>&copy; 2025 VEDS. All rights reserved.</p>
     <p>This is an automated message, please do not reply.</p>
 </div>
 </body>
