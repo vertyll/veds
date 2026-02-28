@@ -33,7 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
     "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EnableKafka
-class IdentityServiceApplication {
+class IAMServiceApplication {
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
@@ -42,5 +42,5 @@ class IdentityServiceApplication {
 }
 
 fun main(args: Array<String>) {
-    runApplication<IdentityServiceApplication>(*args)
+    runApplication<IAMServiceApplication>(*args)
 }

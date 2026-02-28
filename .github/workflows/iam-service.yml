@@ -86,20 +86,20 @@ jobs:
             podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest > /dev/null 2>&1
             
             echo "Recreating container..."
-            podman-compose -f project-a-microservices.yml up -d --force-recreate --no-deps project-a-iam-service > /dev/null 2>&1
+            podman-compose -f veds.yml up -d --force-recreate --no-deps veds-iam-service > /dev/null 2>&1
             
             echo "Waiting for container to start..."
             sleep 15
             
             echo "=== Container status ==="
-            podman ps | grep project-a-iam-service || echo "Container is not running!"
+            podman ps | grep veds-iam-service || echo "Container is not running!"
             
             echo "=== Last logs ==="
-            podman logs --tail 50 project-a-iam-service
+            podman logs --tail 50 veds-iam-service
             
             sleep 5
             
             echo "=== Health check ==="
-            podman exec project-a-iam-service curl -f http://localhost:8080/actuator/health && \
+            podman exec veds-iam-service curl -f http://localhost:8080/actuator/health && \
               echo "✓ Auth Service is running!" || \
               echo "✗ Auth Service health check failed"

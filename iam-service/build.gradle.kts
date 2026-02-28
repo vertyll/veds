@@ -13,7 +13,7 @@ plugins {
 
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
-description = "Identity Microservice"
+description = "IAM Microservice"
 
 repositories {
     mavenCentral()

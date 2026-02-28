@@ -1,4 +1,4 @@
-rootProject.name = "project-a-microservices"
+rootProject.name = "veds"
 
 includeBuild("shared-infrastructure")
 includeBuild("api-gateway")

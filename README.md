@@ -11,15 +11,13 @@ A microservices-based architecture for Project A, following Domain-Driven Design
 
 ## Architecture
 
-![Project architecture graph](https://raw.githubusercontent.com/vertyll/project-a-microservices/refs/heads/main/screenshots/project-architecture-graph.png)
-
 The project is split into the following components:
 
-1. **API Gateway** - Entry point for all client requests, handles routing to appropriate services and JWT token validation
-2. **Identity Service** - Consolidates authentication, user management, and roles/permissions into a single service (port 8082)
-3. **Mail Service** - Handles email sending operations and templates (port 8085)
-4. **Shared Infrastructure** - Shared infrastructure, contracts, and utilities used across all microservices
-5. **Template Service** - Baseline configuration for future microservices
+1. **API Gateway** – Entry point for all client requests, handles routing to appropriate services and JWT token validation
+2. **IAM Service** – Consolidates authentication, user management, and roles/permissions into a single service (port 8082)
+3. **Mail Service** – Handles email sending operations and templates (port 8085)
+4. **Shared Infrastructure** – Shared infrastructure, contracts, and utilities used across all microservices
+5. **Template Service** – Baseline configuration for future microservices
 
 Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other via Apache Kafka for event-driven architecture, primarily for notifying the Mail Service.
 
@@ -27,19 +25,19 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 #### Kafka KRaft Mode
 - The system uses Kafka in KRaft mode (Kafka Raft), eliminating the need for Zookeeper.
-- Configuration is handled via `KAFKA_PROCESS_ROLES` (broker,controller) and `KAFKA_CONTROLLER_QUORUM_VOTERS`.
+- Configuration is handled via `KAFKA_PROCESS_ROLES` (broker, controller) and `KAFKA_CONTROLLER_QUORUM_VOTERS`.
 - A static `CLUSTER_ID` is provided in `docker-compose.yml` for simplified setup.
 
 #### Shared Infrastructure
 - Provides shared code, DTOs, event definitions, and utilities for all microservices
-- Implements shared patterns like Outbox pattern
+- Implements shared patterns like an Outbox pattern
 - Contains reusable components for Kafka integration, exception handling, and API responses
 - Ensures consistency in how services communicate and process events
 - Includes base classes for implementing event choreography
 - Provides shared ports and adapters interfaces for consistent hexagonal architecture implementation
 - Integration events definitions for inter-service communication
 
-#### Identity Service
+#### IAM Service
 - Responsible for user authentication, authorization, profile management, and roles.
 - Uses JWT and refresh tokens (http-only secure cookies) for session management.
 - Database stores:
@@ -49,7 +47,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
     - Refresh tokens and verification tokens
 - Provides endpoints for registration, login, profile management, and role administration.
 - Publishes mail request events to trigger email workflows.
-- Implements internal Saga pattern for multi-step operations like user registration.
+- Implements an internal Saga pattern for multi-step operations like user registration.
 
 #### Mail Service
 - Responsible for sending emails based on templates
@@ -70,7 +68,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 ## Technology Stack
 
 - **Back-end**: Spring Boot, Kotlin, Gradle Kotlin DSL
-- **Database**: PostgreSQL (separate instance for each service)
+- **Database**: PostgreSQL (a separate instance for each service)
 - **Message Broker**: Apache Kafka KRaft (Zookeeper-less)
 - **API Documentation**: OpenAPI (Swagger)
 - **Containerization**: Docker/Podman, Docker Compose/Podman Compose
@@ -89,9 +87,9 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/project-a-microservices.git
+git clone https://github.com/vertyll/veds.git
 # and
-cd project-a-microservices
+cd veds
 ```
 
 2. Start the infrastructure:
@@ -122,8 +120,8 @@ cd <service-name>
 
 4. Access the services:
 - API Gateway: http://localhost:8080
-- Identity Service: http://localhost:8082
-- Mail Service: http://localhost:8085
+- IAM Service: http://localhost:8082
+- Mail Service: http://localhost:8083
 - Kafka UI: http://localhost:8090
 - MailDev: http://localhost:1080
 
@@ -206,13 +204,13 @@ Benefits of this approach:
 
 ### Saga Pattern for Distributed Transactions
 
-For distributed transactions, we use the Saga pattern (currently internal to Identity Service but can be extended):
+For distributed transactions, we use the Saga pattern (currently internal to IAM Service but can be extended):
 
-1. A service or component initiates a multi-step operation (e.g., registration).
+1. A service or component initiates a multistep operation (e.g., registration).
 2. Each step is recorded in the Saga state machine.
 3. If a step fails, compensating transactions are triggered to maintain consistency.
 
-Example: User Registration Saga (Internal to Identity Service)
+Example: User Registration Saga (Internal to IAM Service)
 - Create User: Creates the user record.
 - Create Verification Token: Generates a token for account activation.
 - Send Welcome Email: Publishes a `MailRequestedEvent` to Kafka for the Mail Service.
@@ -235,13 +233,13 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 
 ### Summary
 - API layer: ETag/If-Match for conditional updates from clients (front-end, API consumers).
-- Persistence layer: JPA `@Version` on entities + the load → mutate → save pattern inside a single transaction.
+- Persistence layer: JPA `@Version` on entities and the load → mutate → save a pattern inside a single transaction.
 - Sagas and Outbox: Internal consistency ensured by JPA Optimistic Locking and idempotency safeguards — no HTTP ETags here.
 
 ### API: ETag / If-Match
-- Identity Service
-    - `PUT /users/{id}` (Update profile) - returns and optionally accepts `If-Match`.
-    - `POST /roles/user/{userId}/role/{roleName}` (Assign role) and `DELETE /roles/user/{userId}/role/{roleName}` (Remove role) optionally accept `If-Match` for the **User** entity.
+- IAM Service
+    - `PUT /users/{id}` (Update profile) – returns and optionally accepts `If-Match`.
+    - `POST /roles/user/{userId}/role/{roleName}` (Assign role) and `DELETE /roles/user/{userId}/role/{roleName}` (Remove a role) optionally accept `If-Match` for the **User** entity.
     - `GET /roles/{id}`, `GET /roles/name/{name}` return `ETag: W/"<version>"`.
     - `GET /users/{id}`, `GET /users/email/{email}` return `ETag: W/"<version>"` for clients that want to track staleness.
 
@@ -256,13 +254,13 @@ curl -i http://localhost:8082/users/1
 curl -i -X PUT http://localhost:8082/users/1 \
   -H 'Content-Type: application/json' \
   -H 'If-Match: W/"<version>"' \
-  -d '{"firstName": "John", "lastName": "Doe", "profilePicture": "http://...", "phoneNumber": "123456789", "address": "123 St"}'
+  -d '{"firstName": "John", "lastName": "Doe", "profilePicture": "htt...", "phoneNumber": "123456789", "address": "123 St"}'
 ```
 - If the resource changed meanwhile, the server returns `412`.
 
 Error semantics at the API layer:
 - `428 Precondition Required` — missing `If-Match` on required endpoints.
-- `412 Precondition Failed` — ETag/If-Match does not match current version.
+- `412 Precondition Failed` — ETag/If-Match does not match the current version.
 - `409 Conflict` — last-resort handler for JPA `ObjectOptimisticLockingFailureException` (race detected at commit time).
 
 ### Persistence: JPA Optimistic Locking
@@ -272,7 +270,7 @@ Error semantics at the API layer:
 ### Sagas (Internal, no ETag)
 - Sagas are backend-internal processes (event-driven), not HTTP resources — therefore **ETag/If-Match is not used in Sagas**.
 - Concurrency control:
-    - `@Version` on Saga and/or SagaStep where applicable, persisted via load → mutate → save.
+    - `@Version` on Saga and/or SagaStep where applicable, persisted via a load → mutate → save.
     - Idempotency for steps:
         - Database-level unique constraint on `(sagaId, stepName)` prevents duplicate step insertion.
         - Service-level soft check in `recordSagaStep` returns the existing step if already present (safe retries/duplicates).
@@ -287,8 +285,8 @@ Error semantics at the API layer:
 
 Each service provides its own Swagger UI for API documentation:
 
-- Identity Service: http://localhost:8082/swagger-ui.html
-- Mail Service: http://localhost:8085/swagger-ui.html
+- IAM Service: http://localhost:8082/swagger-ui.html
+- Mail Service: http://localhost:8083/swagger-ui.html
 
 ## Monitoring
 

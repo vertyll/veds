@@ -1,5 +1,6 @@
 package com.vertyll.veds.mail.domain.service
 
+import com.vertyll.veds.mail.domain.dto.EmailLogResponseDto
 import com.vertyll.veds.mail.domain.model.entity.EmailLog
 import com.vertyll.veds.mail.domain.model.enums.EmailStatus
 import com.vertyll.veds.mail.domain.model.enums.EmailTemplate
@@ -7,9 +8,12 @@ import com.vertyll.veds.mail.domain.repository.EmailLogRepository
 import com.vertyll.veds.mail.infrastructure.config.MailProperties
 import jakarta.mail.internet.MimeMessage
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import java.time.Instant
@@ -153,4 +157,19 @@ class EmailService(
 
         emailLogRepository.save(emailLog)
     }
+
+    @Transactional(readOnly = true)
+    fun getEmailLogs(pageable: Pageable): Page<EmailLogResponseDto> =
+        emailLogRepository.findAll(pageable).map { log ->
+            EmailLogResponseDto(
+                id = log.id!!,
+                recipient = log.recipient,
+                subject = log.subject,
+                templateName = log.templateName,
+                status = log.status.name,
+                errorMessage = log.errorMessage,
+                createdAt = log.createdAt.toString(),
+                sentAt = log.sentAt?.toString(),
+            )
+        }
 }

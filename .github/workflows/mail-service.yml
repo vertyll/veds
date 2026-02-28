@@ -86,20 +86,20 @@ jobs:
             podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest > /dev/null 2>&1
             
             echo "Recreating container..."
-            podman-compose -f project-a-microservices.yml up -d --force-recreate --no-deps project-a-mail-service > /dev/null 2>&1
+            podman-compose -f veds.yml up -d --force-recreate --no-deps veds-mail-service > /dev/null 2>&1
             
             echo "Waiting for container to start..."
             sleep 15
             
             echo "=== Container status ==="
-            podman ps | grep project-a-mail-service || echo "Container is not running!"
+            podman ps | grep veds-mail-service || echo "Container is not running!"
             
             echo "=== Last logs ==="
-            podman logs --tail 50 project-a-mail-service
+            podman logs --tail 50 veds-mail-service
             
             sleep 5
             
             echo "=== Health check ==="
-            podman exec project-a-mail-service curl -f http://localhost:8080/actuator/health && \
+            podman exec veds-mail-service curl -f http://localhost:8080/actuator/health && \
               echo "✓ Mail Service is running!" || \
               echo "✗ Mail Service health check failed"

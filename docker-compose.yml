@@ -1,11 +1,11 @@
 services:
-  # Postgres databases for each services
+  # Postgres databases for each service
   iam-db:
     image: postgres:17-alpine
     container_name: iam-db
     restart: always
     volumes:
-      - identity-postgres-data:/var/lib/postgresql/data
+      - iam-postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -32,7 +32,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mail_service
     ports:
-      - "5435:5432"
+      - "5433:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -137,6 +137,6 @@ networks:
     driver: bridge
 
 volumes:
-  identity-postgres-data:
+  iam-postgres-data:
   mail-postgres-data:
   kafka-data:

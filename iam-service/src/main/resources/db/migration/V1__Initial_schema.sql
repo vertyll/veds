@@ -1,4 +1,4 @@
--- Initial schema for identity-service
+-- Initial schema for IAM-service
 -- Database: PostgreSQL
 
 -- ===============

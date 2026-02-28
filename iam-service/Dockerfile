@@ -9,9 +9,9 @@ WORKDIR /app
 COPY shared-infrastructure/ ./shared-infrastructure/
 
 # Copy the service code
-COPY identity-service/ ./identity-service/
+COPY iam-service/ ./iam-service/
 
-WORKDIR /app/identity-service
+WORKDIR /app/iam-service
 
 # Build application JAR
 RUN ./gradlew bootJar --no-daemon
@@ -31,10 +31,10 @@ RUN apk add --no-cache \
     adduser --system --uid 1001 --ingroup appuser appuser
 
 # Copy the built JAR from the build stage
-COPY --from=build /app/identity-service/build/libs/*.jar app.jar
+COPY --from=build /app/iam-service/build/libs/*.jar app.jar
 
 # Copy the entrypoint script and set permissions
-COPY identity-service/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY iam-service/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN dos2unix /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
 

@@ -3,7 +3,7 @@ package com.vertyll.veds.sharedinfrastructure.event
 enum class EventSource(
     val value: String,
 ) {
-    IDENTITY_SERVICE("IDENTITY_SERVICE"),
+    IAM_SERVICE("IAM_SERVICE"),
     MAIL_SERVICE("MAIL_SERVICE"),
     ;
 
