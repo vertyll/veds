@@ -17,6 +17,7 @@ class JacksonEventConfig {
         val scanner = ClassPathScanningCandidateComponentProvider(false)
         scanner.addIncludeFilter(AssignableTypeFilter(DomainEvent::class.java))
 
+        @Suppress("kotlin:S6524")
         val candidates = scanner.findCandidateComponents("com.vertyll.veds")
         for (candidate in candidates) {
             val clazz = ClassUtils.forName(candidate.beanClassName!!, ClassUtils.getDefaultClassLoader())
