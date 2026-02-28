@@ -81,7 +81,7 @@ class JwtService(
             .subject(userDetails.username)
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plusMillis(refreshTokenExpiration)))
-            .id(UUID.randomUUID().toString()) // Add a unique ID to each token
+            .id(UUID.randomUUID().toString())
             .and()
             .signWith(getSigningKey())
             .compact()

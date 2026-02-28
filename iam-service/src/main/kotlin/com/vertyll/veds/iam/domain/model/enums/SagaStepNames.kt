@@ -1,8 +1,10 @@
 package com.vertyll.veds.iam.domain.model.enums
 
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
+
 enum class SagaStepNames(
-    val value: String,
-) {
+    override val value: String,
+) : SagaTypeValue {
     CREATE_USER("CreateUser"),
     CREATE_USER_EVENT("CreateUserEvent"),
     CREATE_VERIFICATION_TOKEN("CreateVerificationToken"),
@@ -16,7 +18,7 @@ enum class SagaStepNames(
     companion object {
         const val COMPENSATION_PREFIX = "Compensate"
 
-        fun fromString(value: String): SagaStepNames? = SagaStepNames.entries.find { it.value == value }
+        fun fromString(value: String): SagaStepNames? = entries.find { it.value == value }
 
         fun compensationName(step: SagaStepNames): String = "$COMPENSATION_PREFIX${step.value}"
 

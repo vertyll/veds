@@ -1,8 +1,8 @@
 package com.vertyll.veds.template.domain.model.enums
 
 enum class SagaStepNames(
-    val value: String,
-) {
+    override val value: String,
+) : SagaTypeValue {
     EXAMPLE_STEP("exampleStep"),
     ;
 

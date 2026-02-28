@@ -16,6 +16,19 @@ import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
+/**
+ * IAM-specific saga manager.
+ *
+ * Enum-typed overloads (SagaTypes / SagaStepNames) are inherited from
+ * [BaseSagaManager] and delegate through the Spring proxy automatically
+ * via ApplicationContextAware — no wrapper methods needed here.
+ *
+ * Usage:
+ * ```kotlin
+ * sagaManager.startSaga(SagaTypes.USER_REGISTRATION, payload)
+ * sagaManager.recordSagaStep(sagaId, SagaStepNames.CREATE_USER, SagaStepStatus.COMPLETED)
+ * ```
+ */
 @Service
 class SagaManager(
     sagaRepository: SagaRepository,
@@ -101,30 +114,15 @@ class SagaManager(
             SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(saga.id, step)
             SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step)
             SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step)
-            else -> logger.warn("No compensation defined for step ${step.stepName}")
+            else -> logger.warn("No compensation defined for step '${step.stepName}'")
         }
     }
 
-    fun startSaga(
-        sagaType: SagaTypes,
-        payload: Any,
-    ): Saga = startSaga(sagaType.value, payload)
-
-    fun recordSagaStep(
-        sagaId: String,
-        stepName: SagaStepNames,
-        status: SagaStepStatus,
-        payload: Any? = null,
-    ): SagaStep = recordSagaStep(sagaId, stepName.value, status, payload)
-
-    /**
-     * Compensate for creating a user
-     */
     private fun compensateCreateUser(
         sagaId: String,
         step: SagaStep,
     ) {
-        try {
+        runCatching {
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
 
@@ -140,19 +138,16 @@ class SagaManager(
                     ),
                 sagaId = sagaId,
             )
-        } catch (e: Exception) {
-            logger.error("Failed to create compensation event for CreateUser: ${e.message}", e)
+        }.onFailure { e ->
+            logger.error("Failed to publish compensation event for step '${SagaStepNames.CREATE_USER.value}': ${e.message}", e)
         }
     }
 
-    /**
-     * Compensate for creating a verification token
-     */
     private fun compensateCreateVerificationToken(
         sagaId: String,
         step: SagaStep,
     ) {
-        try {
+        runCatching {
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val tokenId = (payload["tokenId"] as Number).toLong()
 
@@ -168,19 +163,19 @@ class SagaManager(
                     ),
                 sagaId = sagaId,
             )
-        } catch (e: Exception) {
-            logger.error("Failed to create compensation event for CreateVerificationToken: ${e.message}", e)
+        }.onFailure { e ->
+            logger.error(
+                "Failed to publish compensation event for step '${SagaStepNames.CREATE_VERIFICATION_TOKEN.value}': ${e.message}",
+                e,
+            )
         }
     }
 
-    /**
-     * Compensate for updating a password
-     */
     private fun compensateUpdatePassword(
         sagaId: String,
         step: SagaStep,
     ) {
-        try {
+        runCatching {
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
             val originalPasswordHash = payload["originalPasswordHash"]?.toString()
@@ -200,21 +195,18 @@ class SagaManager(
                     sagaId = sagaId,
                 )
             } else {
-                logger.warn("No original password hash available for compensating password update for user $userId")
+                logger.warn("Cannot compensate '${SagaStepNames.UPDATE_PASSWORD.value}' — original password hash missing for user $userId")
             }
-        } catch (e: Exception) {
-            logger.error("Failed to create compensation event for UpdatePassword: ${e.message}", e)
+        }.onFailure { e ->
+            logger.error("Failed to publish compensation event for step '${SagaStepNames.UPDATE_PASSWORD.value}': ${e.message}", e)
         }
     }
 
-    /**
-     * Compensate for updating an email
-     */
     private fun compensateUpdateEmail(
         sagaId: String,
         step: SagaStep,
     ) {
-        try {
+        runCatching {
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
             val originalEmail = payload["originalEmail"]?.toString()
@@ -234,10 +226,10 @@ class SagaManager(
                     sagaId = sagaId,
                 )
             } else {
-                logger.warn("No original email available for compensating email update for user $userId")
+                logger.warn("Cannot compensate '${SagaStepNames.UPDATE_EMAIL.value}' — original email missing for user $userId")
             }
-        } catch (e: Exception) {
-            logger.error("Failed to create compensation event for UpdateEmail: ${e.message}", e)
+        }.onFailure { e ->
+            logger.error("Failed to publish compensation event for step '${SagaStepNames.UPDATE_EMAIL.value}': ${e.message}", e)
         }
     }
 }

@@ -1,8 +1,10 @@
 package com.vertyll.veds.iam.domain.model.enums
 
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
+
 enum class SagaTypes(
-    val value: String,
-) {
+    override val value: String,
+) : SagaTypeValue {
     USER_REGISTRATION("UserRegistration"),
 
     EMAIL_CHANGE("EmailChange"),
@@ -13,6 +15,6 @@ enum class SagaTypes(
     ;
 
     companion object {
-        fun fromString(value: String): SagaTypes? = SagaTypes.entries.find { it.value == value }
+        fun fromString(value: String): SagaTypes? = entries.find { it.value == value }
     }
 }

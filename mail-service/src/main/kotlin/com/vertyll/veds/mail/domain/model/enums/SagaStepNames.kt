@@ -1,8 +1,10 @@
 package com.vertyll.veds.mail.domain.model.enums
 
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
+
 enum class SagaStepNames(
-    val value: String,
-) {
+    override val value: String,
+) : SagaTypeValue {
     PROCESS_TEMPLATE("ProcessTemplate"),
     SEND_EMAIL("SendEmail"),
     RECORD_EMAIL_LOG("RecordEmailLog"),

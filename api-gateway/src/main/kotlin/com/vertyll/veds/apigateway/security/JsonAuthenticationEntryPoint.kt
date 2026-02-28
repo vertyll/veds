@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono
 class JsonAuthenticationEntryPoint(
     private val objectMapper: ObjectMapper,
 ) : ServerAuthenticationEntryPoint {
+    @Suppress("kotlin:S6508")
     override fun commence(
         exchange: ServerWebExchange,
         e: AuthenticationException,

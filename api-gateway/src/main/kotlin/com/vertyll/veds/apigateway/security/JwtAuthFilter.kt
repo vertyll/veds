@@ -25,10 +25,11 @@ class JwtAuthFilter(
 ) : WebFilter {
     private val logger = LoggerFactory.getLogger(JwtAuthFilter::class.java)
 
+    @Suppress("kotlin:S6508")
     override fun filter(
         exchange: ServerWebExchange,
         chain: WebFilterChain,
-    ): Mono<Void> { // NOSONAR
+    ): Mono<Void> {
         val token = extractTokenFromRequest(exchange.request) ?: return chain.filter(exchange)
 
         return try {

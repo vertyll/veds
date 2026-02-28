@@ -22,10 +22,11 @@ class GatewayConfig {
 
         override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE
 
+        @Suppress("kotlin:S6508")
         override fun filter(
             exchange: ServerWebExchange,
             chain: GatewayFilterChain,
-        ): Mono<Void> { // NOSONAR
+        ): Mono<Void> {
             val request = exchange.request
             val authorization = request.headers.getFirst(HttpHeaders.AUTHORIZATION)
 

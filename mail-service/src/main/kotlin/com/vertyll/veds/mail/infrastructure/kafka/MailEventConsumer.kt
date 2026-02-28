@@ -67,9 +67,6 @@ class MailEventConsumer(
         }
     }
 
-    /**
-     * Removes outer quotes and unescapes inner quotes if necessary
-     */
     private fun cleanJsonPayload(payload: String): String =
         if (payload.startsWith("\"") && payload.endsWith("\"")) {
             payload.substring(1, payload.length - 1).replace("\\\"", "\"")

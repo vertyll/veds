@@ -109,6 +109,7 @@ class User(
 
     override fun isEnabled(): Boolean = enabled
 
+    @Suppress("kotlin:S107")
     companion object {
         fun create(
             email: String,
