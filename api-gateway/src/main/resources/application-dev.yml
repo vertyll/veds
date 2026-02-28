@@ -42,7 +42,7 @@ server:
 logging:
   level:
     root: INFO
-    com.vertyll.projecta: DEBUG
+    com.vertyll.veds: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.security: DEBUG
     reactor.netty.http.client: DEBUG

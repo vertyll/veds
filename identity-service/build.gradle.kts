@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-group = "com.vertyll.projecta"
+group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "Identity Microservice"
 
@@ -50,7 +50,7 @@ dependencyManagement {
 dependencies {
     // --- Common ---
     implementation(libs.bundles.spring.boot.common)
-    implementation("com.vertyll.projecta:shared-infrastructure")
+    implementation("com.vertyll.veds:shared-infrastructure")
 
     // --- Web & Security ---
     implementation(libs.bundles.spring.boot.webmvc.security)

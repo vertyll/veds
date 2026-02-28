@@ -29,7 +29,7 @@ spring:
     port: 1025
     username: ""
     password: ""
-    from: no-reply@projecta.local
+    from: no-reply@veds.local
     properties:
       mail:
         smtp:
@@ -56,7 +56,7 @@ springdoc:
 logging:
   level:
     ROOT: INFO
-    com.vertyll.projecta: DEBUG
+    com.vertyll.veds: DEBUG
     org.springframework.security: DEBUG
     org.springframework.kafka: INFO
     org.hibernate.SQL: DEBUG

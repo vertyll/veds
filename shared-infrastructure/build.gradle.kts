@@ -12,7 +12,7 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-group = "com.vertyll.projecta"
+group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "Shared infrastructure for microservices"
 

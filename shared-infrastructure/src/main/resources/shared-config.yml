@@ -8,17 +8,17 @@ spring:
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        spring.json.trusted.packages: "com.vertyll.projecta.*"
-        spring.json.value.default.type: "com.vertyll.projecta.sharedinfrastructure.event.DomainEvent"
+        spring.json.trusted.packages: "com.vertyll.veds.*"
+        spring.json.value.default.type: "com.vertyll.veds.sharedinfrastructure.event.DomainEvent"
         spring.json.use.type.headers: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: true
-        spring.json.value.default.type: "com.vertyll.projecta.sharedinfrastructure.event.DomainEvent"
+        spring.json.value.default.type: "com.vertyll.veds.sharedinfrastructure.event.DomainEvent"
 
-projecta:
+veds:
   shared:
     security:
       jwt:
