@@ -43,7 +43,6 @@ class JwtAuthenticationFilter(
             val jwt = authHeader.substring(JwtConstants.BEARER_PREFIX.length)
             val username = extractUsername(jwt)
 
-            // Only set authentication if not already set
             if (username.isNotBlank() && SecurityContextHolder.getContext().authentication == null) {
                 val roles = extractRoles(jwt)
                 val authorities = roles.map { SimpleGrantedAuthority(it) }
@@ -52,7 +51,7 @@ class JwtAuthenticationFilter(
                     User
                         .builder()
                         .username(username)
-                        .password("") // Not needed as we're not using password
+                        .password("")
                         .authorities(authorities)
                         .build()
 

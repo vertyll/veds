@@ -16,14 +16,12 @@ A microservices-based architecture for Project A, following Domain-Driven Design
 The project is split into the following components:
 
 1. **API Gateway** - Entry point for all client requests, handles routing to appropriate services and JWT token validation
-2. **Auth Service** - Manages authentication and authorization with JWT tokens and refresh tokens (http only secure cookie)
-3. **User Service** - Handles user profile management and user-related operations
-4. **Role Service** - Manages roles and permissions across the system
-5. **Mail Service** - Handles email sending operations and templates
-6. **Shared Infrastructure** - Shared infrastructure, contracts, and utilities used across all microservices
-7. **Template Service** - Baseline configuration for future microservices
+2. **Identity Service** - Consolidates authentication, user management, and roles/permissions into a single service (port 8082)
+3. **Mail Service** - Handles email sending operations and templates (port 8085)
+4. **Shared Infrastructure** - Shared infrastructure, contracts, and utilities used across all microservices
+5. **Template Service** - Baseline configuration for future microservices
 
-Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other via Apache Kafka for event-driven architecture, implementing the Choreography pattern.
+Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other via Apache Kafka for event-driven architecture, primarily for notifying the Mail Service.
 
 ### Detailed Description of Components
 
@@ -41,38 +39,17 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Provides shared ports and adapters interfaces for consistent hexagonal architecture implementation
 - Integration events definitions for inter-service communication
 
-#### Auth Service
-- Responsible for user authentication, authorization using JWT and refresh tokens (http only secure cookie)
-- Manages the user credentials, account activation, and session management
+#### Identity Service
+- Responsible for user authentication, authorization, profile management, and roles.
+- Uses JWT and refresh tokens (http-only secure cookies) for session management.
 - Database stores:
     - User credentials (email, hashed passwords)
-    - Refresh tokens (http only secure cookie)
-    - Verification tokens (for account activation, password reset, etc.)
-    - User roles (mirrored from Role Service)
-- Provides endpoints for registration, login, logout, account activation, password reset, and email change
-- Publishes authentication events that trigger workflows in other services
-- Implements hexagonal architecture with clear separation between business logic and external adapters
-
-#### Role Service
-- Manages the roles and permissions throughout the system
-- Database stores:
-    - Role definitions
-    - User-role assignments
-- Provides APIs for creating, updating, and assigning roles
-- Publishes role-related events to Kafka for other services to consume
-- Reacts to user events to assign default roles automatically
-- Follows hexagonal architecture with domain-driven role management at its core
-
-#### User Service
-- Manages user profiles and user-related information not needed for authentication
-- Database stores:
-    - User personal information (first name, last name, etc.)
-    - User preferences
-    - Other user-specific data not required for authentication
-- Consumes user-related events from other services
-- Provides APIs for managing user profiles
-- Publishes user profile events when changes occur
-- Implements clean hexagonal architecture with isolated business logic
+    - User profile data (first name, last name, preferences)
+    - Role definitions and user-role assignments
+    - Refresh tokens and verification tokens
+- Provides endpoints for registration, login, profile management, and role administration.
+- Publishes mail request events to trigger email workflows.
+- Implements internal Saga pattern for multi-step operations like user registration.
 
 #### Mail Service
 - Responsible for sending emails based on templates
@@ -139,17 +116,13 @@ cd <service-name>
 
 **Available Services:**
 - `api-gateway`
-- `auth-service`
-- `user-service`
-- `role-service`
+- `identity-service`
 - `mail-service`
 - `shared-infrastructure` (library)
 
 4. Access the services:
 - API Gateway: http://localhost:8080
-- Auth Service: http://localhost:8082
-- User Service: http://localhost:8083
-- Role Service: http://localhost:8084
+- Identity Service: http://localhost:8082
 - Mail Service: http://localhost:8085
 - Kafka UI: http://localhost:8090
 - MailDev: http://localhost:1080
@@ -233,31 +206,26 @@ Benefits of this approach:
 
 ### Saga Pattern for Distributed Transactions
 
-For distributed transactions that span multiple services, we use the Saga pattern:
+For distributed transactions, we use the Saga pattern (currently internal to Identity Service but can be extended):
 
-1. A service publishes a domain event to Kafka through its event publishing adapter
-2. Other services consume the event through their event consuming adapters
-3. Business logic in the domain core processes the event and may trigger compensating actions
-4. If an operation fails, compensating transactions are triggered to maintain consistency
+1. A service or component initiates a multi-step operation (e.g., registration).
+2. Each step is recorded in the Saga state machine.
+3. If a step fails, compensating transactions are triggered to maintain consistency.
 
-Example: User Registration Saga
-- Auth Service: Creates new user credentials and publishes UserRegisteredEvent
-- User Service: Consumes event and creates user profile
-- Role Service: Consumes event and assigns default roles
-- Mail Service: Consumes event and sends welcome email
+Example: User Registration Saga (Internal to Identity Service)
+- Create User: Creates the user record.
+- Create Verification Token: Generates a token for account activation.
+- Send Welcome Email: Publishes a `MailRequestedEvent` to Kafka for the Mail Service.
 
-Each step is handled by the respective service's hexagonal architecture, ensuring clean separation between event handling (adapters) and business logic (domain core).
+Each step is handled through hexagonal architecture, ensuring clean separation between the domain logic and persistence/event adapters.
 
 ### Event-Driven Communication
 
-Services communicate asynchronously through Kafka events, implemented as external adapters in the hexagonal architecture:
+Services communicate asynchronously through Kafka events:
 
-- **UserRegisteredEvent**: Triggered when a new user registers
-- **UserActivatedEvent**: Triggered when a user activates their account
-- **MailRequestedEvent**: Triggered when an email needs to be sent
-- **RoleCreatedEvent**: Triggered when a new role is created
-- **RoleAssignedEvent**: Triggered when a role is assigned to a user
-- **UserProfileUpdatedEvent**: Triggered when a user profile is updated
+- **UserActivatedEvent**: Triggered when a user activates their account.
+- **MailRequestedEvent**: Triggered when an email needs to be sent (consumed by Mail Service).
+- **SagaCompensationEvent**: Internal event for triggering compensation logic.
 
 Event publishing and consuming are handled by dedicated adapters, keeping the domain core focused on business logic.
 
@@ -271,29 +239,26 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 - Sagas and Outbox: Internal consistency ensured by JPA Optimistic Locking and idempotency safeguards — no HTTP ETags here.
 
 ### API: ETag / If-Match
-- Role Service
-    - `PUT /roles/{id}` requires `If-Match` header with the ETag received from a prior GET.
-        - Missing `If-Match` → `428 Precondition Required`.
-        - Version mismatch (precondition failed) → `412 Precondition Failed`.
+- Identity Service
+    - `PUT /users/{id}` (Update profile) - returns and optionally accepts `If-Match`.
+    - `POST /roles/user/{userId}/role/{roleName}` (Assign role) and `DELETE /roles/user/{userId}/role/{roleName}` (Remove role) optionally accept `If-Match` for the **User** entity.
     - `GET /roles/{id}`, `GET /roles/name/{name}` return `ETag: W/"<version>"`.
-    - Collections (e.g., `GET /roles`, `GET /roles/user/{userId}`) return a collection ETag derived from item versions (hash-based weak ETag) for efficient caching.
-- User Service
-    - `GET /users/{id}`, `GET /users/email/{email}` return `ETag: W/"<version>"` for clients that want to track staleness. (Updates to user profile are event-driven and do not use If-Match directly.)
+    - `GET /users/{id}`, `GET /users/email/{email}` return `ETag: W/"<version>"` for clients that want to track staleness.
 
-Example client flow (Role update):
+Example client flow (Profile update):
 1. Read current state
 ```
-curl -i http://localhost:8084/roles/1
+curl -i http://localhost:8082/users/1
 # Response contains: ETag: W/"<version>"
 ```
 2. Update with precondition
 ```
-curl -i -X PUT http://localhost:8084/roles/1 \
+curl -i -X PUT http://localhost:8082/users/1 \
   -H 'Content-Type: application/json' \
   -H 'If-Match: W/"<version>"' \
-  -d '{"name": "MANAGER", "description": "Updated"}'
+  -d '{"firstName": "John", "lastName": "Doe", "profilePicture": "http://...", "phoneNumber": "123456789", "address": "123 St"}'
 ```
-- If the resource changed meanwhile, the server returns `412`. If the header is missing, it returns `428`.
+- If the resource changed meanwhile, the server returns `412`.
 
 Error semantics at the API layer:
 - `428 Precondition Required` — missing `If-Match` on required endpoints.
@@ -301,7 +266,7 @@ Error semantics at the API layer:
 - `409 Conflict` — last-resort handler for JPA `ObjectOptimisticLockingFailureException` (race detected at commit time).
 
 ### Persistence: JPA Optimistic Locking
-- Entities use `@Version` to enable Optimistic Locking (e.g., `AuthUser`, `User`, `Role`, `KafkaOutbox`, and Saga/SagaStep entities where applicable).
+- Entities use `@Version` to enable Optimistic Locking (e.g., `User`, `Role`, `KafkaOutbox`, and Saga/SagaStep entities where applicable).
 - Services follow the pattern: load the entity → apply changes → `save(...)` inside `@Transactional`. Hibernate includes `WHERE version = ?` and raises a conflict if data changed concurrently.
 
 ### Sagas (Internal, no ETag)
@@ -322,9 +287,7 @@ Error semantics at the API layer:
 
 Each service provides its own Swagger UI for API documentation:
 
-- Auth Service: http://localhost:8082/swagger-ui.html
-- User Service: http://localhost:8083/swagger-ui.html
-- Role Service: http://localhost:8084/swagger-ui.html
+- Identity Service: http://localhost:8082/swagger-ui.html
 - Mail Service: http://localhost:8085/swagger-ui.html
 
 ## Monitoring

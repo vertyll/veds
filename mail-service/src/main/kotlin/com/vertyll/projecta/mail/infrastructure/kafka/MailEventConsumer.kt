@@ -25,7 +25,6 @@ class MailEventConsumer(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
-        // Event field names
         private const val FIELD_EVENT_ID = "eventId"
         private const val FIELD_TIMESTAMP = "timestamp"
         private const val FIELD_EVENT_TYPE = "eventType"
@@ -37,7 +36,6 @@ class MailEventConsumer(
         private const val FIELD_PRIORITY = "priority"
         private const val FIELD_SAGA_ID = "sagaId"
 
-        // Default values
         private val DEFAULT_EVENT_TYPE = EventType.MAIL_REQUESTED.value
         private const val DEFAULT_PRIORITY = 0
     }
@@ -51,16 +49,13 @@ class MailEventConsumer(
             logger.info("Received mail request message: {}", record.key())
             logger.debug("Message payload: {}", record.value())
 
-            // First try direct deserialization
             val event =
                 try {
                     objectMapper.readValue<MailRequestedEvent>(payload)
                 } catch (e: JacksonException) {
                     logger.warn("Could not directly deserialize payload, attempting manual parsing: {}", e.message)
-                    // The payload may be wrapped in quotes, so we need to handle that
                     val cleanPayload = cleanJsonPayload(payload)
 
-                    // Create MailRequestedEvent manually from the JSON
                     val jsonNode = objectMapper.readTree(cleanPayload)
                     createMailRequestedEventFromJson(jsonNode)
                 }
@@ -77,7 +72,6 @@ class MailEventConsumer(
      */
     private fun cleanJsonPayload(payload: String): String =
         if (payload.startsWith("\"") && payload.endsWith("\"")) {
-            // Remove the outer quotes and unescape any escaped quotes
             payload.substring(1, payload.length - 1).replace("\\\"", "\"")
         } else {
             payload
@@ -88,7 +82,6 @@ class MailEventConsumer(
         val variables =
             if (variablesNode != null) {
                 try {
-                    // Convert variables safely with type checking
                     variablesNode.properties().associate { (key, value) ->
                         key to (value.asString() ?: "")
                     }
@@ -100,7 +93,6 @@ class MailEventConsumer(
                 emptyMap()
             }
 
-        // Get the template name
         val templateName = jsonNode[FIELD_TEMPLATE_NAME]?.asString() ?: ""
 
         return MailRequestedEvent(
@@ -129,7 +121,6 @@ class MailEventConsumer(
         val template = EmailTemplate.fromTemplateName(event.templateName)
 
         if (template != null) {
-            // Use EmailSagaService to track the email sending process
             val success =
                 emailSagaService.sendEmailWithSaga(
                     to = event.to,

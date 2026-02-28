@@ -8,17 +8,14 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.Lob
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import jakarta.persistence.Version
 import java.time.Instant
 
-/**
- * Represents a step in a saga (a distributed transaction across multiple services).
- */
 @Entity
 @Table(
-    name = "saga_steps",
+    name = "saga_step",
     uniqueConstraints = [
         UniqueConstraint(columnNames = ["sagaId", "stepName"]),
     ],
@@ -26,33 +23,37 @@ import java.time.Instant
 class SagaStep(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: Long? = null,
     @Column(nullable = false)
     val sagaId: String,
     @Column(nullable = false)
     val stepName: String,
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    val status: SagaStepStatus,
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    var status: SagaStepStatus,
+    @Column(nullable = true, columnDefinition = "TEXT")
     val payload: String? = null,
+    @Column(nullable = true)
+    var errorMessage: String? = null,
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
+    val createdAt: Instant,
     @Column(nullable = true)
-    val completedAt: Instant? = null,
+    var completedAt: Instant? = null,
     @Column(nullable = true)
-    val compensationStepId: Long? = null,
+    var compensationStepId: Long? = null,
+    @Version
+    val version: Long? = null,
 ) {
-    // No-args constructor required by JPA
     constructor() : this(
-        id = 0,
+        id = null,
         sagaId = "",
         stepName = "",
         status = SagaStepStatus.STARTED,
         payload = null,
+        errorMessage = null,
         createdAt = Instant.now(),
         completedAt = null,
         compensationStepId = null,
+        version = null,
     )
 }

@@ -39,7 +39,6 @@ class EmailLog(
     @Column(nullable = true)
     var sentAt: Instant? = null,
 ) {
-    // No-arg constructor for JPA
     constructor() : this(
         id = null,
         recipient = "",

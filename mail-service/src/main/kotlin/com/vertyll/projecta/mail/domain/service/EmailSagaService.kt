@@ -44,7 +44,6 @@ class EmailSagaService(
                 ).id
 
         try {
-            // Process template
             sagaManager.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.PROCESS_TEMPLATE,
@@ -56,7 +55,6 @@ class EmailSagaService(
                     ),
             )
 
-            // Send email
             val success = emailService.sendEmail(to, subject, template, variables, replyTo)
 
             val status = if (success) SagaStepStatus.COMPLETED else SagaStepStatus.FAILED
@@ -128,7 +126,6 @@ class EmailSagaService(
         val results = mutableMapOf<String, Boolean>()
 
         try {
-            // Process template
             sagaManager.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.PROCESS_TEMPLATE,
@@ -140,17 +137,14 @@ class EmailSagaService(
                     ),
             )
 
-            // Send emails to all recipients
             recipients.forEach { recipient ->
                 val recipientVariables = commonVariables.toMutableMap()
-                // Add recipient-specific variables if they exist
                 specificVariables[recipient]?.let { recipientVariables.putAll(it) }
 
                 val success = emailService.sendEmail(recipient, subject, template, recipientVariables, replyTo)
                 results[recipient] = success
             }
 
-            // Record email log
             sagaManager.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.RECORD_EMAIL_LOG,
@@ -162,7 +156,6 @@ class EmailSagaService(
                     ),
             )
 
-            // Record send email step
             sagaManager.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.SEND_EMAIL,

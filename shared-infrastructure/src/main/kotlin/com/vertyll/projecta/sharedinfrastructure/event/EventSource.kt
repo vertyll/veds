@@ -3,9 +3,7 @@ package com.vertyll.projecta.sharedinfrastructure.event
 enum class EventSource(
     val value: String,
 ) {
-    AUTH_SERVICE("AUTH_SERVICE"),
-    USER_SERVICE("USER_SERVICE"),
-    ROLE_SERVICE("ROLE_SERVICE"),
+    IDENTITY_SERVICE("IDENTITY_SERVICE"),
     MAIL_SERVICE("MAIL_SERVICE"),
     ;
 

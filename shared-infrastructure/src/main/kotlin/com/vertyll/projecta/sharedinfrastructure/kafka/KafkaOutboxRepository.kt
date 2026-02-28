@@ -12,10 +12,18 @@ interface KafkaOutboxRepository : JpaRepository<KafkaOutbox, Long> {
 
     fun findBySagaId(sagaId: String): List<KafkaOutbox>
 
-    @Query("SELECT k FROM KafkaOutbox k WHERE k.status = :status AND k.retryCount < :maxRetries")
+    @Query(
+        """
+        SELECT k FROM KafkaOutbox k
+        WHERE k.status = :status
+        AND k.retryCount < :maxRetries
+        AND (k.lastRetryAt IS NULL OR k.lastRetryAt < :minRetryTime)
+        """,
+    )
     fun findMessagesToProcess(
         status: KafkaOutbox.OutboxStatus,
         maxRetries: Int,
+        minRetryTime: Instant,
     ): List<KafkaOutbox>
 
     @Modifying

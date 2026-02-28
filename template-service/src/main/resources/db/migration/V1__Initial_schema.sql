@@ -14,16 +14,18 @@ CREATE TABLE IF NOT EXISTS kafka_outbox (
     created_at TIMESTAMP NOT NULL,
     processed_at TIMESTAMP NULL,
     retry_count INT NOT NULL DEFAULT 0,
+    last_retry_at TIMESTAMP NULL,
     saga_id VARCHAR(255) NULL,
     version BIGINT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_kafka_outbox_status ON kafka_outbox (status);
 CREATE INDEX IF NOT EXISTS idx_kafka_outbox_created_at ON kafka_outbox (created_at);
 CREATE INDEX IF NOT EXISTS idx_kafka_outbox_topic ON kafka_outbox (topic);
+CREATE INDEX IF NOT EXISTS idx_kafka_outbox_last_retry_at ON kafka_outbox (last_retry_at);
 
 -- ===============
--- template_saga
-CREATE TABLE IF NOT EXISTS template_saga (
+-- saga
+CREATE TABLE IF NOT EXISTS saga (
     id VARCHAR(255) PRIMARY KEY,
     type VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -31,15 +33,16 @@ CREATE TABLE IF NOT EXISTS template_saga (
     last_error TEXT NULL,
     started_at TIMESTAMP NOT NULL,
     completed_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NOT NULL
+    updated_at TIMESTAMP NOT NULL,
+    version BIGINT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_template_saga_status ON template_saga (status);
-CREATE INDEX IF NOT EXISTS idx_template_saga_type ON template_saga (type);
-CREATE INDEX IF NOT EXISTS idx_template_saga_started_at ON template_saga (started_at);
+CREATE INDEX IF NOT EXISTS idx_saga_status ON saga (status);
+CREATE INDEX IF NOT EXISTS idx_saga_type ON saga (type);
+CREATE INDEX IF NOT EXISTS idx_saga_started_at ON saga (started_at);
 
 -- ===============
--- template_saga_step
-CREATE TABLE IF NOT EXISTS template_saga_step (
+-- saga_step
+CREATE TABLE IF NOT EXISTS saga_step (
     id BIGSERIAL PRIMARY KEY,
     saga_id VARCHAR(255) NOT NULL,
     step_name VARCHAR(255) NOT NULL,
@@ -49,9 +52,10 @@ CREATE TABLE IF NOT EXISTS template_saga_step (
     created_at TIMESTAMP NOT NULL,
     completed_at TIMESTAMP NULL,
     compensation_step_id BIGINT NULL,
+    version BIGINT NULL,
 
-    CONSTRAINT uk_template_saga_step UNIQUE (saga_id, step_name),
-    CONSTRAINT fk_template_saga_step_saga FOREIGN KEY (saga_id) REFERENCES template_saga(id) ON DELETE CASCADE
+    CONSTRAINT uk_saga_step UNIQUE (saga_id, step_name),
+    CONSTRAINT fk_saga_step_saga FOREIGN KEY (saga_id) REFERENCES saga(id) ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_template_saga_step_saga_id ON template_saga_step (saga_id);
-CREATE INDEX IF NOT EXISTS idx_template_saga_step_status ON template_saga_step (status);
+CREATE INDEX IF NOT EXISTS idx_saga_step_saga_id ON saga_step (saga_id);
+CREATE INDEX IF NOT EXISTS idx_saga_step_status ON saga_step (status);

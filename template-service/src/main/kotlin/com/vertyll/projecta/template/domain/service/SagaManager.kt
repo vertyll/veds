@@ -79,6 +79,7 @@ class SagaManager(
         stepName: SagaStepNames,
         status: SagaStepStatus,
         payload: Any? = null,
+        errorMessage: String? = null,
     ): SagaStep {
         val payloadJson =
             payload?.let {
@@ -96,24 +97,27 @@ class SagaManager(
                 stepName = stepName.value,
                 status = status,
                 payload = payloadJson,
+                errorMessage = errorMessage,
                 createdAt = Instant.now(),
             )
 
         val savedStep = sagaStepRepository.save(step)
 
-        // Update saga status based on step status
+        if (status == SagaStepStatus.COMPLETED) {
+            savedStep.completedAt = Instant.now()
+            sagaStepRepository.save(savedStep)
+        }
+
         if (status == SagaStepStatus.FAILED) {
             saga.status = SagaStatus.COMPENSATING
-            saga.lastError = "Step $stepName failed"
+            saga.lastError = errorMessage ?: "Step $stepName failed"
+            saga.updatedAt = Instant.now()
             sagaRepository.save(saga)
 
-            // Trigger compensation
             triggerCompensation(saga)
         } else if (status == SagaStepStatus.COMPLETED) {
-            // Check if this is the last step in the saga based on the saga type
             saga.updatedAt = Instant.now()
 
-            // If all expected steps are completed, mark the saga as completed
             if (areAllStepsCompleted(saga)) {
                 saga.status = SagaStatus.COMPLETED
                 saga.completedAt = Instant.now()
@@ -130,20 +134,16 @@ class SagaManager(
      * Checks if all expected steps for a saga have been completed
      */
     private fun areAllStepsCompleted(saga: Saga): Boolean {
-        // Get the expected steps for this saga type
         val expectedSteps = sagaStepDefinitions[saga.type] ?: return false
 
-        // Get all completed steps for this saga
         val completedSteps =
             sagaStepRepository.findBySagaIdAndStatus(
                 saga.id,
                 SagaStepStatus.COMPLETED,
             )
 
-        // Get the step names of completed steps
         val completedStepNames = completedSteps.map { it.stepName }
 
-        // Check if all expected steps are in the completed steps
         return expectedSteps.all { expectedStep ->
             completedStepNames.contains(expectedStep)
         }
@@ -155,7 +155,6 @@ class SagaManager(
      * @return Unit
      */
     private fun triggerCompensation(saga: Saga) {
-        // Get all completed steps for this saga in reverse order
         val completedSteps =
             sagaStepRepository
                 .findBySagaIdAndStatus(
@@ -165,10 +164,10 @@ class SagaManager(
 
         logger.info("Triggering compensation for saga ${saga.id} with ${completedSteps.size} steps to compensate")
 
-        // For each completed step, create a compensation event
         completedSteps.forEach { step ->
             try {
-                // Create a compensation event based on the step name
+                logger.info("Compensating step ${step.stepName} (ID: ${step.id}) for saga ${saga.id}")
+                
                 when (step.stepName) {
                     // TODO: Define the compensation actions for each step
                 }
@@ -176,21 +175,21 @@ class SagaManager(
                     else -> logger.warn("No compensation defined for step ${step.stepName}")
                 }
 
-                // Record compensation step
-                sagaStepRepository.save(
-                    SagaStep(
-                        sagaId = saga.id,
-                        stepName = SagaStepNames.compensationNameFromString(step.stepName),
-                        status = SagaStepStatus.STARTED,
-                        createdAt = Instant.now(),
-                    ),
+                val compensationStep = SagaStep(
+                    sagaId = saga.id,
+                    stepName = SagaStepNames.compensationNameFromString(step.stepName),
+                    status = SagaStepStatus.STARTED,
+                    createdAt = Instant.now(),
                 )
+                val savedCompensationStep = sagaStepRepository.save(compensationStep)
+                
+                step.compensationStepId = savedCompensationStep.id
+                sagaStepRepository.save(step)
             } catch (e: Exception) {
                 logger.error("Failed to create compensation event for step ${step.stepName}: ${e.message}", e)
             }
         }
 
-        // Update saga status
         saga.status = SagaStatus.COMPENSATING
         sagaRepository.save(saga)
     }

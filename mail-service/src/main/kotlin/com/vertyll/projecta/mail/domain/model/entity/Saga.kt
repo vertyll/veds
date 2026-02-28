@@ -10,11 +10,8 @@ import jakarta.persistence.Lob
 import jakarta.persistence.Table
 import java.time.Instant
 
-/**
- * Represents the state of a saga (a distributed transaction across multiple services).
- */
 @Entity
-@Table(name = "sagas")
+@Table(name = "saga")
 class Saga(
     @Id
     val id: String,
@@ -35,7 +32,6 @@ class Saga(
     @Column(nullable = false)
     var updatedAt: Instant = Instant.now(),
 ) {
-    // No-args constructor required by JPA
     constructor() : this(
         id = "",
         type = "",

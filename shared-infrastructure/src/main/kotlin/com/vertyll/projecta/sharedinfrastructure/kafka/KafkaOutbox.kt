@@ -23,7 +23,7 @@ class KafkaOutbox(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
     @Column(nullable = false)
-    val eventId: String = UUID.randomUUID().toString(),
+    var eventId: String = UUID.randomUUID().toString(),
     @Column(nullable = false)
     val topic: String,
     @Column(nullable = false)
@@ -42,11 +42,12 @@ class KafkaOutbox(
     @Column(nullable = false)
     var retryCount: Int = 0,
     @Column(nullable = true)
+    var lastRetryAt: Instant? = null,
+    @Column(nullable = true)
     var sagaId: String? = null,
     @Version
     val version: Long? = null,
 ) {
-    // No-args constructor required by JPA
     constructor() : this(
         id = null,
         topic = "",
@@ -56,6 +57,7 @@ class KafkaOutbox(
         errorMessage = null,
         processedAt = null,
         retryCount = 0,
+        lastRetryAt = null,
         sagaId = null,
         version = null,
     )

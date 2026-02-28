@@ -9,10 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
-/**
- * Global exception handler for template service.
- * Provides consistent error responses across the template service.
- */
 @RestControllerAdvice(basePackages = ["com.vertyll.projecta.template"])
 class GlobalExceptionHandler {
     private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)

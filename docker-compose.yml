@@ -1,59 +1,17 @@
 services:
   # Postgres databases for each services
-  auth-db:
+  identity-db:
     image: postgres:17-alpine
-    container_name: auth-db
+    container_name: identity-db
     restart: always
     volumes:
-      - auth-postgres-data:/var/lib/postgresql/data
+      - identity-postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: auth_service
+      POSTGRES_DB: identity_db
     ports:
       - "5432:5432"
-    networks:
-      - microservices-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-  user-db:
-    image: postgres:17-alpine
-    container_name: user-db
-    restart: always
-    volumes:
-      - user-postgres-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: user_service
-    ports:
-      - "5433:5432"
-    networks:
-      - microservices-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-  role-db:
-    image: postgres:17-alpine
-    container_name: role-db
-    restart: always
-    volumes:
-      - role-postgres-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: role_service
-    ports:
-      - "5434:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -179,8 +137,6 @@ networks:
     driver: bridge
 
 volumes:
-  auth-postgres-data:
-  user-postgres-data:
-  role-postgres-data:
+  identity-postgres-data:
   mail-postgres-data:
   kafka-data:

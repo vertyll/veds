@@ -45,7 +45,6 @@ class SagaCompensationService(
                 }
             }
 
-            // If there's a stepId, record that compensation was completed
             val stepId = event["stepId"] as? Number
             if (stepId != null) {
                 val step = sagaStepRepository.findById(stepId.toLong()).orElse(null)

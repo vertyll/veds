@@ -10,9 +10,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-/**
- * Configuration for scheduled tasks in the mail service
- */
 @Configuration
 @EnableScheduling
 class SchedulingConfig(

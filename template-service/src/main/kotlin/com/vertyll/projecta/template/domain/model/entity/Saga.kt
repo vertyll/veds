@@ -13,7 +13,7 @@ import java.time.Instant
  * Represents the state of a saga (a distributed transaction across multiple services).
  */
 @Entity
-@Table(name = "template_saga")
+@Table(name = "saga")
 class Saga(
     @Id
     val id: String, // Using a UUID string as ID
@@ -33,7 +33,6 @@ class Saga(
     @Column(nullable = false)
     var updatedAt: Instant = Instant.now(),
 ) {
-    // No-args constructor required by JPA
     constructor() : this(
         id = "",
         type = "",

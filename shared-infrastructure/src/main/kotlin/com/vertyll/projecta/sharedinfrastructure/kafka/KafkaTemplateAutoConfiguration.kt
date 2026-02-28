@@ -16,7 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 
 /**
- * Auto-configuration for Kafka Producer and Consumer.
+ * Autoconfiguration for Kafka Producer and Consumer.
  * Only creates beans when kafka is enabled.
  */
 @Configuration

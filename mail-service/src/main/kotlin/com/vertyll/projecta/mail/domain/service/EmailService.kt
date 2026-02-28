@@ -27,7 +27,6 @@ class EmailService(
         private const val CHARSET_UTF8 = "UTF-8"
         private const val MAX_VARIABLE_VALUE_LENGTH = 50
 
-        // Log messages
         private const val LOG_SENDING_EMAIL = "Sending email to {} with subject: {}"
         private const val LOG_SEND_FAILURE = "Failed to send email to {} with subject: {}"
     }
@@ -40,7 +39,7 @@ class EmailService(
      * @param template the EmailTemplate to use
      * @param variables variables to use in the template
      * @param replyTo optional reply-to address
-     * @return true if email was sent successfully, false otherwise
+     * @return true if the email was sent successfully, false otherwise
      */
     fun sendEmail(
         to: String,
@@ -59,12 +58,10 @@ class EmailService(
             helper.setTo(to)
             helper.setSubject(subject)
 
-            // Set reply-to address if provided
             if (replyTo != null) {
                 helper.setReplyTo(replyTo)
             }
 
-            // Process template
             val context = Context()
             variables.forEach { (key, value) ->
                 context.setVariable(key, value)

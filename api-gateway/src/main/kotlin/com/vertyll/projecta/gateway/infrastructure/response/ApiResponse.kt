@@ -13,7 +13,7 @@ class ApiResponse<T> private constructor(
         /**
          * Creates a response entity with an ApiResponse body.
          *
-         * @param data The data to include in the response, can be null
+         * @param data The data to include in the response can be null
          * @param message The message to include in the response, defaults to empty string if null
          * @param status The HTTP status code for the response
          * @return A ResponseEntity with an ApiResponse body
@@ -35,6 +35,10 @@ class ApiResponse<T> private constructor(
 
         /**
          * Creates an ApiResponse object directly.
+         *
+         * @param data The data to include in the response can be null
+         * @param message The message to include in the response, defaults to empty string if null
+         * @return An ApiResponse object
          */
         fun <T> of(
             data: T?,

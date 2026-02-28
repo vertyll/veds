@@ -38,8 +38,6 @@ class SagaCompensationService(
 
             logger.info("Processing compensation action: $actionStr for saga $sagaId")
 
-            // For mail service, compensations are mostly logging only
-            // as emails can't be "unsent"
             when (actionStr) {
                 SagaCompensationActions.LOG_EMAIL_COMPENSATION.value -> {
                     val emailId = event["emailId"]?.toString()
@@ -63,7 +61,6 @@ class SagaCompensationService(
                 }
             }
 
-            // If there's a stepId, record that compensation was completed
             val stepId = event["stepId"] as? Number
             if (stepId != null) {
                 val step = sagaStepRepository.findById(stepId.toLong()).orElse(null)

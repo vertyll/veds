@@ -50,7 +50,7 @@ class JwtAuthFilter(
                     authorities,
                 )
 
-            // Add authentication to security context
+            // Add authentication to the security context
             chain
                 .filter(exchange)
                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication))

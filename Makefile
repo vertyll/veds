@@ -1,4 +1,4 @@
-SERVICES = api-gateway auth-service mail-service role-service user-service
+SERVICES = api-gateway identity-service mail-service
 SHARED = shared-infrastructure
 
 .PHONY: build-all test-all clean-all format-all check-style-all

@@ -2,6 +2,8 @@ package com.vertyll.projecta.sharedinfrastructure.kafka
 
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,18 +25,21 @@ class KafkaOutboxProcessor(
     private companion object {
         private const val MAX_RETRIES = 3
         private const val UNKNOWN_ERROR = "Unknown error"
+        private const val RETRY_DELAY_MINUTES = 5L
     }
 
     /**
      * Scheduled job that processes pending messages from the outbox table
      */
-    @Scheduled(fixedRate = 5000) // Run every 5 seconds
+    @Scheduled(fixedRate = 5000)
     @Transactional
     fun processOutboxMessages() {
+        val minRetryTime = Instant.now().minusSeconds(RETRY_DELAY_MINUTES * 60)
         val pendingMessages =
             kafkaOutboxRepository.findMessagesToProcess(
                 KafkaOutbox.OutboxStatus.PENDING,
                 MAX_RETRIES,
+                minRetryTime,
             )
 
         logger.info("Found ${pendingMessages.size} pending messages to process")
@@ -46,8 +51,15 @@ class KafkaOutboxProcessor(
                 message.processedAt = Instant.now()
                 kafkaOutboxRepository.save(message)
 
-                // Send to Kafka
-                val result = kafkaTemplate.send(message.topic, message.key, message.payload).get()
+                val kafkaMessage =
+                    MessageBuilder
+                        .withPayload(message.payload)
+                        .setHeader(KafkaHeaders.TOPIC, message.topic)
+                        .setHeader(KafkaHeaders.KEY, message.key)
+                        .setHeader("eventId", message.eventId)
+                        .build()
+
+                val result = kafkaTemplate.send(kafkaMessage).get()
 
                 logger.info(
                     "Successfully sent message to Kafka: topic=${message.topic}, " +
@@ -66,6 +78,7 @@ class KafkaOutboxProcessor(
                 message.status = KafkaOutbox.OutboxStatus.FAILED
                 message.errorMessage = e.message ?: UNKNOWN_ERROR
                 message.retryCount = message.retryCount + 1
+                message.lastRetryAt = Instant.now()
                 kafkaOutboxRepository.save(message)
             }
         }
@@ -80,6 +93,7 @@ class KafkaOutboxProcessor(
         key: String,
         payload: Any,
         sagaId: String? = null,
+        eventId: String? = null,
     ): KafkaOutbox {
         val payloadJson = payload as? String ?: objectMapper.writeValueAsString(payload)
 
@@ -90,6 +104,8 @@ class KafkaOutboxProcessor(
                 payload = payloadJson,
                 sagaId = sagaId,
             )
+
+        eventId?.let { outboxMessage.eventId = it }
 
         return kafkaOutboxRepository.save(outboxMessage)
     }

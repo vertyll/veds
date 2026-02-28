@@ -15,7 +15,7 @@ import java.time.Instant
  * Represents a step in a saga (a distributed transaction across multiple services).
  */
 @Entity
-@Table(name = "template_saga_step")
+@Table(name = "saga_step")
 class SagaStep(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,6 @@ class SagaStep(
     @Column(nullable = true)
     var compensationStepId: Long? = null,
 ) {
-    // No-args constructor required by JPA
     constructor() : this(
         id = null,
         sagaId = "",

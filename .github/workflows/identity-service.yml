@@ -1,0 +1,105 @@
+name: Build and Deploy Auth Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'identity-service/**'
+      - 'shared-infrastructure/**'
+      - '.github/workflows/identity-service.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'identity-service/**'
+      - 'shared-infrastructure/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-identity-service
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./identity-service/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/podman/compose
+            
+            echo "Logging into GitHub Container Registry..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin > /dev/null 2>&1
+            
+            echo "Pulling latest image..."
+            podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest > /dev/null 2>&1
+            
+            echo "Recreating container..."
+            podman-compose -f project-a-microservices.yml up -d --force-recreate --no-deps project-a-identity-service > /dev/null 2>&1
+            
+            echo "Waiting for container to start..."
+            sleep 15
+            
+            echo "=== Container status ==="
+            podman ps | grep project-a-identity-service || echo "Container is not running!"
+            
+            echo "=== Last logs ==="
+            podman logs --tail 50 project-a-identity-service
+            
+            sleep 5
+            
+            echo "=== Health check ==="
+            podman exec project-a-identity-service curl -f http://localhost:8080/actuator/health && \
+              echo "✓ Auth Service is running!" || \
+              echo "✗ Auth Service health check failed"

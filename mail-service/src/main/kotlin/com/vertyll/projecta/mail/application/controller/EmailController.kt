@@ -16,17 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * Controller for managing emails
- */
 @RestController
 @RequestMapping("/mail")
 class EmailController(
     private val emailSagaService: EmailSagaService,
 ) {
-    /**
-     * Endpoint for manually sending an email
-     */
     @PostMapping("/send")
     fun sendEmail(
         @Valid @RequestBody
@@ -72,9 +66,6 @@ class EmailController(
         }
     }
 
-    /**
-     * Endpoint for sending batch emails
-     */
     @PostMapping("/send-batch")
     fun sendBatchEmail(
         @Valid @RequestBody

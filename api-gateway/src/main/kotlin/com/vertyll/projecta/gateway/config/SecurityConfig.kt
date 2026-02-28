@@ -58,13 +58,26 @@ class SecurityConfig(
             )
 
         // Role endpoints
-        private const val ROLE_ADMIN_ENDPOINTS = "/roles/admin/**"
+        private val ROLE_ADMIN_ENDPOINTS =
+            arrayOf(
+                "/roles/user/{userId}/role/{roleName}",
+                "/roles/user/{userId}/role/{roleName}/",
+            )
         private const val ROLE_USER_ENDPOINTS = "/roles/**"
 
         // User endpoints
-        private const val USER_ADMIN_ENDPOINTS = "/users/admin/**"
+        private val USER_ADMIN_ENDPOINTS =
+            arrayOf(
+                "/users/admin/**",
+            )
         private const val USER_PROFILE_ENDPOINT = "/users/me"
-        private const val USER_ID_ENDPOINT = "/users/{id}"
+        private val USER_ID_ENDPOINT =
+            arrayOf(
+                "/users/{id}",
+                "/users/{id}/",
+                "/users/email/{email}",
+                "/users/email/{email}/",
+            )
 
         // Mail endpoints
         private const val MAIL_ENDPOINTS = "/mail/**"
@@ -93,19 +106,19 @@ class SecurityConfig(
                     .pathMatchers(*PROTECTED_AUTH_ENDPOINTS)
                     .authenticated()
                     // Role service admin endpoints
-                    .pathMatchers(ROLE_ADMIN_ENDPOINTS)
+                    .pathMatchers(*ROLE_ADMIN_ENDPOINTS)
                     .hasRole(RoleType.ADMIN.value)
                     // Role service regular endpoints
                     .pathMatchers(ROLE_USER_ENDPOINTS)
                     .authenticated()
                     // User service admin endpoints
-                    .pathMatchers(USER_ADMIN_ENDPOINTS)
+                    .pathMatchers(*USER_ADMIN_ENDPOINTS)
                     .hasRole(RoleType.ADMIN.value)
                     // User service user endpoints
                     .pathMatchers(USER_PROFILE_ENDPOINT)
                     .authenticated()
                     // For user ID paths, we need a simpler approach in WebFlux
-                    .pathMatchers(USER_ID_ENDPOINT)
+                    .pathMatchers(*USER_ID_ENDPOINT)
                     .authenticated()
                     // Mail service endpoints (admin only)
                     .pathMatchers(MAIL_ENDPOINTS)
