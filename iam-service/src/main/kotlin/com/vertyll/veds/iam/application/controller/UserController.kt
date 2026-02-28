@@ -83,7 +83,6 @@ class UserController(
         return if (etag != null) ResponseEntity.status(HttpStatus.OK).eTag(etag).body(response.body) else response
     }
 
-    // TODO: check permissions (UserDetails)
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     @Operation(summary = "Update user profile (Admin only)")
