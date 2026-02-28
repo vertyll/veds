@@ -3,10 +3,12 @@ package com.vertyll.veds.identity
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigAutoConfiguration
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaConfigAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -21,6 +23,14 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @ComponentScan(
     "com.vertyll.veds.identity",
     "com.vertyll.veds.sharedinfrastructure",
+)
+@EnableJpaRepositories(
+    "com.vertyll.veds.identity.domain.repository",
+    "com.vertyll.veds.sharedinfrastructure.kafka",
+)
+@EntityScan(
+    "com.vertyll.veds.identity.domain.model",
+    "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EnableKafka
 class IdentityServiceApplication {
