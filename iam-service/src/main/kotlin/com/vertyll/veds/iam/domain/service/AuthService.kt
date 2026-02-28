@@ -486,7 +486,7 @@ class AuthService(
                 MailRequestedEvent(
                     to = request.newEmail,
                     subject = "Confirm Email Change",
-                    templateName = EmailTemplate.CHANGE_PASSWORD.name,
+                    templateName = EmailTemplate.CHANGE_EMAIL.name,
                     variables =
                         mapOf(
                             "firstName" to user.firstName,
