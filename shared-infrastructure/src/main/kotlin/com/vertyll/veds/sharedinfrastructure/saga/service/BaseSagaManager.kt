@@ -39,10 +39,14 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 ) : ApplicationContextAware {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    protected lateinit var self: BaseSagaManager<S, T>
+    private lateinit var applicationContext: ApplicationContext
+
+    protected val self: BaseSagaManager<S, T> by lazy {
+        applicationContext.getBean(this::class.java)
+    }
 
     override fun setApplicationContext(applicationContext: ApplicationContext) {
-        self = applicationContext.getBean(this::class.java)
+        this.applicationContext = applicationContext
     }
 
     /**

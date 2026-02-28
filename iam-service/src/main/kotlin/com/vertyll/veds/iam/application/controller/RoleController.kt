@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -75,8 +76,9 @@ class RoleController(
         return response
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
-    @Operation(summary = "Get roles for a user")
+    @Operation(summary = "Get roles for a user (Admin only)")
     fun getRolesForUser(
         @PathVariable userId: Long,
     ): ResponseEntity<ApiResponse<List<RoleResponseDto>>> {
@@ -90,8 +92,9 @@ class RoleController(
         return response
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/user/{userId}/role/{roleName}")
-    @Operation(summary = "Assign a role to a user")
+    @Operation(summary = "Assign a role to a user (Admin only)")
     fun assignRoleToUser(
         @PathVariable userId: Long,
         @PathVariable roleName: String,
@@ -106,8 +109,9 @@ class RoleController(
         )
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/user/{userId}/role/{roleName}")
-    @Operation(summary = "Remove a role from a user")
+    @Operation(summary = "Remove a role from a user (Admin only)")
     fun removeRoleFromUser(
         @PathVariable userId: Long,
         @PathVariable roleName: String,
