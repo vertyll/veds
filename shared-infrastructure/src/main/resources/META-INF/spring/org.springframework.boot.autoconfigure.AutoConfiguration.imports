@@ -1,3 +1,3 @@
-com.vertyll.projecta.sharedinfrastructure.config.SharedConfigAutoConfiguration
-com.vertyll.projecta.sharedinfrastructure.config.JacksonEventConfig
-com.vertyll.projecta.sharedinfrastructure.kafka.KafkaConfigAutoConfiguration
+com.vertyll.veds.sharedinfrastructure.config.SharedConfigAutoConfiguration
+com.vertyll.veds.sharedinfrastructure.config.JacksonEventConfig
+com.vertyll.veds.sharedinfrastructure.kafka.KafkaConfigAutoConfiguration

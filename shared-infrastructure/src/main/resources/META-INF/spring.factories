@@ -1,1 +1,1 @@
-org.springframework.boot.EnvironmentPostProcessor=com.vertyll.projecta.sharedinfrastructure.config.SharedConfigEnvironmentPostProcessor
+org.springframework.boot.EnvironmentPostProcessor=com.vertyll.veds.sharedinfrastructure.config.SharedConfigEnvironmentPostProcessor
