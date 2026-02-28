@@ -6,6 +6,8 @@ import com.vertyll.veds.identity.domain.model.entity.User
 import com.vertyll.veds.identity.domain.repository.UserRepository
 import com.vertyll.veds.identity.infrastructure.exception.ApiException
 import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidator
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +20,9 @@ class UserService(
         private const val USER_NOT_FOUND = "User not found"
         private const val USER_VERSION_MISMATCH = "Precondition Failed: User version mismatch"
     }
+
+    @Transactional(readOnly = true)
+    fun getAllUsers(pageable: Pageable): Page<UserResponseDto> = userRepository.findAll(pageable).map { mapToDto(it) }
 
     @Transactional(readOnly = true)
     fun getUserById(id: Long): UserResponseDto {
