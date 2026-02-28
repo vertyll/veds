@@ -116,7 +116,7 @@ cd <service-name>
 
 **Available Services:**
 - `api-gateway`
-- `identity-service`
+- `iam-service`
 - `mail-service`
 - `shared-infrastructure` (library)
 

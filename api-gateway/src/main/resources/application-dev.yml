@@ -21,8 +21,8 @@ spring:
                 allowedHeaders: "*"
                 allowCredentials: true
           routes:
-            - id: identity-service
-              uri: ${IDENTITY_SERVICE_URL:http://localhost:8082}
+            - id: iam-service
+              uri: ${IAM_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/auth/**, /users/**, /roles/**
             - id: mail-service

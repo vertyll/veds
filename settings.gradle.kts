@@ -2,5 +2,5 @@ rootProject.name = "project-a-microservices"
 
 includeBuild("shared-infrastructure")
 includeBuild("api-gateway")
-includeBuild("identity-service")
+includeBuild("iam-service")
 includeBuild("mail-service")

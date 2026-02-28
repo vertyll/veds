@@ -1,15 +1,15 @@
 services:
   # Postgres databases for each services
-  identity-db:
+  iam-db:
     image: postgres:17-alpine
-    container_name: identity-db
+    container_name: iam-db
     restart: always
     volumes:
       - identity-postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: identity_db
+      POSTGRES_DB: iam_db
     ports:
       - "5432:5432"
     networks:
