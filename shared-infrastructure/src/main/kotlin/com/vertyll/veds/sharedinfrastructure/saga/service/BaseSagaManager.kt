@@ -39,7 +39,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 ) : ApplicationContextAware {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    private lateinit var self: BaseSagaManager<S, T>
+    protected lateinit var self: BaseSagaManager<S, T>
 
     override fun setApplicationContext(applicationContext: ApplicationContext) {
         self = applicationContext.getBean(this::class.java)
@@ -186,8 +186,16 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
             SagaStepStatus.FAILED -> {
                 saga.status = SagaStatus.COMPENSATING
                 saga.lastError = "Step '$stepName' failed"
+                saga.updatedAt = Instant.now()
                 sagaRepository.save(saga)
                 triggerCompensation(saga)
+            }
+            SagaStepStatus.PARTIALLY_COMPLETED -> {
+                saga.status = SagaStatus.PARTIALLY_COMPLETED
+                saga.updatedAt = Instant.now()
+                saga.completedAt = Instant.now()
+                logger.info("Saga '${saga.id}' partially completed")
+                sagaRepository.save(saga)
             }
             SagaStepStatus.COMPLETED -> {
                 saga.updatedAt = Instant.now()

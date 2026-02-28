@@ -16,19 +16,6 @@ import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
-/**
- * IAM-specific saga manager.
- *
- * Enum-typed overloads (SagaTypes / SagaStepNames) are inherited from
- * [BaseSagaManager] and delegate through the Spring proxy automatically
- * via ApplicationContextAware — no wrapper methods needed here.
- *
- * Usage:
- * ```kotlin
- * sagaManager.startSaga(SagaTypes.USER_REGISTRATION, payload)
- * sagaManager.recordSagaStep(sagaId, SagaStepNames.CREATE_USER, SagaStepStatus.COMPLETED)
- * ```
- */
 @Service
 class SagaManager(
     sagaRepository: SagaRepository,

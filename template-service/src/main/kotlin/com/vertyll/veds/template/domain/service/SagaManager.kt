@@ -21,17 +21,17 @@ class SagaManager(
     kafkaOutboxProcessor: KafkaOutboxProcessor,
     objectMapper: ObjectMapper,
 ) : BaseSagaManager<Saga, SagaStep>(
-        sagaRepository,
-        sagaStepRepository,
-        kafkaOutboxProcessor,
-        objectMapper,
-    ) {
+    sagaRepository,
+    sagaStepRepository,
+    kafkaOutboxProcessor,
+    objectMapper,
+) {
     override fun getSagaStepDefinitions(): Map<String, List<String>> =
         mapOf(
             SagaTypes.EXAMPLE_SAGA.value to
-                listOf(
-                    SagaStepNames.EXAMPLE_STEP.value,
-                ),
+                    listOf(
+                        SagaStepNames.EXAMPLE_STEP.value,
+                    ),
         )
 
     override fun createSagaEntity(
@@ -73,16 +73,4 @@ class SagaManager(
             else -> logger.warn("No compensation defined for step ${step.stepName}")
         }
     }
-
-    fun startSaga(
-        sagaType: SagaTypes,
-        payload: Any,
-    ): Saga = startSaga(sagaType.value, payload)
-
-    fun recordSagaStep(
-        sagaId: String,
-        stepName: SagaStepNames,
-        status: SagaStepStatus,
-        payload: Any? = null,
-    ): SagaStep = recordSagaStep(sagaId, stepName.value, status, payload)
 }
