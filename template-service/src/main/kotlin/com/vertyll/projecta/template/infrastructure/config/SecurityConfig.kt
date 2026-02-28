@@ -18,9 +18,10 @@ class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
 ) {
     @Bean
-    fun userDetailsService(): UserDetailsService = UserDetailsService { username ->
-        throw UsernameNotFoundException("User $username not found")
-    }
+    fun userDetailsService(): UserDetailsService =
+        UserDetailsService { username ->
+            throw UsernameNotFoundException("User $username not found")
+        }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {

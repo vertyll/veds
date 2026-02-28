@@ -1,43 +1,43 @@
 package com.vertyll.projecta.mail.domain.model.entity
 
-import com.vertyll.projecta.mail.domain.model.enums.SagaStatus
-import jakarta.persistence.Column
+import com.vertyll.projecta.sharedinfrastructure.saga.entity.BaseSaga
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStatus
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
-import jakarta.persistence.Lob
 import jakarta.persistence.Table
 import java.time.Instant
 
 @Entity
 @Table(name = "saga")
 class Saga(
-    @Id
-    val id: String,
-    @Column(nullable = false)
-    val type: String,
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var status: SagaStatus = SagaStatus.STARTED,
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    val payload: String?,
-    @Column(nullable = false)
-    val startedAt: Instant = Instant.now(),
-    @Column(nullable = true)
-    var completedAt: Instant? = null,
-    @Column(nullable = true)
-    var lastError: String? = null,
-    @Column(nullable = false)
-    var updatedAt: Instant = Instant.now(),
-) {
+    id: String,
+    type: String,
+    status: SagaStatus = SagaStatus.STARTED,
+    payload: String,
+    lastError: String? = null,
+    startedAt: Instant = Instant.now(),
+    completedAt: Instant? = null,
+    updatedAt: Instant = Instant.now(),
+    version: Long? = null,
+) : BaseSaga(
+        id = id,
+        type = type,
+        status = status,
+        payload = payload,
+        lastError = lastError,
+        startedAt = startedAt,
+        completedAt = completedAt,
+        updatedAt = updatedAt,
+        version = version,
+    ) {
     constructor() : this(
         id = "",
         type = "",
         status = SagaStatus.STARTED,
-        payload = null,
+        payload = "",
+        lastError = null,
         startedAt = Instant.now(),
         completedAt = null,
+        updatedAt = Instant.now(),
+        version = null,
     )
 }

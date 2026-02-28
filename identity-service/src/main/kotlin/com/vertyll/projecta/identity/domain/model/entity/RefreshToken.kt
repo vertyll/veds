@@ -49,6 +49,5 @@ class RefreshToken(
             version = null,
         )
 
-    val isRevoked: Boolean
-        get() = revoked
+    val isRevoked: Boolean get() = revoked
 }

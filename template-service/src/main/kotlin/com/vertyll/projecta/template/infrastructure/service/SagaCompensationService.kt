@@ -1,8 +1,8 @@
 package com.vertyll.projecta.template.infrastructure.service
 
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.projecta.template.domain.model.entity.SagaStep
 import com.vertyll.projecta.template.domain.model.enums.SagaStepNames
-import com.vertyll.projecta.template.domain.model.enums.SagaStepStatus
 import com.vertyll.projecta.template.domain.repository.SagaStepRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -11,9 +11,6 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
-/**
- * Service that handles compensation actions for the template service
- */
 @Service
 class SagaCompensationService(
     private val sagaStepRepository: SagaStepRepository,
@@ -39,7 +36,6 @@ class SagaCompensationService(
             logger.info("Processing compensation action: $actionStr for saga $sagaId")
 
             when (actionStr) { // NOSONAR
-                // TODO: Define the expected compensation actions
                 else -> {
                     logger.warn("Unknown compensation action: $actionStr")
                 }

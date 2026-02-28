@@ -26,6 +26,7 @@ class KafkaOutboxProcessor(
         private const val MAX_RETRIES = 3
         private const val UNKNOWN_ERROR = "Unknown error"
         private const val RETRY_DELAY_MINUTES = 5L
+        private const val SECONDS_PER_MINUTE = 60L
     }
 
     /**
@@ -34,7 +35,7 @@ class KafkaOutboxProcessor(
     @Scheduled(fixedRate = 5000)
     @Transactional
     fun processOutboxMessages() {
-        val minRetryTime = Instant.now().minusSeconds(RETRY_DELAY_MINUTES * 60)
+        val minRetryTime = Instant.now().minusSeconds(RETRY_DELAY_MINUTES * SECONDS_PER_MINUTE)
         val pendingMessages =
             kafkaOutboxRepository.findMessagesToProcess(
                 KafkaOutbox.OutboxStatus.PENDING,

@@ -1,16 +1,10 @@
 package com.vertyll.projecta.identity.domain.model.entity
 
-import com.vertyll.projecta.identity.domain.model.enums.SagaStepStatus
-import jakarta.persistence.Column
+import com.vertyll.projecta.sharedinfrastructure.saga.entity.BaseSagaStep
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import jakarta.persistence.Version
 import java.time.Instant
 
 @Entity
@@ -21,29 +15,28 @@ import java.time.Instant
     ],
 )
 class SagaStep(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-    @Column(nullable = false)
-    val sagaId: String,
-    @Column(nullable = false)
-    val stepName: String,
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    var status: SagaStepStatus,
-    @Column(nullable = true, columnDefinition = "TEXT")
-    val payload: String? = null,
-    @Column(nullable = true)
-    var errorMessage: String? = null,
-    @Column(nullable = false)
-    val createdAt: Instant,
-    @Column(nullable = true)
-    var completedAt: Instant? = null,
-    @Column(nullable = true)
-    var compensationStepId: Long? = null,
-    @Version
-    val version: Long? = null,
-) {
+    id: Long? = null,
+    sagaId: String,
+    stepName: String,
+    status: SagaStepStatus,
+    payload: String? = null,
+    errorMessage: String? = null,
+    createdAt: Instant,
+    completedAt: Instant? = null,
+    compensationStepId: Long? = null,
+    version: Long? = null,
+) : BaseSagaStep(
+        id = id,
+        sagaId = sagaId,
+        stepName = stepName,
+        status = status,
+        payload = payload,
+        errorMessage = errorMessage,
+        createdAt = createdAt,
+        completedAt = completedAt,
+        compensationStepId = compensationStepId,
+        version = version,
+    ) {
     constructor() : this(
         id = null,
         sagaId = "",

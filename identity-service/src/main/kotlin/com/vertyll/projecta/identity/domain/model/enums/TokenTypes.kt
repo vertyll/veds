@@ -1,8 +1,5 @@
 package com.vertyll.projecta.identity.domain.model.enums
 
-/**
- * Enum representing different types of tokens used in the authentication process.
- */
 enum class TokenTypes(
     val value: String,
 ) {

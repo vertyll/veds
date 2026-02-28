@@ -3,39 +3,38 @@ package com.vertyll.projecta.mail.domain.service
 import com.vertyll.projecta.mail.domain.model.entity.Saga
 import com.vertyll.projecta.mail.domain.model.entity.SagaStep
 import com.vertyll.projecta.mail.domain.model.enums.SagaCompensationActions
-import com.vertyll.projecta.mail.domain.model.enums.SagaStatus
 import com.vertyll.projecta.mail.domain.model.enums.SagaStepNames
-import com.vertyll.projecta.mail.domain.model.enums.SagaStepStatus
 import com.vertyll.projecta.mail.domain.model.enums.SagaTypes
 import com.vertyll.projecta.mail.domain.repository.SagaRepository
 import com.vertyll.projecta.mail.domain.repository.SagaStepRepository
 import com.vertyll.projecta.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.projecta.sharedinfrastructure.kafka.KafkaTopicNames
-import org.slf4j.LoggerFactory
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStatus
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
+import com.vertyll.projecta.sharedinfrastructure.saga.service.BaseSagaManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
-import java.util.UUID
 
-/**
- * Manages the state of sagas and coordinates compensating transactions.
- */
 @Service
 class SagaManager(
-    private val sagaRepository: SagaRepository,
-    private val sagaStepRepository: SagaStepRepository,
-    private val kafkaOutboxProcessor: KafkaOutboxProcessor,
-    private val objectMapper: ObjectMapper,
-) {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
+    sagaRepository: SagaRepository,
+    sagaStepRepository: SagaStepRepository,
+    kafkaOutboxProcessor: KafkaOutboxProcessor,
+    objectMapper: ObjectMapper,
+) : BaseSagaManager<Saga, SagaStep>(
+        sagaRepository,
+        sagaStepRepository,
+        kafkaOutboxProcessor,
+        objectMapper,
+    ) {
     private companion object {
         private const val EMAIL_CANNOT_BE_UNSENT = "Email cannot be unsent, compensation logged for auditing purposes"
         private const val TEMPLATE_UPDATE_COMPENSATION_LOGGED = "Template update compensation logged"
     }
 
-    private val sagaStepDefinitions =
+    override fun getSagaStepDefinitions(): Map<String, List<String>> =
         mapOf(
             SagaTypes.EMAIL_SENDING.value to
                 listOf(
@@ -54,47 +53,59 @@ class SagaManager(
                 ),
         )
 
-    /**
-     * Starts a new saga
-     * @param sagaType The type of saga to start
-     * @param payload Additional data related to the saga
-     * @return The created saga instance
-     */
-    @Transactional
-    fun startSaga(
-        sagaType: SagaTypes,
-        payload: Any,
-    ): Saga {
-        val payloadJson = payload as? String ?: objectMapper.writeValueAsString(payload)
+    override fun createSagaEntity(
+        id: String,
+        type: String,
+        status: SagaStatus,
+        payload: String,
+        startedAt: Instant,
+    ): Saga =
+        Saga(
+            id = id,
+            type = type,
+            status = status,
+            payload = payload,
+            startedAt = startedAt,
+        )
 
-        val saga =
-            Saga(
-                id = UUID.randomUUID().toString(),
-                type = sagaType.value,
-                status = SagaStatus.STARTED,
-                payload = payloadJson,
-                startedAt = Instant.now(),
-            )
+    override fun createSagaStepEntity(
+        sagaId: String,
+        stepName: String,
+        status: SagaStepStatus,
+        payload: String?,
+        createdAt: Instant,
+    ): SagaStep =
+        SagaStep(
+            sagaId = sagaId,
+            stepName = stepName,
+            status = status,
+            payload = payload,
+            createdAt = createdAt,
+        )
 
-        return sagaRepository.save(saga)
+    override fun compensateStep(
+        saga: Saga,
+        step: SagaStep,
+    ) {
+        when (step.stepName) {
+            SagaStepNames.SEND_EMAIL.value -> compensateSendEmail(saga.id, step)
+            SagaStepNames.RECORD_EMAIL_LOG.value -> compensateRecordEmailLog(saga.id, step)
+            SagaStepNames.TEMPLATE_UPDATE.value -> compensateTemplateUpdate(saga.id, step)
+            else -> logger.warn("No compensation defined for step ${step.stepName}")
+        }
     }
 
     /**
-     * Records a step in a saga
-     * @param sagaId The ID of the saga
-     * @param stepName The name of the step
-     * @param status The status of the step
-     * @param payload Additional data related to the step
-     * @return The created saga step
+     * Override to handle PARTIALLY_COMPLETED status
      */
     @Transactional
-    fun recordSagaStep(
+    override fun recordSagaStep(
         sagaId: String,
-        stepName: SagaStepNames,
+        stepName: String,
         status: SagaStepStatus,
-        payload: Any? = null,
+        payload: Any?,
     ): SagaStep {
-        val existingSteps = sagaStepRepository.findBySagaIdAndStepName(sagaId, stepName.value)
+        val existingSteps = sagaStepRepository.findBySagaIdAndStepName(sagaId, stepName)
         if (existingSteps.isNotEmpty()) {
             val existingStep = existingSteps.first()
             logger.info("Saga step $stepName already exists for saga $sagaId, status: ${existingStep.status}")
@@ -112,9 +123,9 @@ class SagaManager(
             }
 
         val step =
-            SagaStep(
+            createSagaStepEntity(
                 sagaId = sagaId,
-                stepName = stepName.value,
+                stepName = stepName,
                 status = status,
                 payload = payloadJson,
                 createdAt = Instant.now(),
@@ -153,78 +164,21 @@ class SagaManager(
         return savedStep
     }
 
-    /**
-     * Checks if all expected steps for a saga have been completed
-     * @param saga The saga to check
-     * @return True if all expected steps are completed, false otherwise
-     */
-    private fun areAllStepsCompleted(saga: Saga): Boolean {
-        val expectedSteps = sagaStepDefinitions[saga.type] ?: return false
+    // Convenience methods
+    fun startSaga(
+        sagaType: SagaTypes,
+        payload: Any,
+    ): Saga = startSaga(sagaType.value, payload)
 
-        val completedSteps =
-            sagaStepRepository.findBySagaIdAndStatus(
-                saga.id,
-                SagaStepStatus.COMPLETED,
-            )
-
-        val completedStepNames = completedSteps.map { it.stepName }
-
-        return expectedSteps.all { expectedStep ->
-            completedStepNames.contains(expectedStep)
-        }
-    }
-
-    /**
-     * Triggers compensation for a failed saga
-     * @param saga The saga to compensate
-     * @return Unit
-     */
-    private fun triggerCompensation(saga: Saga) {
-        val completedSteps =
-            sagaStepRepository
-                .findBySagaIdAndStatus(
-                    saga.id,
-                    SagaStepStatus.COMPLETED,
-                ).sortedByDescending { it.createdAt }
-
-        logger.info("Triggering compensation for saga ${saga.id} with ${completedSteps.size} steps to compensate")
-
-        completedSteps.forEach { step ->
-            try {
-                logger.info("Compensating step ${step.stepName} (ID: ${step.id}) for saga ${saga.id}")
-
-                when (step.stepName) {
-                    SagaStepNames.SEND_EMAIL.value -> compensateSendEmail(saga.id, step)
-                    SagaStepNames.RECORD_EMAIL_LOG.value -> compensateRecordEmailLog(saga.id, step)
-                    SagaStepNames.TEMPLATE_UPDATE.value -> compensateTemplateUpdate(saga.id, step)
-                    else -> logger.warn("No compensation defined for step ${step.stepName}")
-                }
-
-                val compensationStep =
-                    SagaStep(
-                        sagaId = saga.id,
-                        stepName = SagaStepNames.compensationNameFromString(step.stepName),
-                        status = SagaStepStatus.STARTED,
-                        createdAt = Instant.now(),
-                    )
-                val savedCompensationStep = sagaStepRepository.save(compensationStep)
-
-                step.compensationStepId = savedCompensationStep.id
-                sagaStepRepository.save(step)
-            } catch (e: Exception) {
-                logger.error("Failed to create compensation event for step ${step.stepName}: ${e.message}", e)
-            }
-        }
-
-        saga.status = SagaStatus.COMPENSATING
-        sagaRepository.save(saga)
-    }
+    fun recordSagaStep(
+        sagaId: String,
+        stepName: SagaStepNames,
+        status: SagaStepStatus,
+        payload: Any? = null,
+    ): SagaStep = recordSagaStep(sagaId, stepName.value, status, payload)
 
     /**
      * Compensate for sending an email (for auditing/logging only, can't "unsend" an email)
-     * @param sagaId The ID of the saga
-     * @param step The saga step that needs compensation
-     * @return Unit
      */
     private fun compensateSendEmail(
         sagaId: String,
@@ -256,9 +210,6 @@ class SagaManager(
 
     /**
      * Compensate for recording an email log (delete it)
-     * @param sagaId The ID of the saga
-     * @param step The saga step that needs compensation
-     * @return Unit
      */
     private fun compensateRecordEmailLog(
         sagaId: String,
@@ -289,9 +240,6 @@ class SagaManager(
 
     /**
      * Compensate for updating a template (mostly for logging)
-     * @param sagaId The ID of the saga
-     * @param step The saga step that needs compensation
-     * @return Unit
      */
     private fun compensateTemplateUpdate(
         sagaId: String,

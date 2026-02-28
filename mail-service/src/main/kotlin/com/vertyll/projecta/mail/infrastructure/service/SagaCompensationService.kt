@@ -3,17 +3,14 @@ package com.vertyll.projecta.mail.infrastructure.service
 import com.vertyll.projecta.mail.domain.model.entity.SagaStep
 import com.vertyll.projecta.mail.domain.model.enums.SagaCompensationActions
 import com.vertyll.projecta.mail.domain.model.enums.SagaStepNames
-import com.vertyll.projecta.mail.domain.model.enums.SagaStepStatus
 import com.vertyll.projecta.mail.domain.repository.SagaStepRepository
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 
-/**
- * Service that handles compensation actions for the Mail Service
- */
 @Service
 class SagaCompensationService(
     private val sagaStepRepository: SagaStepRepository,

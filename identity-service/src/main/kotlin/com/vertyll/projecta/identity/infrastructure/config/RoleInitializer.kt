@@ -9,9 +9,6 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * Initializes default roles in the database when the application starts.
- */
 @Component
 class RoleInitializer(
     private val roleRepository: RoleRepository,

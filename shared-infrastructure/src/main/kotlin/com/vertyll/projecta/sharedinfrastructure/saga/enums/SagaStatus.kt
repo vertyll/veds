@@ -1,4 +1,4 @@
-package com.vertyll.projecta.identity.domain.model.enums
+package com.vertyll.projecta.sharedinfrastructure.saga.enums
 
 enum class SagaStatus {
     STARTED,
@@ -6,4 +6,5 @@ enum class SagaStatus {
     FAILED,
     COMPENSATING,
     COMPENSATED,
+    PARTIALLY_COMPLETED,
 }

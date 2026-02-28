@@ -1,7 +1,7 @@
 package com.vertyll.projecta.identity.infrastructure.config
 
-import com.vertyll.projecta.identity.domain.model.enums.SagaStatus
 import com.vertyll.projecta.identity.domain.repository.SagaRepository
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStatus
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling

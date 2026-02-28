@@ -2,14 +2,14 @@ package com.vertyll.projecta.mail.domain.service
 
 import com.vertyll.projecta.mail.domain.model.enums.EmailTemplate
 import com.vertyll.projecta.mail.domain.model.enums.SagaStepNames
-import com.vertyll.projecta.mail.domain.model.enums.SagaStepStatus
 import com.vertyll.projecta.mail.domain.model.enums.SagaTypes
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 /**
- * Service that handles email sending with saga pattern
+ * Service that handles email sending with a saga pattern
  */
 @Service
 class EmailSagaService(

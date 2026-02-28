@@ -22,9 +22,6 @@ class AuthEventProducer(
         private const val HEADER_VALUE = "mailRequested"
     }
 
-    /**
-     * Sends a mail-requested event to the Kafka topic.
-     */
     fun sendMailRequestedEvent(event: MailRequestedEvent) {
         val eventJson = objectMapper.writeValueAsString(event)
         val message =

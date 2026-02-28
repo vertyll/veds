@@ -2,19 +2,16 @@ package com.vertyll.projecta.identity.infrastructure.service
 
 import com.vertyll.projecta.identity.domain.model.entity.SagaStep
 import com.vertyll.projecta.identity.domain.model.enums.SagaStepNames
-import com.vertyll.projecta.identity.domain.model.enums.SagaStepStatus
 import com.vertyll.projecta.identity.domain.repository.SagaStepRepository
 import com.vertyll.projecta.identity.domain.repository.UserRepository
 import com.vertyll.projecta.identity.domain.repository.VerificationTokenRepository
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 
-/**
- * Service that handles compensation actions for the Auth Service
- */
 @Service
 class SagaCompensationService(
     private val userRepository: UserRepository,

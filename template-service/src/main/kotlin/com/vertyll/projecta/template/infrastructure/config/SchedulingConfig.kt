@@ -1,6 +1,6 @@
 package com.vertyll.projecta.template.infrastructure.config
 
-import com.vertyll.projecta.template.domain.model.enums.SagaStatus
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.projecta.template.domain.repository.SagaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
@@ -20,6 +20,11 @@ class SchedulingConfig(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    private companion object {
+        private const val SAGA_RETENTION_DAYS = 30L
+        private const val STUCK_SAGA_THRESHOLD_HOURS = 24L
+    }
+
     /**
      * Clean up old sagas that are completed or compensated
      * Runs daily at 2:30 AM
@@ -27,7 +32,7 @@ class SchedulingConfig(
     @Scheduled(cron = "0 30 2 * * ?")
     @Transactional
     fun cleanupOldSagas() {
-        val cutoffDate = Instant.now().minus(30, ChronoUnit.DAYS)
+        val cutoffDate = Instant.now().minus(SAGA_RETENTION_DAYS, ChronoUnit.DAYS)
 
         logger.info("Cleaning up sagas completed before {}", cutoffDate)
 
@@ -50,7 +55,7 @@ class SchedulingConfig(
     @Scheduled(cron = "0 25 * * * ?")
     @Transactional(readOnly = true)
     fun checkForStuckSagas() {
-        val cutoffDate = Instant.now().minus(24, ChronoUnit.HOURS)
+        val cutoffDate = Instant.now().minus(STUCK_SAGA_THRESHOLD_HOURS, ChronoUnit.HOURS)
 
         logger.info("Checking for stuck sagas started before {}", cutoffDate)
 

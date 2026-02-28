@@ -13,7 +13,6 @@ import com.vertyll.projecta.identity.domain.model.entity.VerificationToken
 import com.vertyll.projecta.identity.domain.model.enums.EmailTemplate
 import com.vertyll.projecta.identity.domain.model.enums.RoleType
 import com.vertyll.projecta.identity.domain.model.enums.SagaStepNames
-import com.vertyll.projecta.identity.domain.model.enums.SagaStepStatus
 import com.vertyll.projecta.identity.domain.model.enums.SagaTypes
 import com.vertyll.projecta.identity.domain.model.enums.TokenTypes
 import com.vertyll.projecta.identity.domain.repository.RefreshTokenRepository
@@ -24,6 +23,7 @@ import com.vertyll.projecta.identity.infrastructure.exception.ApiException
 import com.vertyll.projecta.identity.infrastructure.kafka.AuthEventProducer
 import com.vertyll.projecta.sharedinfrastructure.config.JwtConstants
 import com.vertyll.projecta.sharedinfrastructure.event.mail.MailRequestedEvent
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStepStatus
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

@@ -1,7 +1,7 @@
 package com.vertyll.projecta.mail.infrastructure.config
 
-import com.vertyll.projecta.mail.domain.model.enums.SagaStatus
 import com.vertyll.projecta.mail.domain.repository.SagaRepository
+import com.vertyll.projecta.sharedinfrastructure.saga.enums.SagaStatus
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling

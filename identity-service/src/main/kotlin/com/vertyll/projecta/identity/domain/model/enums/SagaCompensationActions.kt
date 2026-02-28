@@ -1,8 +1,5 @@
 package com.vertyll.projecta.identity.domain.model.enums
 
-/**
- * Defines compensation actions for identity service sagas
- */
 enum class SagaCompensationActions(
     val value: String,
 ) {
