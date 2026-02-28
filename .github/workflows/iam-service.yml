@@ -1,4 +1,4 @@
-name: Build and Deploy Auth Service
+name: Build and Deploy IAM Service
 
 on:
   push:
@@ -101,5 +101,5 @@ jobs:
             
             echo "=== Health check ==="
             podman exec veds-iam-service curl -f http://localhost:8080/actuator/health && \
-              echo "✓ Auth Service is running!" || \
-              echo "✗ Auth Service health check failed"
+              echo "✓ IAM Service is running!" || \
+              echo "✗ IAM Service health check failed"

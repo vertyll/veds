@@ -102,19 +102,19 @@ class SecurityConfig(
                     // Health and metrics endpoints
                     .pathMatchers(ACTUATOR_ENDPOINTS)
                     .permitAll()
-                    // Auth service - some endpoints need authentication
+                    // IAM service - some endpoints need authentication
                     .pathMatchers(*PROTECTED_AUTH_ENDPOINTS)
                     .authenticated()
-                    // Role service admin endpoints
+                    // IAM service admin endpoints
                     .pathMatchers(*ROLE_ADMIN_ENDPOINTS)
                     .hasRole(RoleType.ADMIN.value)
-                    // Role service regular endpoints
+                    // IAM service regular endpoints
                     .pathMatchers(ROLE_USER_ENDPOINTS)
                     .authenticated()
-                    // User service admin endpoints
+                    // IAM service admin endpoints
                     .pathMatchers(*USER_ADMIN_ENDPOINTS)
                     .hasRole(RoleType.ADMIN.value)
-                    // User service user endpoints
+                    // IAM service user endpoints
                     .pathMatchers(USER_PROFILE_ENDPOINT)
                     .authenticated()
                     // For user ID paths, we need a simpler approach in WebFlux
