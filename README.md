@@ -11,6 +11,8 @@ A microservices-based architecture for Project A, following Domain-Driven Design
 
 ## Architecture
 
+![Architecture graph](https://raw.githubusercontent.com/vertyll/veds/refs/heads/main/screenshots/veds-architecture-graph.png)
+
 The project is split into the following components:
 
 1. **API Gateway** – Entry point for all client requests, handles routing to appropriate services and JWT token validation
