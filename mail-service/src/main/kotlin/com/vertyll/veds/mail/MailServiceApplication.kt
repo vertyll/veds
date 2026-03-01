@@ -1,7 +1,6 @@
 package com.vertyll.veds.mail
 
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigAutoConfiguration
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaConfigAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
@@ -13,7 +12,6 @@ import org.springframework.kafka.annotation.EnableKafka
 @SpringBootApplication
 @Import(
     SharedConfigAutoConfiguration::class,
-    KafkaConfigAutoConfiguration::class,
 )
 @ComponentScan(
     "com.vertyll.veds.mail",

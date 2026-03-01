@@ -1,7 +1,6 @@
 package com.vertyll.veds.iam
 
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigAutoConfiguration
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaConfigAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @SpringBootApplication
 @Import(
     SharedConfigAutoConfiguration::class,
-    KafkaConfigAutoConfiguration::class,
 )
 @ComponentScan(
     "com.vertyll.veds.iam",

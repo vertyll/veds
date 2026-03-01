@@ -1,5 +1,6 @@
 package com.vertyll.veds.template.infrastructure.service
 
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.template.domain.model.entity.SagaStep
 import com.vertyll.veds.template.domain.model.enums.SagaStepNames
@@ -21,7 +22,7 @@ class SagaCompensationService(
     /**
      * Listens for compensation events and processes them
      */
-    @KafkaListener(topics = ["#{@kafkaTopicsConfig.getSagaCompensationTopic()}"])
+    @KafkaListener(topics = [KafkaTopicNames.Topics.SAGA_COMPENSATION])
     @Transactional
     fun handleCompensationEvent(payload: String) {
         try {

@@ -5,6 +5,7 @@ import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -24,7 +25,7 @@ class SagaCompensationService(
     /**
      * Listens for compensation events and processes them
      */
-    @KafkaListener(topics = ["#{@kafkaTopicsConfig.getSagaCompensationTopic()}"])
+    @KafkaListener(topics = [KafkaTopicNames.Topics.SAGA_COMPENSATION])
     @Transactional
     fun handleCompensationEvent(payload: String) {
         try {

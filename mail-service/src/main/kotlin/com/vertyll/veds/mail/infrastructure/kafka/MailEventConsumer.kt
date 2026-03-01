@@ -7,7 +7,6 @@ import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicsConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -24,7 +23,6 @@ class MailEventConsumer(
     private val objectMapper: ObjectMapper,
     private val emailSagaService: EmailSagaService,
     private val kafkaOutboxProcessor: KafkaOutboxProcessor,
-    @Suppress("unused") private val kafkaTopicsConfig: KafkaTopicsConfig,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -44,7 +42,7 @@ class MailEventConsumer(
         private const val DEFAULT_PRIORITY = 0
     }
 
-    @KafkaListener(topics = ["#{@kafkaTopicsConfig.getMailRequestedTopic()}"])
+    @KafkaListener(topics = [KafkaTopicNames.Topics.MAIL_REQUESTED])
     fun consume(
         record: ConsumerRecord<String, String>,
         @Payload payload: String,

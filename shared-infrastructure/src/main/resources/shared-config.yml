@@ -32,15 +32,5 @@ veds:
           secure: ${JWT_COOKIE_SECURE:false}
           sameSite: Strict
           path: "/"
-    services:
-      topics:
-        # Topics that services publish to or subscribe from
-        all:
-          user-registered: "user-registered"
-          user-activated: "user-activated"
-          user-password-reset: "user-password-reset"
-          mail-requested: "mail-requested"
-          mail-sent: "mail-sent"
-          mail-failed: "mail-failed"
-          saga-compensation: "saga-compensation"
+
 

@@ -4,7 +4,7 @@ import com.vertyll.veds.iam.domain.model.enums.SagaTypes
 import com.vertyll.veds.iam.domain.service.SagaManager
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicsConfig
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
@@ -16,7 +16,6 @@ import tools.jackson.module.kotlin.readValue
 class MailFeedbackConsumer(
     private val objectMapper: ObjectMapper,
     private val sagaManager: SagaManager,
-    @Suppress("unused") private val kafkaTopicsConfig: KafkaTopicsConfig,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -32,7 +31,7 @@ class MailFeedbackConsumer(
             )
     }
 
-    @KafkaListener(topics = ["#{@kafkaTopicsConfig.getMailSentTopic()}"])
+    @KafkaListener(topics = [KafkaTopicNames.Topics.MAIL_SENT])
     fun handleMailSent(
         @Payload payload: String,
     ) {
@@ -69,7 +68,7 @@ class MailFeedbackConsumer(
         }
     }
 
-    @KafkaListener(topics = ["#{@kafkaTopicsConfig.getMailFailedTopic()}"])
+    @KafkaListener(topics = [KafkaTopicNames.Topics.MAIL_FAILED])
     fun handleMailFailed(
         @Payload payload: String,
     ) {
