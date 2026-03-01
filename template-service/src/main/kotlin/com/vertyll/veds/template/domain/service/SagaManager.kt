@@ -1,6 +1,5 @@
 package com.vertyll.veds.template.domain.service
 
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
@@ -27,7 +26,7 @@ class SagaManager(
     kafkaOutboxProcessor,
     objectMapper,
 ) {
-    override val serviceSource = EventSource.TEMPLATE_SERVICE
+//    override val compensationTopic = SAGA_COMPENSATION_TOPIC
 
     override fun createSagaEntity(
         id: String,

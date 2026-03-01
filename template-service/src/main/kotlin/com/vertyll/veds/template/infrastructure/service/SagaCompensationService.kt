@@ -1,11 +1,12 @@
 package com.vertyll.veds.template.infrastructure.service
 
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
+import com.vertyll.veds.template.domain.service.SagaManager
 import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaCompensationService
 import com.vertyll.veds.template.domain.model.entity.SagaStep
 import com.vertyll.veds.template.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.template.domain.repository.SagaStepRepository
+import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
@@ -15,7 +16,8 @@ class SagaCompensationService(
     sagaStepRepository: SagaStepRepository,
     objectMapper: ObjectMapper,
 ) : BaseSagaCompensationService<SagaStep>(sagaStepRepository, objectMapper) {
-    override val serviceSource = EventSource.TEMPLATE_SERVICE
+//    @KafkaListener(topics = [SagaManager.SAGA_COMPENSATION_TOPIC])
+    override fun handleCompensationEvent(payload: String) = super.handleCompensationEvent(payload)
 
     override fun createCompensationStepEntity(
         sagaId: String,

@@ -78,7 +78,7 @@ class KafkaOutboxProcessor(
                 // Mark as failed using OL
                 message.status = KafkaOutbox.OutboxStatus.FAILED
                 message.errorMessage = e.message ?: UNKNOWN_ERROR
-                message.retryCount = message.retryCount + 1
+                message.retryCount += 1
                 message.lastRetryAt = Instant.now()
                 kafkaOutboxRepository.save(message)
             }
@@ -95,12 +95,25 @@ class KafkaOutboxProcessor(
         payload: Any,
         sagaId: String? = null,
         eventId: String? = null,
+    ): KafkaOutbox = saveOutboxMessage(topic.value, key, payload, sagaId, eventId)
+
+    /**
+     * Creates a new outbox message for a raw topic name.
+     * Use this overload for service-specific topics not registered in [KafkaTopicNames].
+     */
+    @Transactional
+    fun saveOutboxMessage(
+        topic: String,
+        key: String,
+        payload: Any,
+        sagaId: String? = null,
+        eventId: String? = null,
     ): KafkaOutbox {
         val payloadJson = payload as? String ?: objectMapper.writeValueAsString(payload)
 
         val outboxMessage =
             KafkaOutbox(
-                topic = topic.value,
+                topic = topic,
                 key = key,
                 payload = payloadJson,
                 sagaId = sagaId,

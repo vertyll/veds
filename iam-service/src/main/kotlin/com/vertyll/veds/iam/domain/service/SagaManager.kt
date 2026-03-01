@@ -6,7 +6,6 @@ import com.vertyll.veds.iam.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
 import com.vertyll.veds.iam.domain.repository.SagaRepository
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
@@ -27,7 +26,11 @@ class SagaManager(
         kafkaOutboxProcessor,
         objectMapper,
     ) {
-    override val serviceSource = EventSource.IAM_SERVICE
+    override val compensationTopic = SAGA_COMPENSATION_TOPIC
+
+    companion object {
+        const val SAGA_COMPENSATION_TOPIC = "saga-compensation-iam"
+    }
 
     override fun createSagaEntity(
         id: String,

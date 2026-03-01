@@ -1,8 +1,6 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSaga
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
@@ -67,11 +65,11 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     }
 
     /**
-     * Identifies this service for source filtering in compensation events.
-     * Compensation messages include this value so that [BaseSagaCompensationService]
-     * can filter out events intended for other services.
+     * The Kafka topic to which compensation events for this service are published.
+     * Each microservice uses its own dedicated topic (e.g. `saga-compensation-iam`)
+     * so that only the originating service's [BaseSagaCompensationService] consumes them.
      */
-    protected abstract val serviceSource: EventSource
+    protected abstract val compensationTopic: String
 
     /**
      * Creates a new saga instance of the concrete type [S].
@@ -386,8 +384,9 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 
     /**
      * Publishes a compensation event to the outbox for processing by
-     * [BaseSagaCompensationService]. Automatically includes the [serviceSource]
-     * so that only the originating service processes the event.
+     * [BaseSagaCompensationService]. The event is sent to the service-specific
+     * [compensationTopic] so that only this service's compensation handler
+     * receives it.
      *
      * @param sagaId       The saga being compensated
      * @param stepId       The original step ID being compensated
@@ -401,14 +400,13 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         extraPayload: Map<String, Any?> = emptyMap(),
     ) {
         kafkaOutboxProcessor.saveOutboxMessage(
-            topic = KafkaTopicNames.SAGA_COMPENSATION,
+            topic = compensationTopic,
             key = sagaId,
             payload =
                 buildMap {
                     put("sagaId", sagaId)
                     put("stepId", stepId)
                     put("action", action)
-                    put("source", serviceSource.value)
                     putAll(extraPayload)
                 },
             sagaId = sagaId,

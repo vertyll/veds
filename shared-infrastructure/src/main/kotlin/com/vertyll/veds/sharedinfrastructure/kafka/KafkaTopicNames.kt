@@ -19,8 +19,8 @@ enum class KafkaTopicNames(
     MAIL_SENT(Topics.MAIL_SENT),
     MAIL_FAILED(Topics.MAIL_FAILED),
 
-    // Saga topics
-    SAGA_COMPENSATION(Topics.SAGA_COMPENSATION),
+    // Saga topics — per-service compensation topics are defined
+    // locally in each microservice, not here.
     ;
 
     /**
@@ -30,7 +30,6 @@ enum class KafkaTopicNames(
         const val MAIL_REQUESTED = "mail-requested"
         const val MAIL_SENT = "mail-sent"
         const val MAIL_FAILED = "mail-failed"
-        const val SAGA_COMPENSATION = "saga-compensation"
     }
 
     companion object {

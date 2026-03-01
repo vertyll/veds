@@ -1,13 +1,10 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.repository.BaseSagaStepRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
@@ -19,11 +16,13 @@ import java.time.Instant
  * with domain-specific compensation logic. The base class takes care of:
  *
  * - Deserializing the Kafka message
- * - Filtering messages by [serviceSource] so that a service processes only
- *   its **own** compensation events (all services share the same
- *   `saga-compensation` topic)
  * - Persisting a compensation step record after successful processing
  * - Error handling and logging
+ *
+ * Each service listens on its own dedicated Kafka topic (e.g.
+ * `saga-compensation-iam`), so no cross-service filtering is needed.
+ * Subclasses must annotate their override of [handleCompensationEvent]
+ * with `@KafkaListener` pointing to the service-specific topic.
  *
  * Subclasses must also implement [createCompensationStepEntity] to produce
  * the correct JPA entity type for the owning service.
@@ -35,13 +34,6 @@ abstract class BaseSagaCompensationService<T : BaseSagaStep>(
     protected val objectMapper: ObjectMapper,
 ) {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
-
-    /**
-     * Identifies this service so that only compensation events published
-     * by the same service are processed. Messages from other services are
-     * silently ignored.
-     */
-    protected abstract val serviceSource: EventSource
 
     /**
      * Creates a new compensation step entity of the concrete type [T].
@@ -58,7 +50,6 @@ abstract class BaseSagaCompensationService<T : BaseSagaStep>(
     /**
      * Domain-specific compensation logic.
      *
-     * Called only for events whose `source` matches [serviceSource].
      * Implementations should dispatch on the `action` field.
      *
      * @param sagaId The saga being compensated
@@ -72,28 +63,24 @@ abstract class BaseSagaCompensationService<T : BaseSagaStep>(
     )
 
     /**
-     * Listens for compensation events on the shared `saga-compensation` topic,
-     * filters by [serviceSource], delegates to [processCompensation], and
-     * records a compensation step.
+     * Processes a compensation event from Kafka.
+     *
+     * Subclasses **must** override this method and annotate it with
+     * `@KafkaListener(topics = [...])` pointing to the service-specific
+     * compensation topic. The override should simply delegate:
+     *
+     * ```kotlin
+     * @KafkaListener(topics = [KafkaTopicNames.Topics.SAGA_COMPENSATION_IAM])
+     * override fun handleCompensationEvent(payload: String) = super.handleCompensationEvent(payload)
+     * ```
      */
-    @KafkaListener(topics = [KafkaTopicNames.Topics.SAGA_COMPENSATION])
     @Transactional
     open fun handleCompensationEvent(payload: String) {
         try {
             @Suppress("UNCHECKED_CAST")
             val event = objectMapper.readValue(payload, Map::class.java) as Map<String, Any?>
             val sagaId = event["sagaId"] as String
-            val source = event["source"] as? String
             val actionStr = event["action"] as String
-
-            if (source != null && source != serviceSource.value) {
-                logger.debug(
-                    "Ignoring compensation event from source '{}' (this service: {})",
-                    source,
-                    serviceSource.value,
-                )
-                return
-            }
 
             logger.info("Processing compensation action: {} for saga {}", actionStr, sagaId)
 

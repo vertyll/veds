@@ -6,7 +6,6 @@ import com.vertyll.veds.mail.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.mail.domain.model.enums.SagaStepNames
 import com.vertyll.veds.mail.domain.repository.SagaRepository
 import com.vertyll.veds.mail.domain.repository.SagaStepRepository
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
@@ -27,11 +26,13 @@ class SagaManager(
         kafkaOutboxProcessor,
         objectMapper,
     ) {
-    override val serviceSource = EventSource.MAIL_SERVICE
+    override val compensationTopic = SAGA_COMPENSATION_TOPIC
 
-    private companion object {
-        const val EMAIL_CANNOT_BE_UNSENT = "Email cannot be unsent, compensation logged for auditing purposes"
-        const val TEMPLATE_UPDATE_COMPENSATION_LOGGED = "Template update compensation logged"
+    companion object {
+        const val SAGA_COMPENSATION_TOPIC = "saga-compensation-mail"
+
+        private const val EMAIL_CANNOT_BE_UNSENT = "Email cannot be unsent, compensation logged for auditing purposes"
+        private const val TEMPLATE_UPDATE_COMPENSATION_LOGGED = "Template update compensation logged"
     }
 
     override fun createSagaEntity(

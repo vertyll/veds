@@ -5,9 +5,10 @@ import com.vertyll.veds.iam.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
-import com.vertyll.veds.sharedinfrastructure.event.EventSource
+import com.vertyll.veds.iam.domain.service.SagaManager
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaCompensationService
+import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
@@ -19,7 +20,8 @@ class SagaCompensationService(
     sagaStepRepository: SagaStepRepository,
     objectMapper: ObjectMapper,
 ) : BaseSagaCompensationService<SagaStep>(sagaStepRepository, objectMapper) {
-    override val serviceSource = EventSource.IAM_SERVICE
+    @KafkaListener(topics = [SagaManager.SAGA_COMPENSATION_TOPIC])
+    override fun handleCompensationEvent(payload: String) = super.handleCompensationEvent(payload)
 
     override fun createCompensationStepEntity(
         sagaId: String,
