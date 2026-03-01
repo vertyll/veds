@@ -128,6 +128,10 @@ class SagaManager(
         }
     }
 
+    // Defensive: in the normal flow confirmPasswordChange records the step and
+    // calls completeSaga atomically within @Transactional, so compensation is
+    // never triggered.  This handler exists as a safety net for edge cases
+    // (e.g., stuck-saga auto-compensation after a crash between a step and complete).
     private fun compensateUpdatePassword(
         sagaId: String,
         step: SagaStep,
@@ -159,6 +163,10 @@ class SagaManager(
         }
     }
 
+    // Defensive: in the normal flow confirmEmailChange records the step and
+    // calls completeSaga atomically within @Transactional, so compensation is
+    // never triggered.  This handler exists as a safety net for edge cases
+    // (e.g., stuck-saga auto-compensation after a crash between a step and complete).
     private fun compensateUpdateEmail(
         sagaId: String,
         step: SagaStep,

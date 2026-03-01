@@ -261,6 +261,9 @@ class EmailSagaService(
                     ),
             )
 
+            // Batch saga is marked COMPLETED even when some recipients failed
+            // (PARTIALLY_COMPLETED step). Individual failures are tracked in step
+            // payload and feedback event — the saga itself has finished processing.
             sagaManager.completeSaga(sagaId)
 
             publishFeedbackEvent(
