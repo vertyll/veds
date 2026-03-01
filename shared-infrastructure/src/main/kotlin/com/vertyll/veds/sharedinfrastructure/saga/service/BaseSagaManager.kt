@@ -137,11 +137,18 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 
     /**
      * Records a step in an existing saga.
-     * Idempotent: if a step with the same name already exists, it is returned unchanged.
+     *
+     * Idempotent for the same status: if a step with the same name already exists
+     * and has the same status, it is returned unchanged.
+     *
+     * Allows status transitions: if the existing step has a non-terminal status
+     * (e.g. STARTED) and a new terminal status is provided (e.g. COMPLETED, FAILED),
+     * the existing step is updated rather than duplicated.
      *
      * When [status] is [SagaStepStatus.FAILED] compensation is triggered automatically.
      * When [status] is [SagaStepStatus.COMPLETED] the saga is marked COMPLETED if all
-     * expected steps have been recorded as completed.
+     * expected steps have been recorded as completed, or AWAITING_RESPONSE if some
+     * asynchronous steps are still pending.
      *
      * @param sagaId   The saga to attach this step to
      * @param stepName Raw step name string (e.g. "CreateUser")
@@ -156,19 +163,49 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         status: SagaStepStatus,
         payload: Any? = null,
     ): T {
+        val payloadJson = payload?.let { it as? String ?: objectMapper.writeValueAsString(it) }
+
         val existingSteps = sagaStepRepository.findBySagaIdAndStepName(sagaId, stepName)
         if (existingSteps.isNotEmpty()) {
             val existingStep = existingSteps.first()
-            logger.info("Saga step '$stepName' already exists for saga '$sagaId' (status: ${existingStep.status}) — skipping")
-            return existingStep
+            if (existingStep.status == status) {
+                logger.info("Saga step '$stepName' already exists for saga '$sagaId' with same status ($status) — skipping")
+                return existingStep
+            }
+            if (existingStep.status in TERMINAL_STEP_STATUSES) {
+                logger.info("Saga step '$stepName' for saga '$sagaId' is already terminal (${existingStep.status}) — skipping update to $status")
+                return existingStep
+            }
+            logger.info("Updating saga step '$stepName' for saga '$sagaId': ${existingStep.status} → $status")
+            existingStep.status = status
+            if (status == SagaStepStatus.COMPLETED) {
+                existingStep.completedAt = Instant.now()
+            }
+            if (status == SagaStepStatus.FAILED) {
+                existingStep.errorMessage = "Step '$stepName' failed"
+            }
+            val updatedStep = sagaStepRepository.save(existingStep)
+            updateSagaStatus(sagaId, stepName, status)
+            return updatedStep
         }
-
-        val payloadJson = payload?.let { it as? String ?: objectMapper.writeValueAsString(it) }
 
         val saga =
             sagaRepository.findById(sagaId).orElseThrow {
                 IllegalArgumentException("Saga with id '$sagaId' not found")
             }
+
+        if (saga.status.isTerminal()) {
+            logger.warn("Saga '$sagaId' is already in terminal status '${saga.status}' — ignoring new step '$stepName'")
+            val skippedStep =
+                createSagaStepEntity(
+                    sagaId = sagaId,
+                    stepName = stepName,
+                    status = status,
+                    payload = payloadJson,
+                    createdAt = Instant.now(),
+                )
+            return sagaStepRepository.save(skippedStep)
+        }
 
         val step =
             createSagaStepEntity(
@@ -185,6 +222,23 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
             savedStep.completedAt = Instant.now()
             savedStep = sagaStepRepository.save(savedStep)
         }
+
+        updateSagaStatus(sagaId, stepName, status)
+
+        return savedStep
+    }
+
+    private fun updateSagaStatus(
+        sagaId: String,
+        stepName: String,
+        status: SagaStepStatus,
+    ) {
+        val saga =
+            sagaRepository.findById(sagaId).orElseThrow {
+                IllegalArgumentException("Saga with id '$sagaId' not found")
+            }
+
+        if (saga.status.isTerminal()) return
 
         when (status) {
             SagaStepStatus.FAILED -> {
@@ -207,13 +261,14 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                     saga.status = SagaStatus.COMPLETED
                     saga.completedAt = Instant.now()
                     logger.info("All steps completed for saga '${saga.id}' — marking COMPLETED")
+                } else if (hasAsyncStepsPending(saga)) {
+                    saga.status = SagaStatus.AWAITING_RESPONSE
+                    logger.info("Saga '${saga.id}' is awaiting response from external service(s)")
                 }
                 sagaRepository.save(saga)
             }
             else -> Unit
         }
-
-        return savedStep
     }
 
     /**
@@ -234,6 +289,10 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 
     /**
      * Marks a saga as FAILED and triggers compensation for all completed steps.
+     *
+     * Guard clause: if the saga is already in a terminal state (COMPLETED, COMPENSATED,
+     * COMPENSATION_FAILED), the call is ignored to prevent out-of-order event issues
+     * in choreography-based communication.
      */
     @Transactional
     open fun failSaga(
@@ -245,6 +304,13 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                 IllegalArgumentException("Saga with id '$sagaId' not found")
             }
 
+        if (saga.status.isTerminal()) {
+            logger.warn(
+                "Ignoring failSaga for saga '$sagaId' — already in terminal status '${saga.status}'",
+            )
+            return saga
+        }
+
         saga.status = SagaStatus.FAILED
         saga.lastError = error
         saga.updatedAt = Instant.now()
@@ -255,6 +321,9 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         return savedSaga
     }
 
+    /**
+     * Checks if all expected steps for this saga type have been completed.
+     */
     protected open fun areAllStepsCompleted(saga: S): Boolean {
         val expectedSteps = getSagaStepDefinitions()[saga.type] ?: return false
 
@@ -267,6 +336,30 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         return expectedSteps.all { it in completedStepNames }
     }
 
+    /**
+     * Checks if the saga has completed some steps but is still waiting for
+     * asynchronous steps from external services (e.g. mail delivery confirmation).
+     */
+    protected open fun hasAsyncStepsPending(saga: S): Boolean {
+        val expectedSteps = getSagaStepDefinitions()[saga.type] ?: return false
+
+        val recordedStepNames =
+            sagaStepRepository
+                .findBySagaId(saga.id)
+                .map { it.stepName }
+                .toSet()
+
+        val missingSteps = expectedSteps.filter { it !in recordedStepNames }
+        return missingSteps.isNotEmpty()
+    }
+
+    /**
+     * Triggers compensation for all completed steps in reverse-chronological order.
+     *
+     * Tracks whether all compensations succeeded:
+     * - If all succeed → saga status = COMPENSATED
+     * - If any fail → saga status = COMPENSATION_FAILED (requires manual intervention)
+     */
     protected open fun triggerCompensation(saga: S) {
         val completedSteps =
             sagaStepRepository
@@ -274,6 +367,8 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                 .sortedByDescending { it.createdAt }
 
         logger.info("Triggering compensation for saga '${saga.id}' — ${completedSteps.size} step(s) to compensate")
+
+        var allCompensated = true
 
         completedSteps.forEach { step ->
             try {
@@ -283,13 +378,34 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                 sagaStepRepository.save(step)
             } catch (e: Exception) {
                 logger.error("Failed to compensate step '${step.stepName}' for saga '${saga.id}': ${e.message}", e)
+                step.status = SagaStepStatus.COMPENSATION_FAILED
                 step.errorMessage = e.message
                 sagaStepRepository.save(step)
+                allCompensated = false
             }
         }
 
-        saga.status = SagaStatus.COMPENSATED
+        if (allCompensated) {
+            saga.status = SagaStatus.COMPENSATED
+            logger.info("All steps compensated for saga '${saga.id}' — marking COMPENSATED")
+        } else {
+            saga.status = SagaStatus.COMPENSATION_FAILED
+            logger.error("Some steps failed compensation for saga '${saga.id}' — marking COMPENSATION_FAILED")
+        }
         saga.updatedAt = Instant.now()
         sagaRepository.save(saga)
+    }
+
+    private companion object {
+        /**
+         * Step statuses that should not be overwritten by a new recordSagaStep call.
+         */
+        val TERMINAL_STEP_STATUSES =
+            setOf(
+                SagaStepStatus.COMPLETED,
+                SagaStepStatus.FAILED,
+                SagaStepStatus.COMPENSATED,
+                SagaStepStatus.COMPENSATION_FAILED,
+            )
     }
 }

@@ -62,7 +62,7 @@ class SchedulingConfig(
 
         val stuckSagas =
             sagaRepository.findByStatusInAndStartedAtBefore(
-                listOf(SagaStatus.STARTED, SagaStatus.COMPENSATING),
+                listOf(SagaStatus.STARTED, SagaStatus.AWAITING_RESPONSE, SagaStatus.COMPENSATING),
                 cutoffDate,
             )
 
