@@ -64,7 +64,8 @@ class MailFeedbackConsumer(
 
             sagaManager.completeSaga(sagaId)
         } catch (e: Exception) {
-            logger.error("Failed to process MailSentEvent: {}", e.message, e)
+            logger.error("Failed to process MailSentEvent: {} — will be retried / sent to DLT", e.message, e)
+            throw e
         }
     }
 
@@ -85,7 +86,8 @@ class MailFeedbackConsumer(
 
             sagaManager.failSaga(sagaId, "Mail delivery failed: ${event.error}")
         } catch (e: Exception) {
-            logger.error("Failed to process MailFailedEvent: {}", e.message, e)
+            logger.error("Failed to process MailFailedEvent: {} — will be retried / sent to DLT", e.message, e)
+            throw e
         }
     }
 }

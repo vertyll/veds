@@ -3,7 +3,10 @@ package com.vertyll.veds.mail.infrastructure.kafka
 import com.vertyll.veds.mail.domain.model.enums.EmailTemplate
 import com.vertyll.veds.mail.domain.service.EmailSagaService
 import com.vertyll.veds.sharedinfrastructure.event.EventType
+import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicsConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -20,6 +23,7 @@ import java.time.Instant
 class MailEventConsumer(
     private val objectMapper: ObjectMapper,
     private val emailSagaService: EmailSagaService,
+    private val kafkaOutboxProcessor: KafkaOutboxProcessor,
     @Suppress("unused") private val kafkaTopicsConfig: KafkaTopicsConfig,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -135,6 +139,25 @@ class MailEventConsumer(
             }
         } else {
             logger.error("Received request with invalid template name: {}. Email will not be sent.", event.templateName)
+
+            if (event.sagaId != null) {
+                val failedEvent =
+                    MailFailedEvent(
+                        to = event.to,
+                        subject = event.subject,
+                        originalEventId = event.eventId,
+                        error = "Invalid template name: ${event.templateName}",
+                        sagaId = event.sagaId,
+                    )
+                kafkaOutboxProcessor.saveOutboxMessage(
+                    topic = KafkaTopicNames.MAIL_FAILED,
+                    key = event.sagaId!!,
+                    payload = failedEvent,
+                    sagaId = event.sagaId!!,
+                    eventId = failedEvent.eventId,
+                )
+                logger.info("Published MailFailedEvent for invalid template — saga: {}", event.sagaId)
+            }
         }
     }
 }

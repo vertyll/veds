@@ -263,14 +263,13 @@ class EmailSagaService(
 
             sagaManager.completeSaga(sagaId)
 
-            val allSucceededFinal = results.values.all { it }
             publishFeedbackEvent(
-                success = allSucceededFinal,
+                success = allSucceeded,
                 to = recipients.joinToString(", "),
                 subject = subject,
                 originSagaId = originSagaId,
                 originalEventId = originalEventId ?: sagaId,
-                error = if (!allSucceededFinal) "Some recipients failed in batch" else null,
+                error = if (!allSucceeded) "Some recipients failed in batch" else null,
             )
 
             return results
