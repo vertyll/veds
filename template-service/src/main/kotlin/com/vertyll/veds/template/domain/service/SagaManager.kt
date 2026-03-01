@@ -1,11 +1,13 @@
 package com.vertyll.veds.template.domain.service
 
+import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaManager
 import com.vertyll.veds.template.domain.model.entity.Saga
 import com.vertyll.veds.template.domain.model.entity.SagaStep
+import com.vertyll.veds.template.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.template.domain.model.enums.SagaStepNames
 import com.vertyll.veds.template.domain.repository.SagaRepository
 import com.vertyll.veds.template.domain.repository.SagaStepRepository
@@ -25,6 +27,8 @@ class SagaManager(
     kafkaOutboxProcessor,
     objectMapper,
 ) {
+    override val serviceSource = EventSource.TEMPLATE_SERVICE
+
     override fun createSagaEntity(
         id: String,
         type: String,
@@ -60,8 +64,21 @@ class SagaManager(
         step: SagaStep,
     ) {
         when (step.stepName) {
-            SagaStepNames.EXAMPLE_STEP.value -> logger.info("Compensating example step for saga ${saga.id}")
-            else -> logger.warn("No compensation defined for step ${step.stepName}")
+            SagaStepNames.EXAMPLE_STEP.value -> {
+                runCatching {
+                    publishCompensationEvent(
+                        sagaId = saga.id,
+                        stepId = step.id,
+                        action = SagaCompensationActions.EXAMPLE_COMPENSATION.value,
+                    )
+                }.onFailure { e ->
+                    logger.error(
+                        "Failed to publish compensation event for step '${SagaStepNames.EXAMPLE_STEP.value}': ${e.message}",
+                        e,
+                    )
+                }
+            }
+            else -> logger.warn("No compensation defined for step '${step.stepName}'")
         }
     }
 }

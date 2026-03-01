@@ -6,8 +6,8 @@ import com.vertyll.veds.iam.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
 import com.vertyll.veds.iam.domain.repository.SagaRepository
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
+import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaManager
@@ -27,6 +27,8 @@ class SagaManager(
         kafkaOutboxProcessor,
         objectMapper,
     ) {
+    override val serviceSource = EventSource.IAM_SERVICE
+
     override fun createSagaEntity(
         id: String,
         type: String,
@@ -83,17 +85,11 @@ class SagaManager(
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
 
-            kafkaOutboxProcessor.saveOutboxMessage(
-                topic = KafkaTopicNames.SAGA_COMPENSATION,
-                key = sagaId,
-                payload =
-                    mapOf(
-                        "sagaId" to sagaId,
-                        "stepId" to step.id,
-                        "action" to SagaCompensationActions.DELETE_USER.value,
-                        "userId" to userId,
-                    ),
+            publishCompensationEvent(
                 sagaId = sagaId,
+                stepId = step.id,
+                action = SagaCompensationActions.DELETE_USER.value,
+                extraPayload = mapOf("userId" to userId),
             )
         }.onFailure { e ->
             logger.error("Failed to publish compensation event for step '${SagaStepNames.CREATE_USER.value}': ${e.message}", e)
@@ -108,17 +104,11 @@ class SagaManager(
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val tokenId = (payload["tokenId"] as Number).toLong()
 
-            kafkaOutboxProcessor.saveOutboxMessage(
-                topic = KafkaTopicNames.SAGA_COMPENSATION,
-                key = sagaId,
-                payload =
-                    mapOf(
-                        "sagaId" to sagaId,
-                        "stepId" to step.id,
-                        "action" to SagaCompensationActions.DELETE_VERIFICATION_TOKEN.value,
-                        "tokenId" to tokenId,
-                    ),
+            publishCompensationEvent(
                 sagaId = sagaId,
+                stepId = step.id,
+                action = SagaCompensationActions.DELETE_VERIFICATION_TOKEN.value,
+                extraPayload = mapOf("tokenId" to tokenId),
             )
         }.onFailure { e ->
             logger.error(
@@ -142,18 +132,15 @@ class SagaManager(
             val originalPasswordHash = payload["originalPasswordHash"]?.toString()
 
             if (originalPasswordHash != null) {
-                kafkaOutboxProcessor.saveOutboxMessage(
-                    topic = KafkaTopicNames.SAGA_COMPENSATION,
-                    key = sagaId,
-                    payload =
+                publishCompensationEvent(
+                    sagaId = sagaId,
+                    stepId = step.id,
+                    action = SagaCompensationActions.REVERT_PASSWORD_UPDATE.value,
+                    extraPayload =
                         mapOf(
-                            "sagaId" to sagaId,
-                            "stepId" to step.id,
-                            "action" to SagaCompensationActions.REVERT_PASSWORD_UPDATE.value,
                             "userId" to userId,
                             "originalPasswordHash" to originalPasswordHash,
                         ),
-                    sagaId = sagaId,
                 )
             } else {
                 logger.warn("Cannot compensate '${SagaStepNames.UPDATE_PASSWORD.value}' — original password hash missing for user $userId")
@@ -177,18 +164,15 @@ class SagaManager(
             val originalEmail = payload["originalEmail"]?.toString()
 
             if (originalEmail != null) {
-                kafkaOutboxProcessor.saveOutboxMessage(
-                    topic = KafkaTopicNames.SAGA_COMPENSATION,
-                    key = sagaId,
-                    payload =
+                publishCompensationEvent(
+                    sagaId = sagaId,
+                    stepId = step.id,
+                    action = SagaCompensationActions.REVERT_EMAIL_UPDATE.value,
+                    extraPayload =
                         mapOf(
-                            "sagaId" to sagaId,
-                            "stepId" to step.id,
-                            "action" to SagaCompensationActions.REVERT_EMAIL_UPDATE.value,
                             "userId" to userId,
                             "originalEmail" to originalEmail,
                         ),
-                    sagaId = sagaId,
                 )
             } else {
                 logger.warn("Cannot compensate '${SagaStepNames.UPDATE_EMAIL.value}' — original email missing for user $userId")

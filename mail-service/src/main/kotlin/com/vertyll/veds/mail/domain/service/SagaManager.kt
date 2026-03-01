@@ -6,8 +6,8 @@ import com.vertyll.veds.mail.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.mail.domain.model.enums.SagaStepNames
 import com.vertyll.veds.mail.domain.repository.SagaRepository
 import com.vertyll.veds.mail.domain.repository.SagaStepRepository
+import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaManager
@@ -27,6 +27,8 @@ class SagaManager(
         kafkaOutboxProcessor,
         objectMapper,
     ) {
+    override val serviceSource = EventSource.MAIL_SERVICE
+
     private companion object {
         const val EMAIL_CANNOT_BE_UNSENT = "Email cannot be unsent, compensation logged for auditing purposes"
         const val TEMPLATE_UPDATE_COMPENSATION_LOGGED = "Template update compensation logged"
@@ -83,19 +85,16 @@ class SagaManager(
             val to = payload["to"]?.toString()
             val emailId = payload["emailId"]?.toString()
 
-            kafkaOutboxProcessor.saveOutboxMessage(
-                topic = KafkaTopicNames.SAGA_COMPENSATION,
-                key = sagaId,
-                payload =
+            publishCompensationEvent(
+                sagaId = sagaId,
+                stepId = step.id,
+                action = SagaCompensationActions.LOG_EMAIL_COMPENSATION.value,
+                extraPayload =
                     mapOf(
-                        "sagaId" to sagaId,
-                        "stepId" to step.id,
-                        "action" to SagaCompensationActions.LOG_EMAIL_COMPENSATION.value,
                         "emailId" to emailId,
                         "to" to to,
                         "message" to EMAIL_CANNOT_BE_UNSENT,
                     ),
-                sagaId = sagaId,
             )
         }.onFailure { e ->
             logger.error("Failed to publish compensation event for step '${SagaStepNames.SEND_EMAIL.value}': ${e.message}", e)
@@ -110,17 +109,11 @@ class SagaManager(
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val logId = payload["logId"]?.toString() ?: return@runCatching
 
-            kafkaOutboxProcessor.saveOutboxMessage(
-                topic = KafkaTopicNames.SAGA_COMPENSATION,
-                key = sagaId,
-                payload =
-                    mapOf(
-                        "sagaId" to sagaId,
-                        "stepId" to step.id,
-                        "action" to SagaCompensationActions.DELETE_EMAIL_LOG.value,
-                        "logId" to logId,
-                    ),
+            publishCompensationEvent(
                 sagaId = sagaId,
+                stepId = step.id,
+                action = SagaCompensationActions.DELETE_EMAIL_LOG.value,
+                extraPayload = mapOf("logId" to logId),
             )
         }.onFailure { e ->
             logger.error("Failed to publish compensation event for step '${SagaStepNames.RECORD_EMAIL_LOG.value}': ${e.message}", e)
@@ -135,18 +128,15 @@ class SagaManager(
             val payload = objectMapper.readValue(step.payload, Map::class.java)
             val templateName = payload["templateName"]?.toString()
 
-            kafkaOutboxProcessor.saveOutboxMessage(
-                topic = KafkaTopicNames.SAGA_COMPENSATION,
-                key = sagaId,
-                payload =
+            publishCompensationEvent(
+                sagaId = sagaId,
+                stepId = step.id,
+                action = SagaCompensationActions.LOG_TEMPLATE_COMPENSATION.value,
+                extraPayload =
                     mapOf(
-                        "sagaId" to sagaId,
-                        "stepId" to step.id,
-                        "action" to SagaCompensationActions.LOG_TEMPLATE_COMPENSATION.value,
                         "templateName" to templateName,
                         "message" to TEMPLATE_UPDATE_COMPENSATION_LOGGED,
                     ),
-                sagaId = sagaId,
             )
         }.onFailure { e ->
             logger.error("Failed to publish compensation event for step '${SagaStepNames.TEMPLATE_UPDATE.value}': ${e.message}", e)

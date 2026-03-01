@@ -1,81 +1,63 @@
 package com.vertyll.veds.iam.infrastructure.service
 
 import com.vertyll.veds.iam.domain.model.entity.SagaStep
-import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
+import com.vertyll.veds.iam.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
+import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
-import org.slf4j.LoggerFactory
-import org.springframework.kafka.annotation.KafkaListener
+import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaCompensationService
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
+import java.time.Instant
 
 @Service
 class SagaCompensationService(
     private val userRepository: UserRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
-    private val sagaStepRepository: SagaStepRepository,
-    private val objectMapper: ObjectMapper,
-) {
-    private val logger = LoggerFactory.getLogger(javaClass)
+    sagaStepRepository: SagaStepRepository,
+    objectMapper: ObjectMapper,
+) : BaseSagaCompensationService<SagaStep>(sagaStepRepository, objectMapper) {
+    override val serviceSource = EventSource.IAM_SERVICE
 
-    /**
-     * Listens for compensation events and processes them
-     */
-    @KafkaListener(topics = [KafkaTopicNames.Topics.SAGA_COMPENSATION])
-    @Transactional
-    fun handleCompensationEvent(payload: String) {
-        try {
-            val event =
-                objectMapper.readValue(
-                    payload,
-                    Map::class.java,
-                )
-            val sagaId = event["sagaId"] as String
-            val stepId = (event["stepId"] as Number).toLong()
+    override fun createCompensationStepEntity(
+        sagaId: String,
+        stepName: String,
+        status: SagaStepStatus,
+        createdAt: Instant,
+        completedAt: Instant?,
+        compensationStepId: Long?,
+    ): SagaStep =
+        SagaStep(
+            sagaId = sagaId,
+            stepName = stepName,
+            status = status,
+            createdAt = createdAt,
+            completedAt = completedAt,
+            compensationStepId = compensationStepId,
+        )
 
-            val step =
-                sagaStepRepository.findById(stepId).orElse(null) ?: run {
-                    logger.error("Cannot find saga step with ID $stepId for compensation")
-                    return
-                }
-
-            logger.info("Processing compensation for saga $sagaId, step ${step.stepName}")
-
-            when (step.stepName) {
-                SagaStepNames.CREATE_USER.value -> compensateCreateUser(step)
-                SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(step)
-                SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(step)
-                SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(step)
-                else -> logger.warn("No compensation handler for step ${step.stepName}")
-            }
-
-            val compensationStep =
-                SagaStep(
-                    sagaId = sagaId,
-                    stepName = SagaStepNames.compensationNameFromString(step.stepName),
-                    status = SagaStepStatus.COMPENSATED,
-                    createdAt = java.time.Instant.now(),
-                    completedAt = java.time.Instant.now(),
-                    compensationStepId = step.id,
-                )
-            sagaStepRepository.save(compensationStep)
-        } catch (e: Exception) {
-            logger.error("Failed to process compensation event: ${e.message}", e)
+    override fun processCompensation(
+        sagaId: String,
+        action: String,
+        event: Map<String, Any?>,
+    ) {
+        when (action) {
+            SagaCompensationActions.DELETE_USER.value -> compensateCreateUser(event)
+            SagaCompensationActions.DELETE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(event)
+            SagaCompensationActions.REVERT_PASSWORD_UPDATE.value -> compensateUpdatePassword(event)
+            SagaCompensationActions.REVERT_EMAIL_UPDATE.value -> compensateUpdateEmail(event)
+            else -> logger.warn("Unknown compensation action: $action")
         }
     }
 
     /**
      * Compensate for creating a user by deleting it
      */
-    @Transactional
-    fun compensateCreateUser(step: SagaStep) {
+    private fun compensateCreateUser(event: Map<String, Any?>) {
         try {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
+            val userId = (event["userId"] as Number).toLong()
 
             userRepository.findById(userId).ifPresent { user ->
                 logger.info("Compensating CreateUser step: Deleting user with ID $userId")
@@ -90,11 +72,9 @@ class SagaCompensationService(
     /**
      * Compensate for creating a verification token by deleting it
      */
-    @Transactional
-    fun compensateCreateVerificationToken(step: SagaStep) {
+    private fun compensateCreateVerificationToken(event: Map<String, Any?>) {
         try {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val tokenId = (payload["tokenId"] as Number).toLong()
+            val tokenId = (event["tokenId"] as Number).toLong()
 
             verificationTokenRepository.findById(tokenId).ifPresent { token ->
                 logger.info("Compensating CreateVerificationToken step: Deleting token with ID $tokenId")
@@ -109,12 +89,10 @@ class SagaCompensationService(
     /**
      * Compensate for updating a password by reverting it
      */
-    @Transactional
-    fun compensateUpdatePassword(step: SagaStep) {
+    private fun compensateUpdatePassword(event: Map<String, Any?>) {
         try {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-            val originalPasswordHash = payload["originalPasswordHash"]?.toString()
+            val userId = (event["userId"] as Number).toLong()
+            val originalPasswordHash = event["originalPasswordHash"]?.toString()
 
             if (originalPasswordHash != null) {
                 userRepository.findById(userId).ifPresent { user ->
@@ -134,12 +112,10 @@ class SagaCompensationService(
     /**
      * Compensate for updating an email by reverting it
      */
-    @Transactional
-    fun compensateUpdateEmail(step: SagaStep) {
+    private fun compensateUpdateEmail(event: Map<String, Any?>) {
         try {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-            val originalEmail = payload["originalEmail"]?.toString()
+            val userId = (event["userId"] as Number).toLong()
+            val originalEmail = event["originalEmail"]?.toString()
 
             if (originalEmail != null) {
                 userRepository.findById(userId).ifPresent { user ->

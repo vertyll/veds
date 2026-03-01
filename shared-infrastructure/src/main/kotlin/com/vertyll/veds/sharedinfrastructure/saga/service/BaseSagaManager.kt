@@ -1,6 +1,8 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
+import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSaga
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
@@ -63,6 +65,13 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     override fun setApplicationContext(applicationContext: ApplicationContext) {
         this.applicationContext = applicationContext
     }
+
+    /**
+     * Identifies this service for source filtering in compensation events.
+     * Compensation messages include this value so that [BaseSagaCompensationService]
+     * can filter out events intended for other services.
+     */
+    protected abstract val serviceSource: EventSource
 
     /**
      * Creates a new saga instance of the concrete type [S].
@@ -374,6 +383,37 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     }
 
     // ── Compensation ────────────────────────────────────────────────────
+
+    /**
+     * Publishes a compensation event to the outbox for processing by
+     * [BaseSagaCompensationService]. Automatically includes the [serviceSource]
+     * so that only the originating service processes the event.
+     *
+     * @param sagaId       The saga being compensated
+     * @param stepId       The original step ID being compensated
+     * @param action       The compensation action identifier
+     * @param extraPayload Additional action-specific data
+     */
+    protected fun publishCompensationEvent(
+        sagaId: String,
+        stepId: Long?,
+        action: String,
+        extraPayload: Map<String, Any?> = emptyMap(),
+    ) {
+        kafkaOutboxProcessor.saveOutboxMessage(
+            topic = KafkaTopicNames.SAGA_COMPENSATION,
+            key = sagaId,
+            payload =
+                buildMap {
+                    put("sagaId", sagaId)
+                    put("stepId", stepId)
+                    put("action", action)
+                    put("source", serviceSource.value)
+                    putAll(extraPayload)
+                },
+            sagaId = sagaId,
+        )
+    }
 
     /**
      * Triggers compensation for all completed steps in reverse-chronological order.

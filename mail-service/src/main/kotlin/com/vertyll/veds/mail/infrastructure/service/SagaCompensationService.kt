@@ -2,81 +2,62 @@ package com.vertyll.veds.mail.infrastructure.service
 
 import com.vertyll.veds.mail.domain.model.entity.SagaStep
 import com.vertyll.veds.mail.domain.model.enums.SagaCompensationActions
-import com.vertyll.veds.mail.domain.model.enums.SagaStepNames
 import com.vertyll.veds.mail.domain.repository.SagaStepRepository
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
+import com.vertyll.veds.sharedinfrastructure.event.EventSource
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
-import org.slf4j.LoggerFactory
-import org.springframework.kafka.annotation.KafkaListener
+import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaCompensationService
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
+import java.time.Instant
 
 @Service
 class SagaCompensationService(
-    private val sagaStepRepository: SagaStepRepository,
-    private val objectMapper: ObjectMapper,
-) {
-    private val logger = LoggerFactory.getLogger(javaClass)
+    sagaStepRepository: SagaStepRepository,
+    objectMapper: ObjectMapper,
+) : BaseSagaCompensationService<SagaStep>(sagaStepRepository, objectMapper) {
+    override val serviceSource = EventSource.MAIL_SERVICE
 
-    /**
-     * Listens for compensation events and processes them
-     */
-    @KafkaListener(topics = [KafkaTopicNames.Topics.SAGA_COMPENSATION])
-    @Transactional
-    fun handleCompensationEvent(payload: String) {
-        try {
-            val event =
-                objectMapper.readValue(
-                    payload,
-                    Map::class.java,
-                )
-            val sagaId = event["sagaId"] as String
-            val actionStr = event["action"] as String
+    override fun createCompensationStepEntity(
+        sagaId: String,
+        stepName: String,
+        status: SagaStepStatus,
+        createdAt: Instant,
+        completedAt: Instant?,
+        compensationStepId: Long?,
+    ): SagaStep =
+        SagaStep(
+            sagaId = sagaId,
+            stepName = stepName,
+            status = status,
+            createdAt = createdAt,
+            completedAt = completedAt,
+            compensationStepId = compensationStepId,
+        )
 
-            logger.info("Processing compensation action: $actionStr for saga $sagaId")
+    override fun processCompensation(
+        sagaId: String,
+        action: String,
+        event: Map<String, Any?>,
+    ) {
+        when (action) {
+            SagaCompensationActions.LOG_EMAIL_COMPENSATION.value -> {
+                val emailId = event["emailId"]?.toString()
+                val to = event["to"]?.toString()
+                val message = event["message"]?.toString() ?: "Email compensation recorded"
 
-            when (actionStr) {
-                SagaCompensationActions.LOG_EMAIL_COMPENSATION.value -> {
-                    val emailId = event["emailId"]?.toString()
-                    val to = event["to"]?.toString()
-                    val message = event["message"]?.toString() ?: "Email compensation recorded"
-
-                    logger.info("Email compensation logged for email to $to (ID: $emailId): $message")
-                }
-                SagaCompensationActions.LOG_TEMPLATE_COMPENSATION.value -> {
-                    val templateName = event["templateName"]?.toString()
-                    val message = event["message"]?.toString() ?: "Template compensation recorded"
-
-                    logger.info("Template compensation logged for template $templateName: $message")
-                }
-                SagaCompensationActions.DELETE_EMAIL_LOG.value -> {
-                    val logId = event["logId"]?.toString()
-                    logger.info("Email log deletion compensation for log ID: $logId")
-                }
-                else -> {
-                    logger.warn("Unknown compensation action: $actionStr")
-                }
+                logger.info("Email compensation logged for email to $to (ID: $emailId): $message")
             }
+            SagaCompensationActions.LOG_TEMPLATE_COMPENSATION.value -> {
+                val templateName = event["templateName"]?.toString()
+                val message = event["message"]?.toString() ?: "Template compensation recorded"
 
-            val stepId = event["stepId"] as? Number
-            if (stepId != null) {
-                val step = sagaStepRepository.findById(stepId.toLong()).orElse(null)
-                if (step != null) {
-                    val compensationStep =
-                        SagaStep(
-                            sagaId = sagaId,
-                            stepName = SagaStepNames.compensationNameFromString(step.stepName),
-                            status = SagaStepStatus.COMPENSATED,
-                            createdAt = java.time.Instant.now(),
-                            completedAt = java.time.Instant.now(),
-                            compensationStepId = step.id,
-                        )
-                    sagaStepRepository.save(compensationStep)
-                }
+                logger.info("Template compensation logged for template $templateName: $message")
             }
-        } catch (e: Exception) {
-            logger.error("Failed to process compensation event: ${e.message}", e)
+            SagaCompensationActions.DELETE_EMAIL_LOG.value -> {
+                val logId = event["logId"]?.toString()
+                logger.info("Email log deletion compensation for log ID: $logId")
+            }
+            else -> logger.warn("Unknown compensation action: $action")
         }
     }
 }
