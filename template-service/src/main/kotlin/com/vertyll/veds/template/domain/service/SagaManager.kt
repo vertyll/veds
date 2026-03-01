@@ -7,7 +7,6 @@ import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaManager
 import com.vertyll.veds.template.domain.model.entity.Saga
 import com.vertyll.veds.template.domain.model.entity.SagaStep
 import com.vertyll.veds.template.domain.model.enums.SagaStepNames
-import com.vertyll.veds.template.domain.model.enums.SagaTypes
 import com.vertyll.veds.template.domain.repository.SagaRepository
 import com.vertyll.veds.template.domain.repository.SagaStepRepository
 import org.springframework.stereotype.Service
@@ -26,14 +25,6 @@ class SagaManager(
     kafkaOutboxProcessor,
     objectMapper,
 ) {
-    override fun getSagaStepDefinitions(): Map<String, List<String>> =
-        mapOf(
-            SagaTypes.EXAMPLE_SAGA.value to
-                    listOf(
-                        SagaStepNames.EXAMPLE_STEP.value,
-                    ),
-        )
-
     override fun createSagaEntity(
         id: String,
         type: String,

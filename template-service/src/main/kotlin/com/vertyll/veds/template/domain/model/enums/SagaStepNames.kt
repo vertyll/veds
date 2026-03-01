@@ -1,5 +1,7 @@
 package com.vertyll.veds.template.domain.model.enums
 
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
+
 enum class SagaStepNames(
     override val value: String,
 ) : SagaTypeValue {

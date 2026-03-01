@@ -89,6 +89,10 @@ class EmailSagaService(
                 payload = payload,
             )
 
+            if (success) {
+                sagaManager.completeSaga(sagaId)
+            }
+
             publishFeedbackEvent(
                 success = success,
                 to = to,
@@ -237,10 +241,11 @@ class EmailSagaService(
                     ),
             )
 
+            val allSucceeded = results.values.all { it }
             sagaManager.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.SEND_EMAIL,
-                status = if (results.values.all { it }) SagaStepStatus.COMPLETED else SagaStepStatus.PARTIALLY_COMPLETED,
+                status = if (allSucceeded) SagaStepStatus.COMPLETED else SagaStepStatus.PARTIALLY_COMPLETED,
                 payload =
                     mapOf(
                         "recipients" to recipients,
@@ -248,6 +253,8 @@ class EmailSagaService(
                         "results" to results,
                     ),
             )
+
+            sagaManager.completeSaga(sagaId)
 
             return results
         } catch (e: Exception) {

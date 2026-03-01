@@ -18,21 +18,30 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * Base saga **orchestrator** that provides common saga coordination logic.
+ * Base saga participant for the **choreography** pattern.
  *
- * This class follows the **Saga Orchestrator** pattern: it knows the full list
- * of expected steps ([getSagaStepDefinitions]), tracks overall saga state, and
- * decides when to trigger compensation. Communication with other services is
- * event-driven (Kafka), but the coordination logic is centralized here.
+ * In choreography no single component knows the full cross-service flow.
+ * Each service tracks only **its own local steps** and reacts to domain
+ * events published by other services. The calling code drives saga state transitions
+ * explicitly:
  *
- * Services should extend this class and implement service-specific methods.
+ * - [startSaga] — begins a new local saga
+ * - [recordSagaStep] — records a local step (does NOT auto-complete the saga)
+ * - [awaitResponse] — marks the saga as waiting for an external event
+ * - [completeSaga] — explicitly marks the saga as completed (called when an
+ *   incoming event confirms the full flow succeeded)
+ * - [failSaga] — explicitly marks the saga as failed and triggers local compensation
+ *
+ * When a step is recorded with [SagaStepStatus.FAILED], compensation is still
+ * triggered automatically because a local step failure is an immediate signal.
+ *
+ * Services should extend this class and implement the abstract factory and
+ * compensation methods.
  *
  * Implements [ApplicationContextAware] to get a reference to the Spring
  * proxy of the concrete subclass. This allows enum-typed overloads to delegate
  * through the proxy, ensuring @Transactional is always honored — even when
  * called from within the same bean.
- *
- * No @Autowired, no late init var for injection, no circular dependency issues.
  *
  * @param S The saga entity type that extends BaseSaga
  * @param T The saga step entity type that extends BaseSagaStep
@@ -54,12 +63,6 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     override fun setApplicationContext(applicationContext: ApplicationContext) {
         this.applicationContext = applicationContext
     }
-
-    /**
-     * Returns saga step definitions for each saga type.
-     * Map key is the saga type value, value is a list of expected step name values.
-     */
-    protected abstract fun getSagaStepDefinitions(): Map<String, List<String>>
 
     /**
      * Creates a new saga instance of the concrete type [S].
@@ -92,6 +95,8 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         step: T,
     )
 
+    // ── Enum-typed convenience overloads ────────────────────────────────
+
     /**
      * Enum-typed entry point for starting a saga.
      * Delegates through the Spring proxy to the String overload.
@@ -113,6 +118,8 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         status: SagaStepStatus,
         payload: Any? = null,
     ): T = self.recordSagaStep(sagaId, stepName.value, status, payload)
+
+    // ── Core saga operations ────────────────────────────────────────────
 
     /**
      * Starts a new saga.
@@ -142,7 +149,11 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     }
 
     /**
-     * Records a step in an existing saga.
+     * Records a local step in an existing saga.
+     *
+     * **Choreography note:** recording a step does NOT automatically complete the
+     * saga. Use [completeSaga] or [awaitResponse] to transition the saga state
+     * explicitly based on domain events.
      *
      * Idempotent for the same status: if a step with the same name already exists
      * and has the same status, it is returned unchanged.
@@ -151,10 +162,8 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
      * (e.g., STARTED) and a new terminal status is provided (e.g., COMPLETED, FAILED),
      * the existing step is updated rather than duplicated.
      *
-     * When [status] is [SagaStepStatus.FAILED] compensation is triggered automatically.
-     * When [status] is [SagaStepStatus.COMPLETED] the saga is marked COMPLETED if all
-     * expected steps have been recorded as completed, or AWAITING_RESPONSE if some
-     * asynchronous steps are still pending.
+     * When [status] is [SagaStepStatus.FAILED] compensation is triggered automatically
+     * because a local step failure is an immediate signal.
      *
      * @param sagaId   The saga to attach this step to
      * @param stepName Raw step name string (e.g. "CreateUser")
@@ -193,7 +202,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                 existingStep.errorMessage = "Step '$stepName' failed"
             }
             val updatedStep = sagaStepRepository.save(existingStep)
-            updateSagaStatus(sagaId, stepName, status)
+            handleStepFailure(sagaId, stepName, status)
             return updatedStep
         }
 
@@ -231,16 +240,23 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
             savedStep = sagaStepRepository.save(savedStep)
         }
 
-        updateSagaStatus(sagaId, stepName, status)
+        handleStepFailure(sagaId, stepName, status)
 
         return savedStep
     }
 
-    private fun updateSagaStatus(
+    /**
+     * If a local step failed, immediately trigger compensation.
+     * Other statuses (COMPLETED, PARTIALLY_COMPLETED) do NOT change the saga
+     * status — the calling code must use [completeSaga] or [awaitResponse].
+     */
+    private fun handleStepFailure(
         sagaId: String,
         stepName: String,
         status: SagaStepStatus,
     ) {
+        if (status != SagaStepStatus.FAILED) return
+
         val saga =
             sagaRepository.findById(sagaId).orElseThrow {
                 IllegalArgumentException("Saga with id '$sagaId' not found")
@@ -248,43 +264,76 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 
         if (saga.status.isTerminal()) return
 
-        when (status) {
-            SagaStepStatus.FAILED -> {
-                saga.status = SagaStatus.COMPENSATING
-                saga.lastError = "Step '$stepName' failed"
-                saga.updatedAt = Instant.now()
-                sagaRepository.save(saga)
-                triggerCompensation(saga)
+        saga.status = SagaStatus.COMPENSATING
+        saga.lastError = "Step '$stepName' failed"
+        saga.updatedAt = Instant.now()
+        sagaRepository.save(saga)
+        triggerCompensation(saga)
+    }
+
+    // ── Explicit saga state transitions (choreography) ──────────────────
+
+    /**
+     * Explicitly marks a saga as COMPLETED.
+     *
+     * In choreography, this is called when an incoming event confirms
+     * that the full cross-service flow has succeeded (e.g., a
+     * [com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent] confirms that the email was delivered).
+     *
+     * Guard clause: if the saga is already in a terminal state, the call
+     * is ignored.
+     */
+    @Transactional
+    open fun completeSaga(sagaId: String): S {
+        val saga =
+            sagaRepository.findById(sagaId).orElseThrow {
+                IllegalArgumentException("Saga with id '$sagaId' not found")
             }
-            SagaStepStatus.PARTIALLY_COMPLETED -> {
-                saga.status = SagaStatus.PARTIALLY_COMPLETED
-                saga.updatedAt = Instant.now()
-                saga.completedAt = Instant.now()
-                logger.info("Saga '${saga.id}' partially completed")
-                sagaRepository.save(saga)
-            }
-            SagaStepStatus.COMPLETED -> {
-                saga.updatedAt = Instant.now()
-                if (areAllStepsCompleted(saga)) {
-                    saga.status = SagaStatus.COMPLETED
-                    saga.completedAt = Instant.now()
-                    logger.info("All steps completed for saga '${saga.id}' — marking COMPLETED")
-                } else if (hasAsyncStepsPending(saga)) {
-                    saga.status = SagaStatus.AWAITING_RESPONSE
-                    logger.info("Saga '${saga.id}' is awaiting response from external service(s)")
-                }
-                sagaRepository.save(saga)
-            }
-            else -> Unit
+
+        if (saga.status.isTerminal()) {
+            logger.warn("Ignoring completeSaga for saga '$sagaId' — already in terminal status '${saga.status}'")
+            return saga
         }
+
+        saga.status = SagaStatus.COMPLETED
+        saga.completedAt = Instant.now()
+        saga.updatedAt = Instant.now()
+        logger.info("Saga '$sagaId' explicitly marked COMPLETED")
+        return sagaRepository.save(saga)
+    }
+
+    /**
+     * Marks a saga as [SagaStatus.AWAITING_RESPONSE].
+     *
+     * Called after the local steps have been recorded, and the service is now
+     * waiting for an event from another participant (e.g., mail-service).
+     *
+     * Guard clause: if the saga is already in a terminal state, the call
+     * is ignored.
+     */
+    @Transactional
+    open fun awaitResponse(sagaId: String): S {
+        val saga =
+            sagaRepository.findById(sagaId).orElseThrow {
+                IllegalArgumentException("Saga with id '$sagaId' not found")
+            }
+
+        if (saga.status.isTerminal()) {
+            logger.warn("Ignoring awaitResponse for saga '$sagaId' — already in terminal status '${saga.status}'")
+            return saga
+        }
+
+        saga.status = SagaStatus.AWAITING_RESPONSE
+        saga.updatedAt = Instant.now()
+        logger.info("Saga '$sagaId' marked AWAITING_RESPONSE")
+        return sagaRepository.save(saga)
     }
 
     /**
      * Marks a saga as FAILED and triggers compensation for all completed steps.
      *
      * Guard clause: if the saga is already in a terminal state (COMPLETED, COMPENSATED,
-     * COMPENSATION_FAILED), the call is ignored to prevent out-of-order event issues
-     * in choreography-based communication.
+     * COMPENSATION_FAILED), the call is ignored to prevent out-of-order event issues.
      */
     @Transactional
     open fun failSaga(
@@ -313,37 +362,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         return savedSaga
     }
 
-    /**
-     * Checks if all expected steps for this saga type have been completed.
-     */
-    protected open fun areAllStepsCompleted(saga: S): Boolean {
-        val expectedSteps = getSagaStepDefinitions()[saga.type] ?: return false
-
-        val completedStepNames =
-            sagaStepRepository
-                .findBySagaIdAndStatus(saga.id, SagaStepStatus.COMPLETED)
-                .map { it.stepName }
-                .toSet()
-
-        return expectedSteps.all { it in completedStepNames }
-    }
-
-    /**
-     * Checks if the saga has completed some steps but is still waiting for
-     * asynchronous steps from external services (e.g., mail delivery confirmation).
-     */
-    protected open fun hasAsyncStepsPending(saga: S): Boolean {
-        val expectedSteps = getSagaStepDefinitions()[saga.type] ?: return false
-
-        val recordedStepNames =
-            sagaStepRepository
-                .findBySagaId(saga.id)
-                .map { it.stepName }
-                .toSet()
-
-        val missingSteps = expectedSteps.filter { it !in recordedStepNames }
-        return missingSteps.isNotEmpty()
-    }
+    // ── Compensation ────────────────────────────────────────────────────
 
     /**
      * Triggers compensation for all completed steps in reverse-chronological order.

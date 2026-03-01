@@ -4,7 +4,6 @@ import com.vertyll.veds.iam.domain.model.entity.Saga
 import com.vertyll.veds.iam.domain.model.entity.SagaStep
 import com.vertyll.veds.iam.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
-import com.vertyll.veds.iam.domain.model.enums.SagaTypes
 import com.vertyll.veds.iam.domain.repository.SagaRepository
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
@@ -28,45 +27,6 @@ class SagaManager(
         kafkaOutboxProcessor,
         objectMapper,
     ) {
-    override fun getSagaStepDefinitions(): Map<String, List<String>> =
-        mapOf(
-            SagaTypes.USER_REGISTRATION.value to
-                listOf(
-                    SagaStepNames.CREATE_USER.value,
-                    SagaStepNames.CREATE_USER_EVENT.value,
-                    SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
-                    SagaStepNames.CREATE_MAIL_EVENT.value,
-                    SagaStepNames.MAIL_DELIVERED.value,
-                ),
-            SagaTypes.PASSWORD_RESET.value to
-                listOf(
-                    SagaStepNames.CREATE_RESET_TOKEN.value,
-                    SagaStepNames.CREATE_MAIL_EVENT.value,
-                    SagaStepNames.MAIL_DELIVERED.value,
-                ),
-            SagaTypes.EMAIL_VERIFICATION.value to
-                listOf(
-                    SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
-                    SagaStepNames.CREATE_MAIL_EVENT.value,
-                    SagaStepNames.MAIL_DELIVERED.value,
-                ),
-            SagaTypes.PASSWORD_CHANGE.value to
-                listOf(
-                    SagaStepNames.VERIFY_CURRENT_PASSWORD.value,
-                    SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
-                    SagaStepNames.CREATE_MAIL_EVENT.value,
-                    SagaStepNames.MAIL_DELIVERED.value,
-                    SagaStepNames.UPDATE_PASSWORD.value,
-                ),
-            SagaTypes.EMAIL_CHANGE.value to
-                listOf(
-                    SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
-                    SagaStepNames.CREATE_MAIL_EVENT.value,
-                    SagaStepNames.MAIL_DELIVERED.value,
-                    SagaStepNames.UPDATE_EMAIL.value,
-                ),
-        )
-
     override fun createSagaEntity(
         id: String,
         type: String,
@@ -106,7 +66,6 @@ class SagaManager(
             SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(saga.id, step)
             SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step)
             SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step)
-            SagaStepNames.MAIL_DELIVERED.value -> logger.info("Mail already delivered for saga '${saga.id}' — no compensation possible")
             SagaStepNames.CREATE_MAIL_EVENT.value ->
                 logger.info(
                     "Mail event already published for saga '${saga.id}' — no compensation needed",

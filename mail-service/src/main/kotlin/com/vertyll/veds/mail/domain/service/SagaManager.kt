@@ -4,7 +4,6 @@ import com.vertyll.veds.mail.domain.model.entity.Saga
 import com.vertyll.veds.mail.domain.model.entity.SagaStep
 import com.vertyll.veds.mail.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.mail.domain.model.enums.SagaStepNames
-import com.vertyll.veds.mail.domain.model.enums.SagaTypes
 import com.vertyll.veds.mail.domain.repository.SagaRepository
 import com.vertyll.veds.mail.domain.repository.SagaStepRepository
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
@@ -32,25 +31,6 @@ class SagaManager(
         const val EMAIL_CANNOT_BE_UNSENT = "Email cannot be unsent, compensation logged for auditing purposes"
         const val TEMPLATE_UPDATE_COMPENSATION_LOGGED = "Template update compensation logged"
     }
-
-    override fun getSagaStepDefinitions(): Map<String, List<String>> =
-        mapOf(
-            SagaTypes.EMAIL_SENDING.value to
-                listOf(
-                    SagaStepNames.PROCESS_TEMPLATE.value,
-                    SagaStepNames.SEND_EMAIL.value,
-                ),
-            SagaTypes.EMAIL_BATCH_PROCESSING.value to
-                listOf(
-                    SagaStepNames.PROCESS_TEMPLATE.value,
-                    SagaStepNames.SEND_EMAIL.value,
-                    SagaStepNames.RECORD_EMAIL_LOG.value,
-                ),
-            SagaTypes.TEMPLATE_MANAGEMENT.value to
-                listOf(
-                    SagaStepNames.TEMPLATE_UPDATE.value,
-                ),
-        )
 
     override fun createSagaEntity(
         id: String,

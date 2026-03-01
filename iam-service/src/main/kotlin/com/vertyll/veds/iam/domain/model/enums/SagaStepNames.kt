@@ -13,7 +13,6 @@ enum class SagaStepNames(
     VERIFY_CURRENT_PASSWORD("VerifyCurrentPassword"),
     UPDATE_PASSWORD("UpdatePassword"),
     UPDATE_EMAIL("UpdateEmail"),
-    MAIL_DELIVERED("MailDelivered"),
     ;
 
     companion object {

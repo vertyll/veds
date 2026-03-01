@@ -1,11 +1,9 @@
 package com.vertyll.veds.iam.infrastructure.kafka
 
-import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
 import com.vertyll.veds.iam.domain.service.SagaManager
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicsConfig
-import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
@@ -36,17 +34,7 @@ class MailFeedbackConsumer(
 
             logger.info("Received MailSentEvent for saga: {} (to: {})", sagaId, event.to)
 
-            sagaManager.recordSagaStep(
-                sagaId = sagaId,
-                stepName = SagaStepNames.MAIL_DELIVERED,
-                status = SagaStepStatus.COMPLETED,
-                payload =
-                    mapOf(
-                        "to" to event.to,
-                        "subject" to event.subject,
-                        "originalEventId" to event.originalEventId,
-                    ),
-            )
+            sagaManager.completeSaga(sagaId)
         } catch (e: Exception) {
             logger.error("Failed to process MailSentEvent: {}", e.message, e)
         }
