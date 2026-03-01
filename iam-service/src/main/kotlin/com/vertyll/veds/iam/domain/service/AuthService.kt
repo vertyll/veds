@@ -175,7 +175,6 @@ class AuthService(
             sagaManager.awaitResponse(saga.id)
         } catch (e: Exception) {
             logger.error("User registration failed for {}: {}", request.email, e.message, e)
-            sagaManager.failSaga(saga.id, e.message ?: "Unknown error during registration")
             throw e
         }
     }
@@ -267,7 +266,6 @@ class AuthService(
             sagaManager.awaitResponse(saga.id)
         } catch (e: Exception) {
             logger.error("Resend activation email failed for {}: {}", email, e.message, e)
-            sagaManager.failSaga(saga.id, e.message ?: "Unknown error during resend activation")
             throw e
         }
     }
@@ -410,7 +408,6 @@ class AuthService(
             sagaManager.awaitResponse(saga.id)
         } catch (e: Exception) {
             logger.error("Password reset request failed for {}: {}", email, e.message, e)
-            sagaManager.failSaga(saga.id, e.message ?: "Unknown error during password reset request")
             throw e
         }
     }
@@ -514,7 +511,6 @@ class AuthService(
             sagaManager.awaitResponse(saga.id)
         } catch (e: Exception) {
             logger.error("Email change request failed for {}: {}", email, e.message, e)
-            sagaManager.failSaga(saga.id, e.message ?: "Unknown error during email change request")
             throw e
         }
     }
@@ -559,6 +555,7 @@ class AuthService(
                         "newEmail" to newEmail,
                     ),
             )
+            sagaManager.completeSaga(sagaId)
         }
     }
 
@@ -631,7 +628,6 @@ class AuthService(
             sagaManager.awaitResponse(saga.id)
         } catch (e: Exception) {
             logger.error("Password change request failed for {}: {}", email, e.message, e)
-            sagaManager.failSaga(saga.id, e.message ?: "Unknown error during password change request")
             throw e
         }
     }
@@ -677,6 +673,7 @@ class AuthService(
                         "originalPasswordHash" to originalPasswordHash,
                     ),
             )
+            sagaManager.completeSaga(sagaId)
         }
     }
 

@@ -233,12 +233,11 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                 createdAt = Instant.now(),
             )
 
-        var savedStep = sagaStepRepository.save(step)
-
         if (status == SagaStepStatus.COMPLETED) {
-            savedStep.completedAt = Instant.now()
-            savedStep = sagaStepRepository.save(savedStep)
+            step.completedAt = Instant.now()
         }
+
+        val savedStep = sagaStepRepository.save(step)
 
         handleStepFailure(sagaId, stepName, status)
 
@@ -301,6 +300,11 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         logger.info("Saga '$sagaId' explicitly marked COMPLETED")
         return sagaRepository.save(saga)
     }
+
+    /**
+     * Returns the saga entity for the given ID, or `null` if not found.
+     */
+    open fun findSagaById(sagaId: String): S? = sagaRepository.findById(sagaId).orElse(null)
 
     /**
      * Marks a saga as [SagaStatus.AWAITING_RESPONSE].

@@ -1,5 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.kafka
 
+import com.vertyll.veds.iam.domain.model.enums.SagaTypes
 import com.vertyll.veds.iam.domain.service.SagaManager
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent
@@ -19,6 +20,18 @@ class MailFeedbackConsumer(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    private companion object {
+        /**
+         * Saga types where the saga should NOT be completed on mail delivery,
+         * because they require an additional user confirmation step.
+         */
+        val SAGA_TYPES_AWAITING_USER_CONFIRMATION =
+            setOf(
+                SagaTypes.EMAIL_CHANGE.value,
+                SagaTypes.PASSWORD_CHANGE.value,
+            )
+    }
+
     @KafkaListener(topics = ["#{@kafkaTopicsConfig.getMailSentTopic()}"])
     fun handleMailSent(
         @Payload payload: String,
@@ -33,6 +46,21 @@ class MailFeedbackConsumer(
             }
 
             logger.info("Received MailSentEvent for saga: {} (to: {})", sagaId, event.to)
+
+            val saga = sagaManager.findSagaById(sagaId)
+            if (saga == null) {
+                logger.warn("Saga '{}' not found — skipping MailSentEvent", sagaId)
+                return
+            }
+
+            if (saga.type in SAGA_TYPES_AWAITING_USER_CONFIRMATION) {
+                logger.info(
+                    "Mail delivered for saga '{}' (type: {}) — saga remains AWAITING_RESPONSE until user confirms",
+                    sagaId,
+                    saga.type,
+                )
+                return
+            }
 
             sagaManager.completeSaga(sagaId)
         } catch (e: Exception) {
