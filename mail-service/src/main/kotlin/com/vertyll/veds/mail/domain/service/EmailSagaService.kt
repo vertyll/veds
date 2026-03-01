@@ -3,6 +3,10 @@ package com.vertyll.veds.mail.domain.service
 import com.vertyll.veds.mail.domain.model.enums.EmailTemplate
 import com.vertyll.veds.mail.domain.model.enums.SagaStepNames
 import com.vertyll.veds.mail.domain.model.enums.SagaTypes
+import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
+import com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -15,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 class EmailSagaService(
     private val sagaManager: SagaManager,
     private val emailService: EmailService,
+    private val kafkaOutboxProcessor: KafkaOutboxProcessor,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -28,6 +33,8 @@ class EmailSagaService(
         template: EmailTemplate,
         variables: Map<String, String>,
         replyTo: String? = null,
+        originSagaId: String? = null,
+        originalEventId: String? = null,
     ): Boolean {
         val sagaId =
             sagaManager
@@ -40,6 +47,8 @@ class EmailSagaService(
                             "templateName" to template.templateName,
                             "variables" to variables,
                             "replyTo" to replyTo,
+                            "originSagaId" to originSagaId,
+                            "originalEventId" to originalEventId,
                         ),
                 ).id
 
@@ -80,6 +89,15 @@ class EmailSagaService(
                 payload = payload,
             )
 
+            publishFeedbackEvent(
+                success = success,
+                to = to,
+                subject = subject,
+                originSagaId = originSagaId,
+                originalEventId = originalEventId ?: sagaId,
+                error = if (!success) "Failed to send email" else null,
+            )
+
             return success
         } catch (e: Exception) {
             logger.error("Error in email saga: ${e.message}", e)
@@ -92,7 +110,68 @@ class EmailSagaService(
                         "error" to e.message,
                     ),
             )
+
+            publishFeedbackEvent(
+                success = false,
+                to = to,
+                subject = subject,
+                originSagaId = originSagaId,
+                originalEventId = originalEventId ?: sagaId,
+                error = e.message ?: "Unknown error during email sending",
+            )
+
             return false
+        }
+    }
+
+    private fun publishFeedbackEvent(
+        success: Boolean,
+        to: String,
+        subject: String,
+        originSagaId: String?,
+        originalEventId: String,
+        error: String?,
+    ) {
+        if (originSagaId == null) {
+            logger.debug("No origin saga ID provided — skipping feedback event for mail to: {}", to)
+            return
+        }
+
+        try {
+            if (success) {
+                val event = MailSentEvent(
+                    to = to,
+                    subject = subject,
+                    originalEventId = originalEventId,
+                    sagaId = originSagaId,
+                )
+                kafkaOutboxProcessor.saveOutboxMessage(
+                    topic = KafkaTopicNames.MAIL_SENT,
+                    key = originSagaId,
+                    payload = event,
+                    sagaId = originSagaId,
+                    eventId = event.eventId,
+                )
+                logger.info("Published MailSentEvent for saga: {}", originSagaId)
+            } else {
+                val event = MailFailedEvent(
+                    to = to,
+                    subject = subject,
+                    originalEventId = originalEventId,
+                    error = error ?: "Unknown error",
+                    sagaId = originSagaId,
+                )
+                kafkaOutboxProcessor.saveOutboxMessage(
+                    topic = KafkaTopicNames.MAIL_FAILED,
+                    key = originSagaId,
+                    payload = event,
+                    sagaId = originSagaId,
+                    eventId = event.eventId,
+                )
+                logger.info("Published MailFailedEvent for saga: {}", originSagaId)
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to publish feedback event for saga {}: {}", originSagaId, e.message, e)
         }
     }
 

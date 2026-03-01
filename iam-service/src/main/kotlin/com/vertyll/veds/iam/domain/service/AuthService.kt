@@ -162,6 +162,7 @@ class AuthService(
                             "firstName" to user.firstName,
                             "activationToken" to token,
                         ),
+                    sagaId = saga.id,
                 ),
             )
 
@@ -251,6 +252,7 @@ class AuthService(
                             "firstName" to user.firstName,
                             "activationToken" to token,
                         ),
+                    sagaId = saga.id,
                 ),
             )
 
@@ -391,6 +393,7 @@ class AuthService(
                             "firstName" to user.firstName,
                             "resetToken" to token,
                         ),
+                    sagaId = saga.id,
                 ),
             )
 
@@ -492,6 +495,7 @@ class AuthService(
                             "firstName" to user.firstName,
                             "confirmationToken" to token,
                         ),
+                    sagaId = saga.id,
                 ),
             )
 
@@ -606,6 +610,7 @@ class AuthService(
                             "firstName" to user.firstName,
                             "confirmationToken" to token,
                         ),
+                    sagaId = saga.id,
                 ),
             )
 

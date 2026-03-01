@@ -36,28 +36,33 @@ class SagaManager(
                     SagaStepNames.CREATE_USER_EVENT.value,
                     SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
                     SagaStepNames.CREATE_MAIL_EVENT.value,
+                    SagaStepNames.MAIL_DELIVERED.value,
                 ),
             SagaTypes.PASSWORD_RESET.value to
                 listOf(
                     SagaStepNames.CREATE_RESET_TOKEN.value,
                     SagaStepNames.CREATE_MAIL_EVENT.value,
+                    SagaStepNames.MAIL_DELIVERED.value,
                 ),
             SagaTypes.EMAIL_VERIFICATION.value to
                 listOf(
                     SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
                     SagaStepNames.CREATE_MAIL_EVENT.value,
+                    SagaStepNames.MAIL_DELIVERED.value,
                 ),
             SagaTypes.PASSWORD_CHANGE.value to
                 listOf(
                     SagaStepNames.VERIFY_CURRENT_PASSWORD.value,
                     SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
                     SagaStepNames.CREATE_MAIL_EVENT.value,
+                    SagaStepNames.MAIL_DELIVERED.value,
                     SagaStepNames.UPDATE_PASSWORD.value,
                 ),
             SagaTypes.EMAIL_CHANGE.value to
                 listOf(
                     SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
                     SagaStepNames.CREATE_MAIL_EVENT.value,
+                    SagaStepNames.MAIL_DELIVERED.value,
                     SagaStepNames.UPDATE_EMAIL.value,
                 ),
         )
@@ -101,6 +106,9 @@ class SagaManager(
             SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(saga.id, step)
             SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step)
             SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step)
+            SagaStepNames.MAIL_DELIVERED.value -> logger.info("Mail already delivered for saga '${saga.id}' — no compensation possible")
+            SagaStepNames.CREATE_MAIL_EVENT.value -> logger.info("Mail event already published for saga '${saga.id}' — no compensation needed")
+            SagaStepNames.CREATE_USER_EVENT.value -> logger.info("User event step for saga '${saga.id}' — no compensation needed")
             else -> logger.warn("No compensation defined for step '${step.stepName}'")
         }
     }

@@ -125,6 +125,8 @@ class MailEventConsumer(
                     template = template,
                     variables = event.variables,
                     replyTo = event.replyTo,
+                    originSagaId = event.sagaId,
+                    originalEventId = event.eventId,
                 )
 
             if (success) {
