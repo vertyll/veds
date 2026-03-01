@@ -107,7 +107,10 @@ class SagaManager(
             SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step)
             SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step)
             SagaStepNames.MAIL_DELIVERED.value -> logger.info("Mail already delivered for saga '${saga.id}' — no compensation possible")
-            SagaStepNames.CREATE_MAIL_EVENT.value -> logger.info("Mail event already published for saga '${saga.id}' — no compensation needed")
+            SagaStepNames.CREATE_MAIL_EVENT.value ->
+                logger.info(
+                    "Mail event already published for saga '${saga.id}' — no compensation needed",
+                )
             SagaStepNames.CREATE_USER_EVENT.value -> logger.info("User event step for saga '${saga.id}' — no compensation needed")
             else -> logger.warn("No compensation defined for step '${step.stepName}'")
         }

@@ -139,12 +139,13 @@ class EmailSagaService(
 
         try {
             if (success) {
-                val event = MailSentEvent(
-                    to = to,
-                    subject = subject,
-                    originalEventId = originalEventId,
-                    sagaId = originSagaId,
-                )
+                val event =
+                    MailSentEvent(
+                        to = to,
+                        subject = subject,
+                        originalEventId = originalEventId,
+                        sagaId = originSagaId,
+                    )
                 kafkaOutboxProcessor.saveOutboxMessage(
                     topic = KafkaTopicNames.MAIL_SENT,
                     key = originSagaId,
@@ -154,13 +155,14 @@ class EmailSagaService(
                 )
                 logger.info("Published MailSentEvent for saga: {}", originSagaId)
             } else {
-                val event = MailFailedEvent(
-                    to = to,
-                    subject = subject,
-                    originalEventId = originalEventId,
-                    error = error ?: "Unknown error",
-                    sagaId = originSagaId,
-                )
+                val event =
+                    MailFailedEvent(
+                        to = to,
+                        subject = subject,
+                        originalEventId = originalEventId,
+                        error = error ?: "Unknown error",
+                        sagaId = originSagaId,
+                    )
                 kafkaOutboxProcessor.saveOutboxMessage(
                     topic = KafkaTopicNames.MAIL_FAILED,
                     key = originSagaId,

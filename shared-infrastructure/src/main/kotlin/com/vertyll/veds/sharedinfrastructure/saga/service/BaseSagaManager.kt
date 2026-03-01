@@ -173,7 +173,9 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                 return existingStep
             }
             if (existingStep.status in TERMINAL_STEP_STATUSES) {
-                logger.info("Saga step '$stepName' for saga '$sagaId' is already terminal (${existingStep.status}) — skipping update to $status")
+                logger.info(
+                    "Saga step '$stepName' for saga '$sagaId' is already terminal (${existingStep.status}) — skipping update to $status",
+                )
                 return existingStep
             }
             logger.info("Updating saga step '$stepName' for saga '$sagaId': ${existingStep.status} → $status")
