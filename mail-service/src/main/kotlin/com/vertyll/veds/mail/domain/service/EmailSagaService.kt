@@ -182,7 +182,12 @@ class EmailSagaService(
     }
 
     /**
-     * Processes a template and sends an email with batch processing saga tracking
+     * Processes a template and sends an email with batch processing saga tracking.
+     *
+     * @param originSagaId  Optional saga ID from the calling service. When present,
+     *                      a [MailSentEvent] or [MailFailedEvent] feedback event
+     *                      is published so the caller can track the outcome.
+     * @param originalEventId  Optional event ID for correlation.
      */
     @Transactional
     fun processEmailBatch(
@@ -192,6 +197,8 @@ class EmailSagaService(
         commonVariables: Map<String, String>,
         specificVariables: Map<String, Map<String, String>> = emptyMap(),
         replyTo: String? = null,
+        originSagaId: String? = null,
+        originalEventId: String? = null,
     ): Map<String, Boolean> {
         val sagaId =
             sagaManager
@@ -256,6 +263,16 @@ class EmailSagaService(
 
             sagaManager.completeSaga(sagaId)
 
+            val allSucceededFinal = results.values.all { it }
+            publishFeedbackEvent(
+                success = allSucceededFinal,
+                to = recipients.joinToString(", "),
+                subject = subject,
+                originSagaId = originSagaId,
+                originalEventId = originalEventId ?: sagaId,
+                error = if (!allSucceededFinal) "Some recipients failed in batch" else null,
+            )
+
             return results
         } catch (e: Exception) {
             logger.error("Error in email batch saga: ${e.message}", e)
@@ -268,6 +285,16 @@ class EmailSagaService(
                         "error" to e.message,
                     ),
             )
+
+            publishFeedbackEvent(
+                success = false,
+                to = recipients.joinToString(", "),
+                subject = subject,
+                originSagaId = originSagaId,
+                originalEventId = originalEventId ?: sagaId,
+                error = e.message ?: "Unknown error during batch email sending",
+            )
+
             return recipients.associateWith { false }
         }
     }

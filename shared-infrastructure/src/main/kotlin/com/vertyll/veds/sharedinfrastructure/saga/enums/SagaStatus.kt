@@ -8,8 +8,7 @@ enum class SagaStatus {
     COMPENSATING,
     COMPENSATED,
     COMPENSATION_FAILED,
-    PARTIALLY_COMPLETED,
     ;
 
-    fun isTerminal(): Boolean = this in setOf(COMPLETED, COMPENSATED, COMPENSATION_FAILED)
+    fun isTerminal(): Boolean = this in setOf(COMPLETED, FAILED, COMPENSATED, COMPENSATION_FAILED)
 }

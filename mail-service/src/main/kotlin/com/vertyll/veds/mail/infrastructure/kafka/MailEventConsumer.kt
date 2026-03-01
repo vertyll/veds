@@ -62,8 +62,9 @@ class MailEventConsumer(
 
             handleEvent(event)
         } catch (e: Exception) {
-            logger.error("Error processing message from topic {}", record.topic(), e)
+            logger.error("Error processing message from topic {} — will be retried / sent to DLT", record.topic(), e)
             logger.error("Failed payload: {}", payload)
+            throw e
         }
     }
 

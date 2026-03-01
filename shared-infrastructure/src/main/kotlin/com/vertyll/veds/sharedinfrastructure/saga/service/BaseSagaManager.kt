@@ -221,6 +221,9 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
                     payload = payloadJson,
                     createdAt = Instant.now(),
                 )
+            if (status == SagaStepStatus.FAILED) {
+                skippedStep.errorMessage = "Step '$stepName' failed (saga already ${saga.status})"
+            }
             return sagaStepRepository.save(skippedStep)
         }
 
@@ -334,10 +337,14 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     }
 
     /**
-     * Marks a saga as FAILED and triggers compensation for all completed steps.
+     * Marks a saga as COMPENSATING and triggers compensation for all completed steps.
      *
-     * Guard clause: if the saga is already in a terminal state (COMPLETED, COMPENSATED,
-     * COMPENSATION_FAILED), the call is ignored to prevent out-of-order event issues.
+     * The saga transitions: COMPENSATING → COMPENSATED (if all steps compensated)
+     * or COMPENSATING → COMPENSATION_FAILED (if any step failed to compensate).
+     *
+     * Guard clause: if the saga is already in a terminal state (COMPLETED, FAILED,
+     * COMPENSATED, COMPENSATION_FAILED), the call is ignored to prevent
+     * out-of-order event issues.
      */
     @Transactional
     open fun failSaga(
@@ -356,7 +363,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
             return saga
         }
 
-        saga.status = SagaStatus.FAILED
+        saga.status = SagaStatus.COMPENSATING
         saga.lastError = error
         saga.updatedAt = Instant.now()
 
