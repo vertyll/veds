@@ -18,7 +18,13 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * Base saga manager that provides common saga coordination logic.
+ * Base saga **orchestrator** that provides common saga coordination logic.
+ *
+ * This class follows the **Saga Orchestrator** pattern: it knows the full list
+ * of expected steps ([getSagaStepDefinitions]), tracks overall saga state, and
+ * decides when to trigger compensation. Communication with other services is
+ * event-driven (Kafka), but the coordination logic is centralized here.
+ *
  * Services should extend this class and implement service-specific methods.
  *
  * Implements [ApplicationContextAware] to get a reference to the Spring
@@ -142,7 +148,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
      * and has the same status, it is returned unchanged.
      *
      * Allows status transitions: if the existing step has a non-terminal status
-     * (e.g. STARTED) and a new terminal status is provided (e.g. COMPLETED, FAILED),
+     * (e.g., STARTED) and a new terminal status is provided (e.g., COMPLETED, FAILED),
      * the existing step is updated rather than duplicated.
      *
      * When [status] is [SagaStepStatus.FAILED] compensation is triggered automatically.
@@ -274,22 +280,6 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     }
 
     /**
-     * Explicitly marks a saga as COMPLETED regardless of step state.
-     */
-    @Transactional
-    open fun completeSaga(sagaId: String): S {
-        val saga =
-            sagaRepository.findById(sagaId).orElseThrow {
-                IllegalArgumentException("Saga with id '$sagaId' not found")
-            }
-
-        saga.status = SagaStatus.COMPLETED
-        saga.completedAt = Instant.now()
-
-        return sagaRepository.save(saga)
-    }
-
-    /**
      * Marks a saga as FAILED and triggers compensation for all completed steps.
      *
      * Guard clause: if the saga is already in a terminal state (COMPLETED, COMPENSATED,
@@ -340,7 +330,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
 
     /**
      * Checks if the saga has completed some steps but is still waiting for
-     * asynchronous steps from external services (e.g. mail delivery confirmation).
+     * asynchronous steps from external services (e.g., mail delivery confirmation).
      */
     protected open fun hasAsyncStepsPending(saga: S): Boolean {
         val expectedSteps = getSagaStepDefinitions()[saga.type] ?: return false
