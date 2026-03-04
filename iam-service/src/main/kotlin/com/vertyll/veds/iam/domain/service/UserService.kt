@@ -88,10 +88,12 @@ class UserService(
     private fun mapToDto(user: User): UserResponseDto =
         UserResponseDto(
             id = user.id!!,
+            keycloakId = user.keycloakId?.toString(),
             firstName = user.firstName,
             lastName = user.lastName,
             email = user.getEmail(),
             roles = user.roles.map { it.name }.toSet(),
+            permissions = user.permissions.map { it.name }.toSet(),
             profilePicture = user.profilePicture,
             phoneNumber = user.phoneNumber,
             address = user.address,

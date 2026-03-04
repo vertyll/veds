@@ -55,9 +55,6 @@ dependencies {
     implementation(libs.bundles.spring.boot.gateway)
     implementation(libs.bundles.gateway.kotlin)
 
-    // --- Security ---
-    implementation(libs.bundles.jjwt)
-
     // --- API Documentation ---
     implementation(libs.springdoc.openapi.starter.webflux.ui)
 

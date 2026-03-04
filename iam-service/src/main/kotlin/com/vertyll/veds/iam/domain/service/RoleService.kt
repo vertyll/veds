@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 class RoleService(
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
+    private val keycloakAdminService: KeycloakAdminService,
 ) {
     private companion object {
         private const val ROLE_NOT_FOUND = "Role not found"
@@ -84,6 +85,9 @@ class RoleService(
                 }
         user.addRole(role)
         userRepository.save(user)
+
+        // Sync role to Keycloak
+        user.keycloakId?.let { keycloakAdminService.assignRole(it.toString(), roleName) }
     }
 
     @Transactional
@@ -120,6 +124,9 @@ class RoleService(
                 }
         user.removeRole(role.id!!)
         userRepository.save(user)
+
+        // Sync role removal to Keycloak
+        user.keycloakId?.let { keycloakAdminService.removeRole(it.toString(), roleName) }
     }
 
     private fun getUser(userId: Long) =

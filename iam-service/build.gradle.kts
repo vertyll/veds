@@ -54,7 +54,7 @@ dependencies {
 
     // --- Web & Security ---
     implementation(libs.bundles.spring.boot.webmvc.security)
-    implementation(libs.bundles.jjwt)
+    implementation(libs.bundles.keycloak.admin)
 
     // --- Spring Cloud ---
     implementation(libs.spring.cloud.starter.openfeign)

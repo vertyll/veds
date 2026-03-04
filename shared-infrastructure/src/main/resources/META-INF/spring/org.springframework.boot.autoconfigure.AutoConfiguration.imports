@@ -1,2 +1,3 @@
 com.vertyll.veds.sharedinfrastructure.config.SharedConfigAutoConfiguration
 com.vertyll.veds.sharedinfrastructure.config.JacksonEventConfig
+com.vertyll.veds.sharedinfrastructure.security.KeycloakSecurityAutoConfiguration

@@ -1,12 +1,11 @@
 package com.vertyll.veds.apigateway.config
 
 import com.vertyll.veds.apigateway.security.JsonAuthenticationEntryPoint
-import com.vertyll.veds.apigateway.security.JwtAuthFilter
 import com.vertyll.veds.sharedinfrastructure.role.RoleType
+import com.vertyll.veds.sharedinfrastructure.security.ReactiveKeycloakJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.web.cors.CorsConfiguration
@@ -16,20 +15,21 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebFluxSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthFilter,
     private val jsonAuthenticationEntryPoint: JsonAuthenticationEntryPoint,
+    private val reactiveKeycloakJwtConverter: ReactiveKeycloakJwtAuthenticationConverter,
 ) {
     companion object {
-        // Public Auth endpoints
+        // Public Auth endpoints (BFF proxy + registration/activation)
         private val PUBLIC_AUTH_ENDPOINTS =
             arrayOf(
                 "/auth/register",
-                "/auth/authenticate",
-                "/auth/refresh-token",
                 "/auth/activate",
                 "/auth/reset-password-request",
                 "/auth/confirm-reset-password",
                 "/auth/resend-activation",
+                "/auth/token",
+                "/auth/refresh-token",
+                "/auth/logout",
             )
 
         // Swagger documentation endpoints
@@ -48,13 +48,12 @@ class SecurityConfig(
         private val PROTECTED_AUTH_ENDPOINTS =
             arrayOf(
                 "/auth/me",
-                "/auth/logout",
+                "/auth/me/permissions",
                 "/auth/change-password-request",
                 "/auth/change-email-request",
                 "/auth/confirm-email-change",
                 "/auth/confirm-password-change",
                 "/auth/set-new-password",
-                "/auth/sessions/**",
             )
 
         // Role endpoints
@@ -86,9 +85,9 @@ class SecurityConfig(
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain =
         http
-            .csrf { it.disable() } // Disable CSRF for API Gateway
-            .formLogin { it.disable() } // Disable default login form
-            .httpBasic { it.disable() } // Disable HTTP Basic Auth
+            .csrf { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
             .exceptionHandling {
                 it.authenticationEntryPoint(jsonAuthenticationEntryPoint)
             }.authorizeExchange { exchanges ->
@@ -117,7 +116,7 @@ class SecurityConfig(
                     // IAM service user endpoints
                     .pathMatchers(USER_PROFILE_ENDPOINT)
                     .authenticated()
-                    // For user ID paths, we need a simpler approach in WebFlux
+                    // For user ID paths
                     .pathMatchers(*USER_ID_ENDPOINT)
                     .authenticated()
                     // Mail service endpoints (admin only)
@@ -126,10 +125,11 @@ class SecurityConfig(
                     // Default policy - deny all
                     .anyExchange()
                     .authenticated()
-            }
-            // Add JWT filter before UsernamePasswordAuthenticationFilter
-            .addFilterAt(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-            .build()
+            }.oauth2ResourceServer { oauth2 ->
+                oauth2.jwt { jwt ->
+                    jwt.jwtAuthenticationConverter(reactiveKeycloakJwtConverter)
+                }
+            }.build()
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {

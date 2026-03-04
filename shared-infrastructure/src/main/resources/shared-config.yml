@@ -17,20 +17,26 @@ spring:
       properties:
         spring.json.add.type.headers: true
         spring.json.value.default.type: "com.vertyll.veds.sharedinfrastructure.event.DomainEvent"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9000/realms/veds-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:9000/realms/veds-realm/protocol/openid-connect/certs}
 
 veds:
   shared:
-    security:
-      jwt:
-        secret-key: ${JWT_SECRET_KEY:CbIKeXKAkneVUn5me1nHZ+V74qpmZ36InUDFEXsg6YY=}
-        access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}  # 15 minutes in milliseconds
-        refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}  # 7 days in milliseconds
-        refresh-token-cookie-name: refresh_token
-        auth-header-name: Authorization
-        cookie:
-          httpOnly: true
-          secure: ${JWT_COOKIE_SECURE:false}
-          sameSite: Strict
-          path: "/"
-
-
+    keycloak:
+      server-url: ${KEYCLOAK_SERVER_URL:http://localhost:9000}
+      realm: ${KEYCLOAK_REALM:veds-realm}
+      admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:veds-service-account}
+      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:veds-service-account-secret}
+      gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
+      gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:veds-gateway-secret}
+      roles-claim-path: roles
+    cookie:
+      refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
+      http-only: true
+      secure: ${COOKIE_SECURE:false}
+      same-site: Strict
+      path: "/"

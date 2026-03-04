@@ -9,10 +9,10 @@ kotlin = "2.3.0"
 # Dependencies
 springdoc = "3.0.1"
 testcontainers = "1.21.3"
-jjwt = "0.13.0"
 kotlin-logging = "8.0.01"
 springframework-cloud = "2025.1.0"
 flyway = "12.0.3"
+keycloak = "26.0.8"
 
 [libraries]
 # Spring Boot Starters - Common
@@ -59,10 +59,10 @@ kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions" }
 reactor-test = { module = "io.projectreactor:reactor-test" }
 
-# JWT
-jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
-jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
-jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+# OAuth2 / Keycloak
+spring-boot-starter-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
+spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
+keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "keycloak" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql" }
@@ -132,6 +132,7 @@ spring-boot-webmvc-security = [
     "spring-boot-starter-data-jpa",
     "spring-boot-starter-validation",
     "spring-boot-starter-security",
+    "spring-boot-starter-oauth2-resource-server",
     "spring-boot-starter-actuator"
 ]
 
@@ -144,7 +145,9 @@ spring-boot-gateway = [
     "spring-cloud-starter-loadbalancer",
     "spring-boot-starter-webflux",
     "spring-boot-starter-actuator",
-    "spring-boot-starter-security"
+    "spring-boot-starter-security",
+    "spring-boot-starter-oauth2-resource-server",
+    "spring-boot-starter-oauth2-client"
 ]
 
 # Gateway Kotlin extensions
@@ -161,11 +164,9 @@ spring-boot-mail = [
     "thymeleaf-extras-springsecurity6"
 ]
 
-# JWT authentication
-jjwt = [
-    "jjwt-api",
-    "jjwt-impl",
-    "jjwt-jackson"
+# Keycloak Admin Client
+keycloak-admin = [
+    "keycloak-admin-client"
 ]
 
 # Common test dependencies
@@ -203,6 +204,7 @@ shared-infrastructure-api = [
     "spring-boot-starter-actuator",
     "springframework-kafka",
     "spring-boot-starter-security",
+    "spring-boot-starter-oauth2-resource-server",
     "spring-boot-starter-data-jpa",
     "jackson-module-kotlin",
     "kotlin-logging"

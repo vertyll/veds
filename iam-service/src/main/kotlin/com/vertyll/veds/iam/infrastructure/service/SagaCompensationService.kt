@@ -5,6 +5,7 @@ import com.vertyll.veds.iam.domain.model.enums.SagaCompensationActions
 import com.vertyll.veds.iam.domain.repository.SagaStepRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
+import com.vertyll.veds.iam.domain.service.KeycloakAdminService
 import com.vertyll.veds.iam.domain.service.SagaManager
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaCompensationService
@@ -17,6 +18,7 @@ import java.time.Instant
 class SagaCompensationService(
     private val userRepository: UserRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
+    private val keycloakAdminService: KeycloakAdminService,
     sagaStepRepository: SagaStepRepository,
     objectMapper: ObjectMapper,
 ) : BaseSagaCompensationService<SagaStep>(sagaStepRepository, objectMapper) {
@@ -89,22 +91,16 @@ class SagaCompensationService(
     }
 
     /**
-     * Compensate for updating a password by reverting it
+     * Compensate for updating a password — passwords are now in Keycloak,
+     * so local password revert is no longer possible. Log warning only.
      */
     private fun compensateUpdatePassword(event: Map<String, Any?>) {
         try {
             val userId = (event["userId"] as Number).toLong()
-            val originalPasswordHash = event["originalPasswordHash"]?.toString()
-
-            if (originalPasswordHash != null) {
-                userRepository.findById(userId).ifPresent { user ->
-                    logger.info("Compensating UpdatePassword step: Reverting password for user ID $userId")
-                    user.setPassword(originalPasswordHash)
-                    userRepository.save(user)
-                }
-            } else {
-                logger.warn("No original password hash available for compensating password update for user $userId")
-            }
+            logger.warn(
+                "Cannot revert password change for user $userId — passwords are managed by Keycloak. " +
+                    "Manual intervention may be required.",
+            )
         } catch (e: Exception) {
             logger.error("Failed to compensate UpdatePassword step: ${e.message}", e)
             throw e
@@ -112,7 +108,7 @@ class SagaCompensationService(
     }
 
     /**
-     * Compensate for updating an email by reverting it
+     * Compensate for updating an email by reverting it in both local DB and Keycloak
      */
     private fun compensateUpdateEmail(event: Map<String, Any?>) {
         try {
@@ -122,6 +118,7 @@ class SagaCompensationService(
             if (originalEmail != null) {
                 userRepository.findById(userId).ifPresent { user ->
                     logger.info("Compensating UpdateEmail step: Reverting email for user ID $userId to $originalEmail")
+                    user.keycloakId?.let { keycloakAdminService.updateEmail(it, originalEmail) }
                     user.setEmail(originalEmail)
                     userRepository.save(user)
                 }

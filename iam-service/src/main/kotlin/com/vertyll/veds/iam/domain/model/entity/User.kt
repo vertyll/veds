@@ -11,26 +11,25 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
 import java.time.Instant
+import java.util.UUID
 
 @Entity
 @Table(
     name = "\"user\"",
     indexes = [
         jakarta.persistence.Index(name = "idx_user_email", columnList = "email"),
+        jakarta.persistence.Index(name = "idx_user_keycloak_id", columnList = "keycloak_id"),
     ],
 )
 class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
+    @Column(name = "keycloak_id", nullable = true, unique = true)
+    var keycloakId: UUID? = null,
     @Column(nullable = false, unique = true)
     private var email: String,
-    @Column(nullable = false)
-    private var password: String,
     @Column(nullable = false)
     var firstName: String,
     @Column(nullable = false)
@@ -42,8 +41,13 @@ class User(
         inverseJoinColumns = [JoinColumn(name = "role_id")],
     )
     var roles: MutableSet<Role> = mutableSetOf(),
-    @Column(nullable = false)
-    var enabled: Boolean = false,
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_permission_mapping",
+        joinColumns = [JoinColumn(name = "user_id")],
+        inverseJoinColumns = [JoinColumn(name = "permission_id")],
+    )
+    var permissions: MutableSet<Permission> = mutableSetOf(),
     @Column(nullable = true)
     var profilePicture: String? = null,
     @Column(nullable = true)
@@ -56,28 +60,17 @@ class User(
     var updatedAt: Instant = Instant.now(),
     @Version
     val version: Long? = null,
-) : UserDetails {
+) {
     constructor() : this(
         id = null,
+        keycloakId = null,
         email = "",
-        password = "",
         firstName = "",
         lastName = "",
         roles = mutableSetOf(),
-        enabled = false,
+        permissions = mutableSetOf(),
         version = null,
     )
-
-    override fun getAuthorities(): Collection<GrantedAuthority> = roles.map { SimpleGrantedAuthority("ROLE_${it.name}") }
-
-    override fun getUsername(): String = email
-
-    override fun getPassword(): String = password
-
-    fun setPassword(newPassword: String) {
-        this.password = newPassword
-        this.updatedAt = Instant.now()
-    }
 
     fun getEmail(): String = email
 
@@ -101,32 +94,37 @@ class User(
         }
     }
 
-    override fun isAccountNonExpired(): Boolean = true
+    fun addPermission(permission: Permission) {
+        if (permission.id != null && permissions.none { it.id == permission.id }) {
+            permissions.add(permission)
+            updatedAt = Instant.now()
+        }
+    }
 
-    override fun isAccountNonLocked(): Boolean = true
-
-    override fun isCredentialsNonExpired(): Boolean = true
-
-    override fun isEnabled(): Boolean = enabled
+    fun removePermission(permissionId: Long) {
+        val permissionToRemove = permissions.find { it.id == permissionId }
+        if (permissionToRemove != null) {
+            permissions.remove(permissionToRemove)
+            updatedAt = Instant.now()
+        }
+    }
 
     @Suppress("kotlin:S107")
     companion object {
         fun create(
+            keycloakId: UUID,
             email: String,
-            password: String,
             firstName: String,
             lastName: String,
-            enabled: Boolean = false,
             profilePicture: String? = null,
             phoneNumber: String? = null,
             address: String? = null,
         ): User =
             User(
+                keycloakId = keycloakId,
                 email = email,
-                password = password,
                 firstName = firstName,
                 lastName = lastName,
-                enabled = enabled,
                 profilePicture = profilePicture,
                 phoneNumber = phoneNumber,
                 address = address,

@@ -65,9 +65,8 @@ dependencies {
     api(libs.bundles.shared.infrastructure.api)
     api(libs.postgresql)
 
-    // --- Security ---
-    implementation(libs.jjwt.impl)
-    implementation(libs.jjwt.jackson)
+    // --- Reactor (needed for ReactiveKeycloakJwtAuthenticationConverter, provided at runtime by gateway) ---
+    compileOnly("io.projectreactor:reactor-core")
 
     // --- Annotation Processors ---
     kapt(libs.spring.boot.configuration.processor)

@@ -54,7 +54,6 @@ dependencies {
 
     // --- Web & Security ---
     implementation(libs.bundles.spring.boot.webmvc.security)
-    implementation(libs.bundles.jjwt)
 
     // --- API Documentation ---
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

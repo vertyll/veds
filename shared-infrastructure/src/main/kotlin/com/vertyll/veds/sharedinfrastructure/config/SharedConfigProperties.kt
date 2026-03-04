@@ -4,17 +4,24 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "veds.shared")
 data class SharedConfigProperties(
-    val security: SecurityProperties,
+    val keycloak: KeycloakProperties,
+    val cookie: CookieProperties,
 ) {
-    data class SecurityProperties(
-        val jwt: JwtProperties,
-    ) {
-        data class JwtProperties(
-            val secretKey: String,
-            val accessTokenExpiration: Long,
-            val refreshTokenExpiration: Long,
-            val refreshTokenCookieName: String,
-            val authHeaderName: String,
-        )
-    }
+    data class KeycloakProperties(
+        val serverUrl: String,
+        val realm: String,
+        val adminClientId: String,
+        val adminClientSecret: String,
+        val gatewayClientId: String,
+        val gatewayClientSecret: String,
+        val rolesClaimPath: String,
+    )
+
+    data class CookieProperties(
+        val refreshTokenCookieName: String,
+        val httpOnly: Boolean,
+        val secure: Boolean,
+        val sameSite: String,
+        val path: String,
+    )
 }

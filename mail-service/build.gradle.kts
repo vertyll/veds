@@ -58,9 +58,6 @@ dependencies {
     // --- Mail & Thymeleaf ---
     implementation(libs.bundles.spring.boot.mail)
 
-    // --- Security ---
-    implementation(libs.bundles.jjwt)
-
     // --- API Documentation ---
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
