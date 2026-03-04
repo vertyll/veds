@@ -44,7 +44,7 @@ class KeycloakAdminService(
      * Creates a new user in Keycloak with the given credentials and assigns the specified role.
      * The user is created as disabled (enabled = false) since account activation is handled separately.
      *
-     * @return The Keycloak user UUID (sub claim value)
+     * @return The Keycloak user UUID (subclaim value)
      */
     fun createUser(
         email: String,
@@ -102,7 +102,7 @@ class KeycloakAdminService(
      * Enables a user account in Keycloak (used after account activation).
      */
     fun enableUser(keycloakId: UUID) {
-        val userResource = usersResource.get(keycloakId.toString())
+        val userResource = usersResource[keycloakId.toString()]
         val userRepresentation = userResource.toRepresentation()
         userRepresentation.isEnabled = true
         userRepresentation.isEmailVerified = true
@@ -123,7 +123,7 @@ class KeycloakAdminService(
                 value = newPassword
                 isTemporary = false
             }
-        usersResource.get(keycloakId.toString()).resetPassword(credential)
+        usersResource[keycloakId.toString()].resetPassword(credential)
         logger.info("Reset password for Keycloak user: {}", keycloakId)
     }
 
@@ -134,7 +134,7 @@ class KeycloakAdminService(
         keycloakId: UUID,
         newEmail: String,
     ) {
-        val userResource = usersResource.get(keycloakId.toString())
+        val userResource = usersResource[keycloakId.toString()]
         val userRepresentation = userResource.toRepresentation()
         userRepresentation.email = newEmail
         userRepresentation.username = newEmail
@@ -149,9 +149,8 @@ class KeycloakAdminService(
         keycloakUserId: String,
         roleName: String,
     ) {
-        val role = realmResource.roles().get(roleName).toRepresentation()
-        usersResource
-            .get(keycloakUserId)
+        val role = realmResource.roles()[roleName].toRepresentation()
+        usersResource[keycloakUserId]
             .roles()
             .realmLevel()
             .add(listOf(role))
@@ -165,9 +164,8 @@ class KeycloakAdminService(
         keycloakUserId: String,
         roleName: String,
     ) {
-        val role = realmResource.roles().get(roleName).toRepresentation()
-        usersResource
-            .get(keycloakUserId)
+        val role = realmResource.roles()[roleName].toRepresentation()
+        usersResource[keycloakUserId]
             .roles()
             .realmLevel()
             .remove(listOf(role))
@@ -175,7 +173,7 @@ class KeycloakAdminService(
     }
 
     /**
-     * Validates a user's current password by attempting to obtain a token from Keycloak.
+     * Validates a user's current password by attempting to get a token from Keycloak.
      * @return true if the password is valid
      */
     fun validatePassword(
@@ -198,7 +196,7 @@ class KeycloakAdminService(
             // If we can get a token, the password is correct
             tokenKeycloak.tokenManager().accessToken
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             logger.debug("Password validation failed for user: {}", email)
             false
         }
