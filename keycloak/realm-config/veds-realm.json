@@ -1,68 +1,71 @@
 {
-  "realm": "veds-realm",
+  "realm": "veds",
   "enabled": true,
-  "registrationAllowed": false,
+  "sslRequired": "none",
+  "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
-  "resetPasswordAllowed": false,
+  "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
-  "verifyEmail": false,
-  "sslRequired": "none",
-  "accessTokenLifespan": 900,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 0,
+  "accessTokenLifespan": 900,
   "ssoSessionIdleTimeout": 604800,
   "ssoSessionMaxLifespan": 604800,
-  "offlineSessionIdleTimeout": 604800,
-  "accessTokenLifespanForImplicitFlow": 900,
   "roles": {
     "realm": [
       {
         "name": "USER",
-        "description": "Default user role",
-        "composite": false,
-        "clientRole": false
+        "description": "Standard application user"
       },
       {
         "name": "ADMIN",
-        "description": "Administrator role",
-        "composite": false,
-        "clientRole": false
+        "description": "Application administrator"
       }
     ]
   },
-  "defaultRoles": [
-    "USER"
-  ],
-  "defaultDefaultClientScopes": [
-    "web-origins",
-    "acr",
-    "profile",
-    "roles",
-    "email"
-  ],
   "clients": [
     {
       "clientId": "veds-api-gateway",
       "name": "VEDS API Gateway",
+      "description": "Confidential client for API Gateway BFF authentication",
       "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "veds-gateway-secret",
+      "rootUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:8080",
       "redirectUris": [
         "http://localhost:8080/*",
         "http://localhost:4200/*"
       ],
       "webOrigins": [
-        "http://localhost:8080",
+        "+",
         "http://localhost:4200"
       ],
       "publicClient": false,
-      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "veds-gateway-secret",
+      "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
+      "frontchannelLogout": true,
       "fullScopeAllowed": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "900",
+        "use.refresh.tokens": "true",
+        "client.session.max.lifespan": "604800",
+        "client.session.idle.timeout": "604800",
+        "post.logout.redirect.uris": "http://localhost:8080/*##http://localhost:4200/*##",
+        "backchannel.logout.session.required": "true"
+      },
       "protocolMappers": [
         {
           "name": "realm-roles-mapper",
@@ -70,6 +73,7 @@
           "protocolMapper": "oidc-usermodel-realm-role-mapper",
           "consentRequired": false,
           "config": {
+            "introspection.token.claim": "true",
             "multivalued": "true",
             "userinfo.token.claim": "true",
             "id.token.claim": "true",
@@ -84,6 +88,7 @@
           "protocolMapper": "oidc-usermodel-attribute-mapper",
           "consentRequired": false,
           "config": {
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "true",
             "user.attribute": "email",
             "id.token.claim": "true",
@@ -97,33 +102,18 @@
     {
       "clientId": "veds-service-account",
       "name": "VEDS Service Account",
-      "description": "Service account client for backend admin operations (user management, role assignment)",
+      "description": "Service account client for backend admin operations",
       "enabled": true,
+      "publicClient": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "veds-service-account-secret",
-      "publicClient": false,
-      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true,
-      "standardFlowEnabled": false,
-      "implicitFlowEnabled": false,
-      "fullScopeAllowed": false
+      "fullScopeAllowed": false,
+      "protocol": "openid-connect"
     }
   ],
-  "scopeMappings": [],
-  "clientScopeMappings": {
-    "realm-management": [
-      {
-        "client": "veds-service-account",
-        "roles": [
-          "manage-users",
-          "view-users",
-          "query-users",
-          "manage-realm"
-        ]
-      }
-    ]
-  },
   "users": [
     {
       "username": "service-account-veds-service-account",
@@ -138,5 +128,15 @@
         ]
       }
     }
-  ]
+  ],
+  "smtpServer": {
+    "debug": "false",
+    "starttls": "false",
+    "auth": "",
+    "port": "1025",
+    "host": "mail-dev",
+    "from": "no-reply@veds.local",
+    "fromDisplayName": "VEDS",
+    "ssl": "false"
+  }
 }
