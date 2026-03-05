@@ -1,0 +1,613 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-04T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v10.0.0",
+  "resources": [
+    {
+      "_id": "wrk_veds",
+      "_type": "workspace",
+      "name": "VEDS",
+      "description": "VEDS Microservices API Collection (Keycloak Auth)",
+      "scope": "collection",
+      "created": 1709510400000,
+      "modified": 1709510400000
+    },
+    {
+      "_id": "jar_veds",
+      "_type": "cookie_jar",
+      "parentId": "wrk_veds",
+      "name": "Default Jar",
+      "cookies": []
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_veds",
+      "name": "Base Environment",
+      "data": {
+        "gateway_url": "http://localhost:8080",
+        "iam_url": "http://localhost:8082",
+        "mail_url": "http://localhost:8083",
+        "keycloak_url": "http://localhost:9000",
+        "realm": "veds",
+        "client_id": "veds-api-gateway",
+        "client_secret": "veds-gateway-secret",
+        "test_email": "test@example.com",
+        "test_password": "Test1234!",
+        "access_token": "",
+        "user_id": "1",
+        "role_name": "USER"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "gateway_url",
+          "iam_url",
+          "mail_url",
+          "keycloak_url",
+          "realm",
+          "client_id",
+          "client_secret",
+          "test_email",
+          "test_password",
+          "access_token",
+          "user_id",
+          "role_name"
+        ]
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_veds",
+      "name": "🔐 Auth (Gateway BFF)",
+      "description": "Authentication endpoints via API Gateway BFF proxy",
+      "metaSortKey": 100
+    },
+    {
+      "_id": "fld_auth_reg",
+      "_type": "request_group",
+      "parentId": "wrk_veds",
+      "name": "📝 Auth (Registration & Account)",
+      "description": "Registration, activation, password/email management via IAM service",
+      "metaSortKey": 200
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "parentId": "wrk_veds",
+      "name": "👤 Users",
+      "description": "User management endpoints",
+      "metaSortKey": 300
+    },
+    {
+      "_id": "fld_roles",
+      "_type": "request_group",
+      "parentId": "wrk_veds",
+      "name": "🛡️ Roles",
+      "description": "Role management endpoints",
+      "metaSortKey": 400
+    },
+    {
+      "_id": "fld_mail",
+      "_type": "request_group",
+      "parentId": "wrk_veds",
+      "name": "📧 Mail",
+      "description": "Email service endpoints",
+      "metaSortKey": 500
+    },
+    {
+      "_id": "fld_keycloak",
+      "_type": "request_group",
+      "parentId": "wrk_veds",
+      "name": "⚙️ Keycloak Direct",
+      "description": "Direct Keycloak endpoints (for debugging)",
+      "metaSortKey": 600
+    },
+
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login (get tokens)",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/token",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.test_email }}\",\n  \"password\": \"{{ _.test_password }}\"\n}"
+      },
+      "authentication": {},
+      "settingSendCookies": true,
+      "settingStoreCookies": true,
+      "settingFollowRedirects": "global",
+      "metaSortKey": 100,
+      "description": "Login via BFF. Returns accessToken in body, sets refreshToken as HttpOnly cookie.\n\nAfter success, copy access_token from response to environment variable."
+    },
+    {
+      "_id": "req_refresh",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/refresh-token",
+      "headers": [],
+      "body": {},
+      "authentication": {},
+      "settingSendCookies": true,
+      "settingStoreCookies": true,
+      "settingFollowRedirects": "global",
+      "metaSortKey": 200,
+      "description": "Refresh tokens using HttpOnly cookie (KEYCLOAK_REFRESH_TOKEN).\nCookies are sent automatically from Insomnia's cookie jar."
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/logout",
+      "headers": [],
+      "body": {},
+      "authentication": {},
+      "settingSendCookies": true,
+      "settingStoreCookies": true,
+      "settingFollowRedirects": "global",
+      "metaSortKey": 300,
+      "description": "Logout — invalidates refresh token in Keycloak, clears cookie. Returns 204."
+    },
+
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"{{ _.test_email }}\",\n  \"password\": \"{{ _.test_password }}\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 100
+    },
+    {
+      "_id": "req_activate",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Activate Account",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/activate?token=PASTE_TOKEN_HERE",
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 200
+    },
+    {
+      "_id": "req_resend_activation",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Resend Activation Email",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/resend-activation?email={{ _.test_email }}",
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 300
+    },
+    {
+      "_id": "req_reset_password_request",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Request Password Reset",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/reset-password-request?email={{ _.test_email }}",
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 400
+    },
+    {
+      "_id": "req_confirm_reset_password",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Confirm Password Reset",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/confirm-reset-password?token=PASTE_TOKEN_HERE",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"newPassword\": \"NewPass1234!\",\n  \"confirmationCode\": \"PASTE_CODE_HERE\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 500
+    },
+    {
+      "_id": "req_change_email_request",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Request Email Change",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/change-email-request",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"password\": \"{{ _.test_password }}\",\n  \"newEmail\": \"newemail@example.com\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 600
+    },
+    {
+      "_id": "req_confirm_email_change",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Confirm Email Change",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/confirm-email-change?token=PASTE_TOKEN_HERE",
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 700
+    },
+    {
+      "_id": "req_change_password_request",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Request Password Change",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/change-password-request",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"currentPassword\": \"{{ _.test_password }}\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 800
+    },
+    {
+      "_id": "req_confirm_password_change",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Confirm Password Change",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/confirm-password-change?token=PASTE_TOKEN_HERE",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"newPassword\": \"NewSecure1234!\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 900
+    },
+    {
+      "_id": "req_set_new_password",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Set New Password (by tokenId)",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/auth/set-new-password?tokenId=1",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"newPassword\": \"NewSecure1234!\",\n  \"confirmationCode\": \"PASTE_CODE_HERE\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 1000
+    },
+    {
+      "_id": "req_me",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Get Current User (/me)",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/auth/me",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 1100
+    },
+    {
+      "_id": "req_me_permissions",
+      "_type": "request",
+      "parentId": "fld_auth_reg",
+      "name": "Get My Permissions",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/auth/me/permissions",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 1200
+    },
+
+    {
+      "_id": "req_users_all",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get All Users (Admin)",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/users?page=0&size=20",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 100,
+      "description": "Requires ADMIN role"
+    },
+    {
+      "_id": "req_users_by_id",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get User by ID",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/users/{{ _.user_id }}",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 200
+    },
+    {
+      "_id": "req_users_by_email",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get User by Email",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/users/email/{{ _.test_email }}",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 300
+    },
+    {
+      "_id": "req_users_update",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Update User Profile (Admin)",
+      "method": "PUT",
+      "url": "{{ _.gateway_url }}/users/{{ _.user_id }}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"profilePicture\": null,\n  \"phoneNumber\": \"+1234567890\",\n  \"address\": \"123 Main St, New York\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 400,
+      "description": "Requires ADMIN role. Optionally add If-Match header for optimistic locking."
+    },
+
+    {
+      "_id": "req_roles_all",
+      "_type": "request",
+      "parentId": "fld_roles",
+      "name": "Get All Roles",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/roles",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 100
+    },
+    {
+      "_id": "req_roles_by_id",
+      "_type": "request",
+      "parentId": "fld_roles",
+      "name": "Get Role by ID",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/roles/1",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 200
+    },
+    {
+      "_id": "req_roles_by_name",
+      "_type": "request",
+      "parentId": "fld_roles",
+      "name": "Get Role by Name",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/roles/name/{{ _.role_name }}",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 300
+    },
+    {
+      "_id": "req_roles_for_user",
+      "_type": "request",
+      "parentId": "fld_roles",
+      "name": "Get Roles for User (Admin)",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/roles/user/{{ _.user_id }}",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 400,
+      "description": "Requires ADMIN role"
+    },
+    {
+      "_id": "req_roles_assign",
+      "_type": "request",
+      "parentId": "fld_roles",
+      "name": "Assign Role to User (Admin)",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/roles/user/{{ _.user_id }}/role/ADMIN",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 500,
+      "description": "Requires ADMIN role. Optionally add If-Match header."
+    },
+    {
+      "_id": "req_roles_remove",
+      "_type": "request",
+      "parentId": "fld_roles",
+      "name": "Remove Role from User (Admin)",
+      "method": "DELETE",
+      "url": "{{ _.gateway_url }}/roles/user/{{ _.user_id }}/role/ADMIN",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 600,
+      "description": "Requires ADMIN role. Optionally add If-Match header."
+    },
+
+    {
+      "_id": "req_mail_logs",
+      "_type": "request",
+      "parentId": "fld_mail",
+      "name": "Get Email Logs (Admin)",
+      "method": "GET",
+      "url": "{{ _.gateway_url }}/mail/logs?page=0&size=20",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 100,
+      "description": "Requires ADMIN role"
+    },
+    {
+      "_id": "req_mail_send",
+      "_type": "request",
+      "parentId": "fld_mail",
+      "name": "Send Email",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/mail/send",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"to\": \"recipient@example.com\",\n  \"subject\": \"Test Email\",\n  \"templateName\": \"welcome\",\n  \"variables\": {\n    \"name\": \"John\"\n  },\n  \"replyTo\": null\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 200
+    },
+    {
+      "_id": "req_mail_send_batch",
+      "_type": "request",
+      "parentId": "fld_mail",
+      "name": "Send Batch Email",
+      "method": "POST",
+      "url": "{{ _.gateway_url }}/mail/send-batch",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"recipients\": [\"user1@example.com\", \"user2@example.com\"],\n  \"subject\": \"Batch Test\",\n  \"templateName\": \"welcome\",\n  \"commonVariables\": {\n    \"company\": \"VEDS\"\n  },\n  \"specificVariables\": {\n    \"user1@example.com\": { \"name\": \"User 1\" },\n    \"user2@example.com\": { \"name\": \"User 2\" }\n  },\n  \"replyTo\": null\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 300
+    },
+
+    {
+      "_id": "req_kc_token",
+      "_type": "request",
+      "parentId": "fld_keycloak",
+      "name": "Keycloak — Get Token (Direct)",
+      "method": "POST",
+      "url": "{{ _.keycloak_url }}/realms/{{ _.realm }}/protocol/openid-connect/token",
+      "headers": [
+        { "name": "Content-Type", "value": "application/x-www-form-urlencoded" }
+      ],
+      "body": {
+        "mimeType": "application/x-www-form-urlencoded",
+        "params": [
+          { "name": "grant_type", "value": "password" },
+          { "name": "client_id", "value": "{{ _.client_id }}" },
+          { "name": "client_secret", "value": "{{ _.client_secret }}" },
+          { "name": "username", "value": "{{ _.test_email }}" },
+          { "name": "password", "value": "{{ _.test_password }}" }
+        ]
+      },
+      "authentication": {},
+      "metaSortKey": 100,
+      "description": "Get token directly from Keycloak (bypass gateway). Useful for debugging."
+    },
+    {
+      "_id": "req_kc_userinfo",
+      "_type": "request",
+      "parentId": "fld_keycloak",
+      "name": "Keycloak — UserInfo",
+      "method": "GET",
+      "url": "{{ _.keycloak_url }}/realms/{{ _.realm }}/protocol/openid-connect/userinfo",
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}"
+      },
+      "metaSortKey": 200
+    },
+    {
+      "_id": "req_kc_well_known",
+      "_type": "request",
+      "parentId": "fld_keycloak",
+      "name": "Keycloak — OpenID Discovery",
+      "method": "GET",
+      "url": "{{ _.keycloak_url }}/realms/{{ _.realm }}/.well-known/openid-configuration",
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 300
+    },
+    {
+      "_id": "req_kc_certs",
+      "_type": "request",
+      "parentId": "fld_keycloak",
+      "name": "Keycloak — JWKS (Public Keys)",
+      "method": "GET",
+      "url": "{{ _.keycloak_url }}/realms/{{ _.realm }}/protocol/openid-connect/certs",
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 400
+    }
+  ]
+}
