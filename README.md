@@ -144,7 +144,7 @@ Keycloak is the identity provider (IdP) for the application. It handles:
 
 | Resource | Name | Purpose |
 |---|---|---|
-| Realm | `veds-realm` | Application realm |
+| Realm | `veds` | Application realm |
 | Realm roles | `USER`, `ADMIN` | Mapped to Spring Security `ROLE_USER`, `ROLE_ADMIN` |
 | Client | `veds-api-gateway` | Confidential client used by the Gateway BFF for login/refresh/logout |
 | Client | `veds-service-account` | Service account for IAM backend admin operations (user CRUD, role assignment) |
@@ -176,14 +176,14 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9000/realms/veds-realm}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:9000/realms/veds-realm/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9000/realms/veds}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:9000/realms/veds/protocol/openid-connect/certs}
 
 veds:
   shared:
     keycloak:
       server-url: ${KEYCLOAK_SERVER_URL:http://localhost:9000}
-      realm: ${KEYCLOAK_REALM:veds-realm}
+      realm: ${KEYCLOAK_REALM:veds}
       admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:veds-service-account}
       admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:veds-service-account-secret}
       gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
@@ -198,15 +198,15 @@ veds:
 | URL | Description |
 |---|---|
 | http://localhost:9000 | Keycloak admin console (login: `admin` / `admin`) |
-| http://localhost:9000/realms/veds-realm/.well-known/openid-configuration | OpenID Connect discovery |
-| http://localhost:9000/realms/veds-realm/protocol/openid-connect/certs | JWKS (public keys for JWT verification) |
-| http://localhost:9000/realms/veds-realm/protocol/openid-connect/token | Token endpoint |
+| http://localhost:9000/realms/veds/.well-known/openid-configuration | OpenID Connect discovery |
+| http://localhost:9000/realms/veds/protocol/openid-connect/certs | JWKS (public keys for JWT verification) |
+| http://localhost:9000/realms/veds/protocol/openid-connect/token | Token endpoint |
 
 ### Manual token request (curl)
 
 ```bash
 # Get access token
-curl -s -X POST http://localhost:9000/realms/veds-realm/protocol/openid-connect/token \
+curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=veds-api-gateway" \
