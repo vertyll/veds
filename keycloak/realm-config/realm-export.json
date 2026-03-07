@@ -1,14 +1,16 @@
 {
   "id": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
   "realm": "veds",
+  "displayName": "",
+  "displayNameHtml": "",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 0,
-  "accessTokenLifespan": 900,
+  "accessTokenLifespan": 300,
   "accessTokenLifespanForImplicitFlow": 900,
-  "ssoSessionIdleTimeout": 604800,
-  "ssoSessionMaxLifespan": 604800,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
   "ssoSessionIdleTimeoutRememberMe": 0,
   "ssoSessionMaxLifespanRememberMe": 0,
   "offlineSessionIdleTimeout": 2592000,
@@ -26,7 +28,7 @@
   "oauth2DeviceCodeLifespan": 600,
   "oauth2DevicePollingInterval": 5,
   "enabled": true,
-  "sslRequired": "none",
+  "sslRequired": "external",
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "rememberMe": false,
@@ -73,7 +75,8 @@
         "composites": {
           "realm": [
             "offline_access",
-            "uma_authorization"
+            "uma_authorization",
+            "USER"
           ],
           "client": {
             "account": [
@@ -471,12 +474,13 @@
   "webAuthnPolicyPasswordlessRpId": "",
   "webAuthnPolicyPasswordlessAttestationConveyancePreference": "not specified",
   "webAuthnPolicyPasswordlessAuthenticatorAttachment": "not specified",
-  "webAuthnPolicyPasswordlessRequireResidentKey": "Yes",
-  "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
+  "webAuthnPolicyPasswordlessRequireResidentKey": "not specified",
+  "webAuthnPolicyPasswordlessUserVerificationRequirement": "not specified",
   "webAuthnPolicyPasswordlessCreateTimeout": 0,
   "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister": false,
   "webAuthnPolicyPasswordlessAcceptableAaguids": [],
   "webAuthnPolicyPasswordlessExtraOrigins": [],
+  "webAuthnPolicyPasswordlessPasskeysEnabled": false,
   "users": [
     {
       "id": "7bdacf43-abd0-4d03-96bb-e18220c97be5",
@@ -830,6 +834,7 @@
       "name": "VEDS API Gateway",
       "description": "Confidential client for API Gateway BFF authentication",
       "rootUrl": "http://localhost:8080",
+      "adminUrl": "",
       "baseUrl": "http://localhost:8080",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -855,22 +860,40 @@
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "attributes": {
+        "access.token.lifespan": "300",
+        "frontchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "http://localhost:8080/*##http://localhost:4200/*",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "use.jwks.url": "false",
+        "use.refresh.tokens": "true",
         "realm_client": "false",
-        "access.token.lifespan": "900",
-        "client.secret.creation.time": "1772899401",
+        "oidc.ciba.grant.enabled": "false",
         "backchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "http://localhost:8080/*##http://localhost:4200/*##",
-        "client.session.max.lifespan": "604800",
-        "client.session.idle.timeout": "604800",
-        "use.refresh.tokens": "true"
+        "client_credentials.use_refresh_token": "false",
+        "require.pushed.authorization.requests": "false",
+        "client.session.max.lifespan": "36000",
+        "client.session.idle.timeout": "1800",
+        "dpop.bound.access.tokens": "false",
+        "logout.confirmation.enabled": "false",
+        "id.token.as.detached.signature": "false",
+        "client.secret.creation.time": "1772899401",
+        "client.introspection.response.allow.jwt.claim.enabled": "false",
+        "standard.token.exchange.enabled": "false",
+        "client.use.lightweight.access.token.enabled": "false",
+        "request.object.required": "not required",
+        "access.token.header.type.rfc9068": "false",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "acr.loa.map": "{}",
+        "display.on.consent.screen": "false",
+        "token.response.type.bearer.lower-case": "false"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
         {
-          "id": "5c99fab7-0daf-4d72-be69-331bbacfaa1a",
-          "name": "email-mapper",
+          "id": "0729338d-132d-45e2-b7d9-a8461f073a8e",
+          "name": "email",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-attribute-mapper",
           "consentRequired": false,
@@ -885,19 +908,18 @@
           }
         },
         {
-          "id": "b04eae21-d072-4bc8-a330-84b9430ad570",
-          "name": "realm-roles-mapper",
+          "id": "2ffca9ad-4bb3-4ebd-a3e2-88b7570fc011",
+          "name": "realm roles",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-realm-role-mapper",
           "consentRequired": false,
           "config": {
+            "user.attribute": "foo",
             "introspection.token.claim": "true",
-            "multivalued": "true",
-            "userinfo.token.claim": "true",
-            "id.token.claim": "true",
             "access.token.claim": "true",
-            "claim.name": "roles",
-            "jsonType.label": "String"
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
           }
         }
       ],
@@ -958,8 +980,9 @@
             "included.client.audience": "realm-management",
             "id.token.claim": "false",
             "lightweight.claim": "false",
+            "introspection.token.claim": "true",
             "access.token.claim": "true",
-            "introspection.token.claim": "true"
+            "userinfo.token.claim": "false"
           }
         }
       ],
@@ -1740,14 +1763,6 @@
         }
       },
       {
-        "id": "621eb119-eb6b-4ad2-8d00-3bdc9fef61f5",
-        "name": "Allowed Registration Web Origins",
-        "providerId": "registration-web-origins",
-        "subType": "anonymous",
-        "subComponents": {},
-        "config": {}
-      },
-      {
         "id": "02ae8bb3-98c3-4c75-ba2f-e786a7c31f40",
         "name": "Allowed Protocol Mapper Types",
         "providerId": "allowed-protocol-mappers",
@@ -1755,14 +1770,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "saml-user-property-mapper",
             "oidc-sha256-pairwise-sub-mapper",
-            "oidc-usermodel-property-mapper",
             "oidc-full-name-mapper",
+            "oidc-usermodel-property-mapper",
             "oidc-usermodel-attribute-mapper",
-            "saml-user-attribute-mapper",
+            "oidc-address-mapper",
             "saml-role-list-mapper",
-            "oidc-address-mapper"
+            "saml-user-attribute-mapper",
+            "saml-user-property-mapper"
           ]
         }
       },
@@ -1805,14 +1820,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "saml-role-list-mapper",
             "saml-user-property-mapper",
-            "oidc-address-mapper",
             "oidc-usermodel-property-mapper",
-            "oidc-sha256-pairwise-sub-mapper",
+            "saml-role-list-mapper",
             "oidc-full-name-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
             "oidc-usermodel-attribute-mapper",
-            "saml-user-attribute-mapper"
+            "oidc-address-mapper"
           ]
         }
       },
@@ -2714,17 +2729,25 @@
   "firstBrokerLoginFlow": "first broker login",
   "attributes": {
     "cibaBackchannelTokenDeliveryMode": "poll",
-    "cibaExpiresIn": "120",
     "cibaAuthRequestedUserHint": "login_hint",
-    "oauth2DeviceCodeLifespan": "600",
     "clientOfflineSessionMaxLifespan": "0",
     "oauth2DevicePollingInterval": "5",
     "clientSessionIdleTimeout": "0",
+    "actionTokenGeneratedByUserLifespan.verify-email": "",
+    "actionTokenGeneratedByUserLifespan.idp-verify-account-via-email": "",
+    "clientOfflineSessionIdleTimeout": "0",
+    "actionTokenGeneratedByUserLifespan.execute-actions": "",
+    "cibaInterval": "5",
+    "realmReusableOtpCode": "false",
+    "cibaExpiresIn": "120",
+    "oauth2DeviceCodeLifespan": "600",
+    "saml.signature.algorithm": "",
     "parRequestUriLifespan": "60",
     "clientSessionMaxLifespan": "0",
-    "clientOfflineSessionIdleTimeout": "0",
-    "cibaInterval": "5",
-    "realmReusableOtpCode": "false"
+    "frontendUrl": "",
+    "acr.loa.map": "{}",
+    "shortVerificationUri": "",
+    "actionTokenGeneratedByUserLifespan.reset-credentials": ""
   },
   "keycloakVersion": "26.5.4",
   "userManagedAccessAllowed": false,
