@@ -1,0 +1,881 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: VEDS
+meta:
+  id: wrk_2c9c57d7ce1f445ca6d23ff9de8038b4
+  created: 1772818888726
+  modified: 1772818888726
+  description: ""
+collection:
+  - name: auth (gateway BFF)
+    meta:
+      id: fld_155f354dd8e642a4a6a000cedf8f46e4
+      created: 1772818888727
+      modified: 1772895881951
+      sortKey: 100
+      description: Authentication endpoints via API Gateway BFF proxy
+    children:
+      - url: "{{ _.gateway_url }}/auth/token"
+        name: login (get tokens)
+        meta:
+          id: req_bcacf843026943328e61e73c2ba0f468
+          created: 1772818888729
+          modified: 1772895893824
+          isPrivate: false
+          description: >-
+            Login via BFF. Returns accessToken in body, sets refreshToken as
+            HttpOnly cookie.
+
+
+            After success, copy access_token from response to environment
+            variable.
+          sortKey: 100
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.test_email }}",
+              "password": "{{ _.test_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        scripts:
+          afterResponse: |
+            const jsonBody = insomnia.response.json();
+            const token = jsonBody?.data?.access_token;
+
+            if (token) {
+              await insomnia.environment.set("access_token", token);
+              console.log("access_token saved");
+            } else {
+              console.warn("access_token not found in response");
+            }
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/logout"
+        name: logout
+        meta:
+          id: req_040828054a7646ccbeeeaa287a6e9ace
+          created: 1772818888730
+          modified: 1772895852446
+          isPrivate: false
+          description: Logout — invalidates refresh token in Keycloak, clears cookie.
+            Returns 204.
+          sortKey: 300
+        method: POST
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/refresh-token"
+        name: refresh token
+        meta:
+          id: req_7b6dcef62ce04e55ad8767d3c0decd66
+          created: 1772818888730
+          modified: 1772895902956
+          isPrivate: false
+          description: |-
+            Refresh tokens using HttpOnly cookie (KEYCLOAK_REFRESH_TOKEN).
+            Cookies are sent automatically from Insomnia's cookie jar.
+          sortKey: 200
+        method: POST
+        scripts:
+          afterResponse: |
+            const jsonBody = insomnia.response.json();
+            const token = jsonBody?.data?.access_token;
+
+            if (token) {
+              await insomnia.environment.set("access_token", token);
+              console.log("access_token saved");
+            } else {
+              console.warn("access_token not found in response");
+            }
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: auth (registration & account)
+    meta:
+      id: fld_1fe5a177156944f8bfa46e422b15ee26
+      created: 1772818888728
+      modified: 1772895872310
+      sortKey: 200
+      description: Registration, activation, password/email management via IAM service
+    children:
+      - url: "{{ _.gateway_url }}/auth/resend-activation?email={{ _.test_email }}"
+        name: resend activation email
+        meta:
+          id: req_1137369aed7a4c33a8fe52a81364a3cb
+          created: 1772818888731
+          modified: 1772895931608
+          isPrivate: false
+          description: ""
+          sortKey: 300
+        method: POST
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/confirm-reset-password?token=PASTE_TOKEN_HERE"
+        name: confirm password reset
+        meta:
+          id: req_496995c8ef384210ba89f21c09ed578b
+          created: 1772818888731
+          modified: 1772895949497
+          isPrivate: false
+          description: ""
+          sortKey: 500
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "newPassword": "NewPass1234!",
+              "confirmationCode": "PASTE_CODE_HERE"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/activate?token=PASTE_TOKEN_HERE"
+        name: activate account
+        meta:
+          id: req_49d98ebe1c564e8da158dedcca735961
+          created: 1772818888731
+          modified: 1772895923050
+          isPrivate: false
+          description: ""
+          sortKey: 200
+        method: POST
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/reset-password-request?email={{ _.test_email }}"
+        name: request password reset
+        meta:
+          id: req_4ff54dbaab8445a694859a3d7471f447
+          created: 1772818888731
+          modified: 1772895939556
+          isPrivate: false
+          description: ""
+          sortKey: 400
+        method: POST
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/register"
+        name: register
+        meta:
+          id: req_9396fd3a16784e42b664385fe94e5e98
+          created: 1772818888731
+          modified: 1772898337601
+          isPrivate: false
+          description: ""
+          sortKey: 100
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "John",
+              "lastName": "Doe",
+              "email": "{{ _.test_email }}",
+              "password": "{{ _.test_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/confirm-password-change?token=PASTE_TOKEN_HERE"
+        name: confirm password change
+        meta:
+          id: req_4b3a9167a1cc4243a736bdb223a478e3
+          created: 1772818888732
+          modified: 1772895981600
+          isPrivate: false
+          description: ""
+          sortKey: 900
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "newPassword": "NewSecure1234!"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/change-password-request"
+        name: request password change
+        meta:
+          id: req_9f7244a68e194884a15b9827cc96c547
+          created: 1772818888732
+          modified: 1772895972647
+          isPrivate: false
+          description: ""
+          sortKey: 800
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "currentPassword": "{{ _.test_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/change-email-request"
+        name: request email change
+        meta:
+          id: req_ce6425a3d3e54077a93144e20e967ebb
+          created: 1772818888732
+          modified: 1772895957357
+          isPrivate: false
+          description: ""
+          sortKey: 600
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "password": "{{ _.test_password }}",
+              "newEmail": "newemail@example.com"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/confirm-email-change?token=PASTE_TOKEN_HERE"
+        name: confirm email change
+        meta:
+          id: req_e125e3adae1a4b9c86838a76094b6f1b
+          created: 1772818888732
+          modified: 1772895964389
+          isPrivate: false
+          description: ""
+          sortKey: 700
+        method: POST
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/me"
+        name: get current user (/me)
+        meta:
+          id: req_1826b6bd64714255ab7ccf4ef3069fa9
+          created: 1772818888733
+          modified: 1772895998624
+          isPrivate: false
+          description: ""
+          sortKey: 1100
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/me/permissions"
+        name: get my permissions
+        meta:
+          id: req_540cae666a89461db4a92f7b8e7a05ed
+          created: 1772818888733
+          modified: 1772896005524
+          isPrivate: false
+          description: ""
+          sortKey: 1200
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/auth/set-new-password?tokenId=1"
+        name: set new password (by tokenId)
+        meta:
+          id: req_dec167d364384c43a2d02eef007e9cd3
+          created: 1772818888733
+          modified: 1772895989381
+          isPrivate: false
+          description: ""
+          sortKey: 1000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "newPassword": "NewSecure1234!",
+              "confirmationCode": "PASTE_CODE_HERE"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: users
+    meta:
+      id: fld_ba52480bdb534cec9390c619858535a3
+      created: 1772818888728
+      modified: 1772896033959
+      sortKey: 300
+      description: User management endpoints
+    children:
+      - url: "{{ _.gateway_url }}/users?page=0&size=20"
+        name: get all users (admin)
+        meta:
+          id: req_0dce0e6c1b9148c6b12bba03b0d052a0
+          created: 1772818888733
+          modified: 1772896042599
+          isPrivate: false
+          description: Requires ADMIN role
+          sortKey: 100
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/users/{{ _.user_id }}"
+        name: get user by ID
+        meta:
+          id: req_dbf768de64204e80999f4ac238af4edd
+          created: 1772818888733
+          modified: 1772896049440
+          isPrivate: false
+          description: ""
+          sortKey: 200
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/users/email/{{ _.test_email }}"
+        name: get user by email
+        meta:
+          id: req_f5e7a370e848446d90e68ef4bd91fcf7
+          created: 1772818888733
+          modified: 1772896056219
+          isPrivate: false
+          description: ""
+          sortKey: 300
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/users/{{ _.user_id }}"
+        name: update user profile (admin)
+        meta:
+          id: req_0a4f438b78374e5698fed58876117f41
+          created: 1772818888734
+          modified: 1772896066562
+          isPrivate: false
+          description: Requires ADMIN role. Optionally add If-Match header for optimistic
+            locking.
+          sortKey: 400
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Jane",
+              "lastName": "Doe",
+              "profilePicture": null,
+              "phoneNumber": "+1234567890",
+              "address": "123 Main St, New York"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Keycloak direct
+    meta:
+      id: fld_35ad70177d6547ef952ecb9c1e4f8dfb
+      created: 1772818888729
+      modified: 1772896172121
+      sortKey: 600
+      description: Direct Keycloak endpoints (for debugging)
+    children:
+      - url: "{{ _.keycloak_url }}/realms/{{ _.realm
+          }}/protocol/openid-connect/userinfo"
+        name: Keycloak — userInfo
+        meta:
+          id: req_3e18223f4b0e4049832cb27f170c344e
+          created: 1772818888736
+          modified: 1772896178182
+          isPrivate: false
+          description: ""
+          sortKey: 200
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.keycloak_url }}/realms/{{ _.realm }}/protocol/openid-connect/token"
+        name: Keycloak — get token (direct)
+        meta:
+          id: req_68987c436d5d48678a815679d436f81f
+          created: 1772818888736
+          modified: 1772896162276
+          isPrivate: false
+          description: Get token directly from Keycloak (bypass gateway). Useful for
+            debugging.
+          sortKey: 100
+        method: POST
+        body:
+          mimeType: application/x-www-form-urlencoded
+          params:
+            - name: grant_type
+              value: password
+            - name: client_id
+              value: "{{ _.client_id }}"
+            - name: client_secret
+              value: "{{ _.client_secret }}"
+            - name: username
+              value: "{{ _.test_email }}"
+            - name: password
+              value: "{{ _.test_password }}"
+        headers:
+          - name: Content-Type
+            value: application/x-www-form-urlencoded
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.keycloak_url }}/realms/{{ _.realm }}/protocol/openid-connect/certs"
+        name: Keycloak — JWKS (public keys)
+        meta:
+          id: req_7121cb1763d540019e8fd105a30e93d9
+          created: 1772818888736
+          modified: 1772896194413
+          isPrivate: false
+          description: ""
+          sortKey: 400
+        method: GET
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.keycloak_url }}/realms/{{ _.realm
+          }}/.well-known/openid-configuration"
+        name: Keycloak — OpenID discovery
+        meta:
+          id: req_c31d88f51a174db2b7904b472ca22599
+          created: 1772818888736
+          modified: 1772896184537
+          isPrivate: false
+          description: ""
+          sortKey: 300
+        method: GET
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: mail
+    meta:
+      id: fld_6c18964ffac248d8a1ae5f16aba82051
+      created: 1772818888729
+      modified: 1772896130336
+      sortKey: 500
+      description: Email service endpoints
+    children:
+      - url: "{{ _.gateway_url }}/mail/send"
+        name: send email
+        meta:
+          id: req_6f54576de38c453badef821b0fffcfca
+          created: 1772818888735
+          modified: 1772896146159
+          isPrivate: false
+          description: ""
+          sortKey: 200
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "to": "recipient@example.com",
+              "subject": "Test Email",
+              "templateName": "welcome",
+              "variables": {
+                "name": "John"
+              },
+              "replyTo": null
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/mail/logs?page=0&size=20"
+        name: get email logs (admin)
+        meta:
+          id: req_887efc2f98694eee935a74fde05928a0
+          created: 1772818888735
+          modified: 1772896141057
+          isPrivate: false
+          description: Requires ADMIN role
+          sortKey: 100
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/mail/send-batch"
+        name: send batch email
+        meta:
+          id: req_dd7ff74245b04c22af582abe2f936ca6
+          created: 1772818888735
+          modified: 1772896152457
+          isPrivate: false
+          description: ""
+          sortKey: 300
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "recipients": ["user1@example.com", "user2@example.com"],
+              "subject": "Batch Test",
+              "templateName": "welcome",
+              "commonVariables": {
+                "company": "VEDS"
+              },
+              "specificVariables": {
+                "user1@example.com": { "name": "User 1" },
+                "user2@example.com": { "name": "User 2" }
+              },
+              "replyTo": null
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: roles
+    meta:
+      id: fld_c5ff94aa7f3645edbecd77c3326923a4
+      created: 1772818888729
+      modified: 1772896074052
+      sortKey: 400
+      description: Role management endpoints
+    children:
+      - url: "{{ _.gateway_url }}/roles/name/{{ _.role_name }}"
+        name: get role by name
+        meta:
+          id: req_0a02233abccb41c18f652e638175b80a
+          created: 1772818888734
+          modified: 1772896093300
+          isPrivate: false
+          description: ""
+          sortKey: 300
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/roles/1"
+        name: get role by ID
+        meta:
+          id: req_0ef6108b71ee44abae94cc0ef5b87c06
+          created: 1772818888734
+          modified: 1772896086127
+          isPrivate: false
+          description: ""
+          sortKey: 200
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/roles/user/{{ _.user_id }}"
+        name: get roles for user (admin)
+        meta:
+          id: req_1399f38747284a728181439473fb1897
+          created: 1772818888734
+          modified: 1772896102932
+          isPrivate: false
+          description: Requires ADMIN role
+          sortKey: 400
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/roles"
+        name: get all roles
+        meta:
+          id: req_8cc69f5bc12146648d190016a8c8f523
+          created: 1772818888734
+          modified: 1772896080600
+          isPrivate: false
+          description: ""
+          sortKey: 100
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/roles/user/{{ _.user_id }}/role/ADMIN"
+        name: assign role to user (admin)
+        meta:
+          id: req_3e2102d033d3446d99f65143a2edb5d7
+          created: 1772818888735
+          modified: 1772896112595
+          isPrivate: false
+          description: Requires ADMIN role. Optionally add If-Match header.
+          sortKey: 500
+        method: POST
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.gateway_url }}/roles/user/{{ _.user_id }}/role/ADMIN"
+        name: remove role from user (admin)
+        meta:
+          id: req_a628ba66e4514aaf9cdde0d487954c8e
+          created: 1772818888735
+          modified: 1772896122787
+          isPrivate: false
+          description: Requires ADMIN role. Optionally add If-Match header.
+          sortKey: 600
+        method: DELETE
+        authentication:
+          type: bearer
+          token: "{{ _.access_token }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_e9865fcfe10c40dcaed5b42a8c454429
+    created: 1772818888727
+    modified: 1772818888727
+environments:
+  name: Base Environment
+  meta:
+    id: env_3d7ce3a7ad0c45be915cc39481aadada
+    created: 1772818888727
+    modified: 1772818888727
+    isPrivate: false
+  data:
+    gateway_url: http://localhost:8080
+    iam_url: http://localhost:8082
+    mail_url: http://localhost:8083
+    keycloak_url: http://localhost:9000
+    realm: veds
+    client_id: veds-api-gateway
+    client_secret: veds-gateway-secret
+    test_email: test@example.com
+    test_password: Test1234!
+    access_token: ""
+    user_id: "1"
+    role_name: USER
