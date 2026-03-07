@@ -857,6 +857,7 @@
       "attributes": {
         "realm_client": "false",
         "access.token.lifespan": "900",
+        "client.secret.creation.time": "1772899401",
         "backchannel.logout.session.required": "true",
         "post.logout.redirect.uris": "http://localhost:8080/*##http://localhost:4200/*##",
         "client.session.max.lifespan": "604800",
@@ -940,6 +941,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "realm_client": "false",
+        "client.secret.creation.time": "1772899384",
         "post.logout.redirect.uris": "+"
       },
       "authenticationFlowBindingOverrides": {},

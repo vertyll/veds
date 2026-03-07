@@ -11,7 +11,7 @@ collection:
     meta:
       id: fld_155f354dd8e642a4a6a000cedf8f46e4
       created: 1772818888727
-      modified: 1772895881951
+      modified: 1772900509832
       sortKey: 100
       description: Authentication endpoints via API Gateway BFF proxy
     children:
@@ -20,7 +20,7 @@ collection:
         meta:
           id: req_bcacf843026943328e61e73c2ba0f468
           created: 1772818888729
-          modified: 1772895893824
+          modified: 1772900156646
           isPrivate: false
           description: >-
             Login via BFF. Returns accessToken in body, sets refreshToken as
@@ -44,7 +44,7 @@ collection:
         scripts:
           afterResponse: |
             const jsonBody = insomnia.response.json();
-            const token = jsonBody?.data?.access_token;
+            const token = jsonBody?.data?.accessToken;
 
             if (token) {
               await insomnia.environment.set("access_token", token);
@@ -84,7 +84,7 @@ collection:
         meta:
           id: req_7b6dcef62ce04e55ad8767d3c0decd66
           created: 1772818888730
-          modified: 1772895902956
+          modified: 1772900162986
           isPrivate: false
           description: |-
             Refresh tokens using HttpOnly cookie (KEYCLOAK_REFRESH_TOKEN).
@@ -94,7 +94,7 @@ collection:
         scripts:
           afterResponse: |
             const jsonBody = insomnia.response.json();
-            const token = jsonBody?.data?.access_token;
+            const token = jsonBody?.data?.accessToken;
 
             if (token) {
               await insomnia.environment.set("access_token", token);
@@ -164,12 +164,13 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ _.gateway_url }}/auth/activate?token=PASTE_TOKEN_HERE"
+      - url: "{{ _.gateway_url
+          }}/auth/activate?token=443f5712-4f6f-4ad0-bda8-a5410faefd65"
         name: activate account
         meta:
           id: req_49d98ebe1c564e8da158dedcca735961
           created: 1772818888731
-          modified: 1772895923050
+          modified: 1772899800700
           isPrivate: false
           description: ""
           sortKey: 200
@@ -858,13 +859,13 @@ cookieJar:
   meta:
     id: jar_e9865fcfe10c40dcaed5b42a8c454429
     created: 1772818888727
-    modified: 1772818888727
+    modified: 1772900509831
 environments:
   name: Base Environment
   meta:
     id: env_3d7ce3a7ad0c45be915cc39481aadada
     created: 1772818888727
-    modified: 1772818888727
+    modified: 1772900509831
     isPrivate: false
   data:
     gateway_url: http://localhost:8080
@@ -873,9 +874,9 @@ environments:
     keycloak_url: http://localhost:9000
     realm: veds
     client_id: veds-api-gateway
-    client_secret: veds-gateway-secret
+    client_secret: hEOyM8Ckwom5LTdUUMaqwanVn1vltT0U
     test_email: test@example.com
     test_password: Test1234!
-    access_token: ""
+    access_token: eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJiMHdPZFNHYnRDSkZ0VXd4cUVWS3psbUgtYks3YWN6QVJBZmVDQko2XzBRIn0.eyJleHAiOjE3NzI5MDE0MDksImlhdCI6MTc3MjkwMDUwOSwianRpIjoib25ydHJ0OmJkN2ZjMTg3LTQ3YjQtNGQxMi03NDE5LTUyNTM3OTlkZjJjZCIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6OTAwMC9yZWFsbXMvdmVkcyIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI2ZWIxYWFmMC1iZWQwLTQ2YzgtODU5Yy1jNGFjZDA3OWExZTkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ2ZWRzLWFwaS1nYXRld2F5Iiwic2lkIjoiV2hYd2tGeFBERDFOTFc0NXAxQmpPS1REIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJodHRwOi8vbG9jYWxob3N0OjQyMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdmVkcyIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJVU0VSIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdmVkcyIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJVU0VSIl0sIm5hbWUiOiJKb2huIERvZSIsInByZWZlcnJlZF91c2VybmFtZSI6InRlc3RAZXhhbXBsZS5jb20iLCJnaXZlbl9uYW1lIjoiSm9obiIsImZhbWlseV9uYW1lIjoiRG9lIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIn0.cB9O5d2Fhf-Ond6x7oF52kIB1a79QZBmY7NgQ1BJLj5I8OYEUwL3oFhwRIbwy549aOnlLM7uWj1CR8zzk8Ec-KmYx1hWHfP7HnawGrj25l27Py3ECt9sEbFJNSprQvr8HeA3Ug8FkLd4l3BAJ1Ri5P6BI8h85yjOgolD9JRAkKCN9KI5YxSiFCc5LZLri_P4y6zESg1sb2J9ukrnOr2MHK1PPX0qb6KPJoqs0t1w6YLI52pwrTsUML5-7La1KdIkUMS31cqbjfnpQZjshDfY8oed84IbSQqzbouwrSAfPz9Nu5mXVDhtxJrsB2p4tvM1O-viRzLGgVNUDe1TNcXIZA
     user_id: "1"
     role_name: USER

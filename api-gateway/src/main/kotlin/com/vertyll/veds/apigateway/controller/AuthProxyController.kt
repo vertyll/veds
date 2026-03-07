@@ -1,6 +1,7 @@
 package com.vertyll.veds.apigateway.controller
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.vertyll.veds.apigateway.infrastructure.response.ApiResponse
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -31,7 +32,16 @@ import java.time.Duration
 class AuthProxyController(
     private val sharedConfig: SharedConfigProperties,
 ) {
-    private val log = LoggerFactory.getLogger(AuthProxyController::class.java)
+    private companion object {
+        private val log = LoggerFactory.getLogger(AuthProxyController::class.java)
+
+        private const val MSG_LOGIN_SUCCESS = "Login successful"
+        private const val MSG_LOGIN_FAILED = "Invalid credentials"
+        private const val MSG_TOKEN_REFRESHED = "Token refreshed successfully"
+        private const val MSG_TOKEN_REFRESH_FAILED = "Token refresh failed"
+        private const val MSG_LOGOUT_SUCCESS = "Logged out successfully"
+        private const val MSG_NO_REFRESH_TOKEN = "No refresh token found"
+    }
 
     private val webClient: WebClient by lazy {
         WebClient
@@ -66,7 +76,7 @@ class AuthProxyController(
     fun login(
         @RequestBody request: LoginRequest,
         exchange: ServerWebExchange,
-    ): Mono<ResponseEntity<TokenResponse>> =
+    ): Mono<ResponseEntity<ApiResponse<TokenResponse>>> =
         webClient
             .post()
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -81,17 +91,23 @@ class AuthProxyController(
             .bodyToMono<KeycloakTokenResponse>()
             .map { keycloakResponse ->
                 addRefreshTokenCookie(exchange, keycloakResponse.refreshToken, keycloakResponse.refreshExpiresIn)
-                ResponseEntity.ok(
-                    TokenResponse(
+                ApiResponse.buildResponse(
+                    data = TokenResponse(
                         accessToken = keycloakResponse.accessToken,
                         expiresIn = keycloakResponse.expiresIn,
                         tokenType = keycloakResponse.tokenType,
                     ),
+                    message = MSG_LOGIN_SUCCESS,
+                    status = HttpStatus.OK,
                 )
             }.onErrorResume { ex ->
                 log.debug("Keycloak login failed: {}", ex.message)
                 Mono.just(
-                    ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(),
+                    ApiResponse.buildResponse(
+                        data = null,
+                        message = MSG_LOGIN_FAILED,
+                        status = HttpStatus.UNAUTHORIZED,
+                    ),
                 )
             }
 
@@ -99,10 +115,16 @@ class AuthProxyController(
      * Refresh: uses refresh_token from a cookie to get new tokens.
      */
     @PostMapping("/refresh-token")
-    fun refreshToken(exchange: ServerWebExchange): Mono<ResponseEntity<TokenResponse>> {
+    fun refreshToken(exchange: ServerWebExchange): Mono<ResponseEntity<ApiResponse<TokenResponse>>> {
         val refreshToken =
             extractRefreshTokenFromCookie(exchange)
-                ?: return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
+                ?: return Mono.just(
+                    ApiResponse.buildResponse(
+                        data = null,
+                        message = MSG_NO_REFRESH_TOKEN,
+                        status = HttpStatus.UNAUTHORIZED,
+                    ),
+                )
 
         return webClient
             .post()
@@ -117,17 +139,25 @@ class AuthProxyController(
             .bodyToMono<KeycloakTokenResponse>()
             .map { keycloakResponse ->
                 addRefreshTokenCookie(exchange, keycloakResponse.refreshToken, keycloakResponse.refreshExpiresIn)
-                ResponseEntity.ok(
-                    TokenResponse(
+                ApiResponse.buildResponse(
+                    data = TokenResponse(
                         accessToken = keycloakResponse.accessToken,
                         expiresIn = keycloakResponse.expiresIn,
                         tokenType = keycloakResponse.tokenType,
                     ),
+                    message = MSG_TOKEN_REFRESHED,
+                    status = HttpStatus.OK,
                 )
             }.onErrorResume { ex ->
                 log.debug("Keycloak token refresh failed: {}", ex.message)
                 deleteRefreshTokenCookie(exchange)
-                Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
+                Mono.just(
+                    ApiResponse.buildResponse(
+                        data = null,
+                        message = MSG_TOKEN_REFRESH_FAILED,
+                        status = HttpStatus.UNAUTHORIZED,
+                    ),
+                )
             }
     }
 
@@ -136,13 +166,19 @@ class AuthProxyController(
      */
     @Suppress("kotlin:S6508")
     @PostMapping("/logout")
-    fun logout(exchange: ServerWebExchange): Mono<ResponseEntity<Void>> {
+    fun logout(exchange: ServerWebExchange): Mono<ResponseEntity<ApiResponse<Void>>> {
         val refreshToken = extractRefreshTokenFromCookie(exchange)
 
         deleteRefreshTokenCookie(exchange)
 
         if (refreshToken == null) {
-            return Mono.just(ResponseEntity.noContent().build())
+            return Mono.just(
+                ApiResponse.buildResponse(
+                    data = null,
+                    message = MSG_LOGOUT_SUCCESS,
+                    status = HttpStatus.NO_CONTENT,
+                ),
+            )
         }
 
         return logoutClient
@@ -155,10 +191,21 @@ class AuthProxyController(
                     .with("refresh_token", refreshToken),
             ).retrieve()
             .toBodilessEntity()
-            .map { ResponseEntity.noContent().build<Void>() }
-            .onErrorResume { ex ->
+            .map {
+                ApiResponse.buildResponse<Void>(
+                    data = null,
+                    message = MSG_LOGOUT_SUCCESS,
+                    status = HttpStatus.NO_CONTENT,
+                )
+            }.onErrorResume { ex ->
                 log.debug("Keycloak logout failed: {}", ex.message)
-                Mono.just(ResponseEntity.noContent().build())
+                Mono.just(
+                    ApiResponse.buildResponse(
+                        data = null,
+                        message = MSG_LOGOUT_SUCCESS,
+                        status = HttpStatus.NO_CONTENT,
+                    ),
+                )
             }
     }
 

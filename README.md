@@ -185,9 +185,9 @@ veds:
       server-url: ${KEYCLOAK_SERVER_URL:http://localhost:9000}
       realm: ${KEYCLOAK_REALM:veds}
       admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:veds-service-account}
-      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:veds-service-account-secret}
+      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:x2Xw4liQTz3ncGwNtkg82IrgIUm6QPq1}
       gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
-      gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:veds-gateway-secret}
+      gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:hEOyM8Ckwom5LTdUUMaqwanVn1vltT0U}
       roles-claim-path: roles
     cookie:
       refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
@@ -210,7 +210,7 @@ curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token 
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=veds-api-gateway" \
-  -d "client_secret=veds-gateway-secret" \
+  -d "client_secret=hEOyM8Ckwom5LTdUUMaqwanVn1vltT0U" \
   -d "username=test@example.com" \
   -d "password=Test1234!" | jq .
 ```
