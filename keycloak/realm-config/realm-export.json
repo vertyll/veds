@@ -1,5 +1,5 @@
 {
-  "id": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
+  "id": "a9bfe2aa-4317-4ae0-abc1-451133fb8566",
   "realm": "veds",
   "displayName": "",
   "displayNameHtml": "",
@@ -55,7 +55,7 @@
         "description": "${role_offline-access}",
         "composite": false,
         "clientRole": false,
-        "containerId": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
+        "containerId": "a9bfe2aa-4317-4ae0-abc1-451133fb8566",
         "attributes": {}
       },
       {
@@ -64,7 +64,7 @@
         "description": "Standard application user",
         "composite": false,
         "clientRole": false,
-        "containerId": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
+        "containerId": "a9bfe2aa-4317-4ae0-abc1-451133fb8566",
         "attributes": {}
       },
       {
@@ -86,7 +86,7 @@
           }
         },
         "clientRole": false,
-        "containerId": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
+        "containerId": "a9bfe2aa-4317-4ae0-abc1-451133fb8566",
         "attributes": {}
       },
       {
@@ -95,7 +95,7 @@
         "description": "Application administrator",
         "composite": false,
         "clientRole": false,
-        "containerId": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
+        "containerId": "a9bfe2aa-4317-4ae0-abc1-451133fb8566",
         "attributes": {}
       },
       {
@@ -104,7 +104,7 @@
         "description": "${role_uma_authorization}",
         "composite": false,
         "clientRole": false,
-        "containerId": "a9bfe2aa-4317-4ae0-abc1-450033fb8566",
+        "containerId": "a9bfe2aa-4317-4ae0-abc1-451133fb8566",
         "attributes": {}
       }
     ],
@@ -434,7 +434,7 @@
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
-    "containerId": "a9bfe2aa-4317-4ae0-abc1-450033fb8566"
+    "containerId": "a9bfe2aa-4317-4ae0-abc1-451133fb8566"
   },
   "requiredCredentials": [
     "password"
