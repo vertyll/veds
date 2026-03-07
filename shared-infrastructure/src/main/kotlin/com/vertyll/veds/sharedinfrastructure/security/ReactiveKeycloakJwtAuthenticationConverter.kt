@@ -1,6 +1,7 @@
 package com.vertyll.veds.sharedinfrastructure.security
 
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
+import com.vertyll.veds.sharedinfrastructure.util.KeycloakJwtUtils
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -21,9 +22,5 @@ class ReactiveKeycloakJwtAuthenticationConverter(
         return Mono.just(JwtAuthenticationToken(jwt, authorities, jwt.subject))
     }
 
-    private fun extractRoles(jwt: Jwt): List<String> {
-        val rolesClaimPath = sharedConfig.keycloak.rolesClaimPath
-        val roles = jwt.getClaimAsStringList(rolesClaimPath)?.toList()
-        return roles ?: emptyList()
-    }
+    private fun extractRoles(jwt: Jwt) = KeycloakJwtUtils.extractRoles(jwt, sharedConfig.keycloak.rolesClaimPath)
 }

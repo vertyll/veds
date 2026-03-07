@@ -7,6 +7,8 @@ import com.vertyll.veds.iam.domain.dto.RegisterRequestDto
 import com.vertyll.veds.iam.domain.dto.ResetPasswordRequestDto
 import com.vertyll.veds.iam.domain.service.AuthService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
+import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
+import com.vertyll.veds.sharedinfrastructure.util.KeycloakJwtUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -27,6 +29,7 @@ import java.util.UUID
 @Tag(name = "Authentication", description = "Authentication management APIs")
 class AuthController(
     private val authService: AuthService,
+    private val sharedConfigProperties: SharedConfigProperties,
 ) {
     private companion object {
         private const val ACCOUNT_ACTIVATED_SUCCESSFULLY = "Account activated successfully"
@@ -199,7 +202,7 @@ class AuthController(
             )
         }
 
-        val roles: List<String> = jwt.getClaimAsStringList("roles") ?: emptyList()
+        val roles = KeycloakJwtUtils.extractRoles(jwt, sharedConfigProperties.keycloak.rolesClaimPath)
 
         val userInfo =
             mapOf(
