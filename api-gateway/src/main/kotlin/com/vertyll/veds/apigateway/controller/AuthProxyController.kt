@@ -92,11 +92,12 @@ class AuthProxyController(
             .map { keycloakResponse ->
                 addRefreshTokenCookie(exchange, keycloakResponse.refreshToken, keycloakResponse.refreshExpiresIn)
                 ApiResponse.buildResponse(
-                    data = TokenResponse(
-                        accessToken = keycloakResponse.accessToken,
-                        expiresIn = keycloakResponse.expiresIn,
-                        tokenType = keycloakResponse.tokenType,
-                    ),
+                    data =
+                        TokenResponse(
+                            accessToken = keycloakResponse.accessToken,
+                            expiresIn = keycloakResponse.expiresIn,
+                            tokenType = keycloakResponse.tokenType,
+                        ),
                     message = MSG_LOGIN_SUCCESS,
                     status = HttpStatus.OK,
                 )
@@ -140,11 +141,12 @@ class AuthProxyController(
             .map { keycloakResponse ->
                 addRefreshTokenCookie(exchange, keycloakResponse.refreshToken, keycloakResponse.refreshExpiresIn)
                 ApiResponse.buildResponse(
-                    data = TokenResponse(
-                        accessToken = keycloakResponse.accessToken,
-                        expiresIn = keycloakResponse.expiresIn,
-                        tokenType = keycloakResponse.tokenType,
-                    ),
+                    data =
+                        TokenResponse(
+                            accessToken = keycloakResponse.accessToken,
+                            expiresIn = keycloakResponse.expiresIn,
+                            tokenType = keycloakResponse.tokenType,
+                        ),
                     message = MSG_TOKEN_REFRESHED,
                     status = HttpStatus.OK,
                 )
