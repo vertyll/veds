@@ -125,7 +125,7 @@ cd <service-name>
 - API Gateway: http://localhost:8080
 - IAM Service: http://localhost:8082
 - Mail Service: http://localhost:8083
-- Keycloak Admin Console: http://localhost:9000 (admin / admin)
+- Keycloak: http://localhost:9000
 - Kafka UI: http://localhost:8090
 - MailDev: http://localhost:1080
 
@@ -142,14 +142,14 @@ Keycloak is the identity provider (IdP) for the application. It handles:
 
 ### What the realm export creates
 
-| Resource | Name | Purpose |
-|---|---|---|
-| Realm | `veds` | Application realm |
-| Realm roles | `USER`, `ADMIN` | Mapped to Spring Security `ROLE_USER`, `ROLE_ADMIN` |
-| Client | `veds-api-gateway` | Confidential client used by the Gateway BFF for login/refresh/logout |
-| Client | `veds-service-account` | Service account for IAM backend admin operations (user CRUD, role assignment) |
-| Protocol mapper | `realm-roles-mapper` | Puts realm roles into `roles` claim in access token |
-| Protocol mapper | `email-mapper` | Puts `email` claim in access token |
+| Resource                     | Name                   | Purpose                                                                       |
+|------------------------------|------------------------|-------------------------------------------------------------------------------|
+| Realm                        | `veds`                 | Application realm                                                             |
+| Realm roles                  | `USER`, `ADMIN`        | Mapped to Spring Security `ROLE_USER`, `ROLE_ADMIN`                           |
+| Client                       | `veds-api-gateway`     | Confidential client used by the Gateway BFF for login/refresh/logout          |
+| Client                       | `veds-service-account` | Service account for IAM backend admin operations (user CRUD, role assignment) |
+| Protocol mapper (predefined) | `roles mapper`         | Puts realm roles into `realm_access.roles` claim in access token              |
+| Protocol mapper (predefined) | `email mapper`         | Puts `email` claim in access token                                            |
 
 ### Authentication flow
 
@@ -185,9 +185,9 @@ veds:
       server-url: ${KEYCLOAK_SERVER_URL:http://localhost:9000}
       realm: ${KEYCLOAK_REALM:veds}
       admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:veds-service-account}
-      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:x2Xw4liQTz3ncGwNtkg82IrgIUm6QPq1}
+      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:KEYCLOAK_ADMIN_CLIENT_SECRET_HERE}
       gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
-      gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:hEOyM8Ckwom5LTdUUMaqwanVn1vltT0U}
+      gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:KEYCLOAK_GATEWAY_CLIENT_SECRET_HERE}
       roles-claim-path: realm_access.roles
       cookie:
         refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
@@ -199,12 +199,12 @@ veds:
 
 ### Useful Keycloak URLs (local dev)
 
-| URL | Description |
-|---|---|
-| http://localhost:9000 | Keycloak admin console (login: `admin` / `admin`) |
-| http://localhost:9000/realms/veds/.well-known/openid-configuration | OpenID Connect discovery |
-| http://localhost:9000/realms/veds/protocol/openid-connect/certs | JWKS (public keys for JWT verification) |
-| http://localhost:9000/realms/veds/protocol/openid-connect/token | Token endpoint |
+| URL                                                                | Description                             |
+|--------------------------------------------------------------------|-----------------------------------------|
+| http://localhost:9000                                              | Keycloak admin console                  |
+| http://localhost:9000/realms/veds/.well-known/openid-configuration | OpenID Connect discovery                |
+| http://localhost:9000/realms/veds/protocol/openid-connect/certs    | JWKS (public keys for JWT verification) |
+| http://localhost:9000/realms/veds/protocol/openid-connect/token    | Token endpoint                          |
 
 ### Manual token request (curl)
 
@@ -214,14 +214,14 @@ curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token 
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=veds-api-gateway" \
-  -d "client_secret=hEOyM8Ckwom5LTdUUMaqwanVn1vltT0U" \
+  -d "client_secret=KEYCLOAK_GATEWAY_CLIENT_SECRET_HERE" \
   -d "username=test@example.com" \
   -d "password=Test1234!" | jq .
 ```
 
 ## API Testing (Insomnia)
 
-An Insomnia collection is provided at `insomnia-collection.json` in the project root.
+An Insomnia collection is provided at `insomnia-collection.yaml` in the project root.
 
 ## Global Management (Convenience)
 
@@ -318,34 +318,7 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 - Persistence layer: JPA `@Version` on entities and the load → mutate → save a pattern inside a single transaction.
 - Sagas and Outbox: Internal consistency ensured by JPA Optimistic Locking and idempotency safeguards — no HTTP ETags here.
 
-### API: ETag / If-Match
-- IAM Service
-    - `PUT /users/{id}` (Update profile) – returns and optionally accepts `If-Match`.
-    - `POST /roles/user/{userId}/role/{roleName}` (Assign role) and `DELETE /roles/user/{userId}/role/{roleName}` (Remove a role) optionally accept `If-Match` for the **User** entity.
-    - `GET /roles/{id}`, `GET /roles/name/{name}` return `ETag: W/"<version>"`.
-    - `GET /users/{id}`, `GET /users/email/{email}` return `ETag: W/"<version>"` for clients that want to track staleness.
-
-Example client flow (Profile update):
-
-1. Read current state
-
-```
-curl -i http://localhost:8082/users/1
-# Response contains: ETag: W/"<version>"
-```
-
-2. Update with precondition
-
-```
-curl -i -X PUT http://localhost:8082/users/1 \
-  -H 'Content-Type: application/json' \
-  -H 'If-Match: W/"<version>"' \
-  -d '{"firstName": "John", "lastName": "Doe", "profilePicture": "htt...", "phoneNumber": "123456789", "address": "123 St"}'
-```
-
-- If the resource changed meanwhile, the server returns `412`.
-
-Error semantics at the API layer:
+### Error semantics at the API layer:
 - `428 Precondition Required` — missing `If-Match` on required endpoints.
 - `412 Precondition Failed` — ETag/If-Match does not match the current version.
 - `409 Conflict` — last-resort handler for JPA `ObjectOptimisticLockingFailureException` (race detected at commit time).
