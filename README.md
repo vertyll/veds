@@ -138,7 +138,7 @@ Keycloak is the identity provider (IdP) for the application. It handles:
 - Token issuance (access tokens + refresh tokens, JWT format).
 - Role management (mirrored from the app's IAM service).
 
-**The realm JSON export (`keycloak/realm-config/veds-realm.json`) is automatically imported on first startup** via Docker Compose volume mount. You do **not** need to configure Keycloak manually.
+**The realm JSON export (`keycloak/realm-config/realm-export.json`) is automatically imported on first startup** via Docker Compose volume mount. You do **not** need to configure Keycloak manually.
 
 ### What the realm export creates
 
@@ -188,9 +188,13 @@ veds:
       admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:x2Xw4liQTz3ncGwNtkg82IrgIUm6QPq1}
       gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
       gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:hEOyM8Ckwom5LTdUUMaqwanVn1vltT0U}
-      roles-claim-path: roles
-    cookie:
-      refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
+      roles-claim-path: realm_access.roles
+      cookie:
+        refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
+        http-only: true
+        secure: ${COOKIE_SECURE:false}
+        same-site: Strict
+        path: "/"
 ```
 
 ### Useful Keycloak URLs (local dev)
