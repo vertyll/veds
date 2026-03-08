@@ -190,6 +190,7 @@ class EmailSagaService(
      * @param originalEventId  Optional event ID for correlation.
      */
     @Transactional
+    @Suppress("kotlin:S107")
     fun processEmailBatch(
         recipients: List<String>,
         subject: String,

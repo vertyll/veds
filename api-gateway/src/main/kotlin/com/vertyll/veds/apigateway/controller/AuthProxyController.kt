@@ -211,8 +211,6 @@ class AuthProxyController(
             }
     }
 
-    // --- Private helpers ---
-
     private fun keycloakTokenUrl(): String =
         "${sharedConfig.keycloak.serverUrl}/realms/${sharedConfig.keycloak.realm}/protocol/openid-connect/token"
 
@@ -226,11 +224,11 @@ class AuthProxyController(
     ) {
         val cookie =
             ResponseCookie
-                .from(sharedConfig.cookie.refreshTokenCookieName, refreshToken)
-                .httpOnly(sharedConfig.cookie.httpOnly)
-                .secure(sharedConfig.cookie.secure)
-                .sameSite(sharedConfig.cookie.sameSite)
-                .path(sharedConfig.cookie.path)
+                .from(sharedConfig.keycloak.cookieProperties.refreshTokenCookieName, refreshToken)
+                .httpOnly(sharedConfig.keycloak.cookieProperties.httpOnly)
+                .secure(sharedConfig.keycloak.cookieProperties.secure)
+                .sameSite(sharedConfig.keycloak.cookieProperties.sameSite)
+                .path(sharedConfig.keycloak.cookieProperties.path)
                 .maxAge(Duration.ofSeconds(maxAgeSeconds))
                 .build()
 
@@ -240,11 +238,11 @@ class AuthProxyController(
     private fun deleteRefreshTokenCookie(exchange: ServerWebExchange) {
         val cookie =
             ResponseCookie
-                .from(sharedConfig.cookie.refreshTokenCookieName, "")
-                .httpOnly(sharedConfig.cookie.httpOnly)
-                .secure(sharedConfig.cookie.secure)
-                .sameSite(sharedConfig.cookie.sameSite)
-                .path(sharedConfig.cookie.path)
+                .from(sharedConfig.keycloak.cookieProperties.refreshTokenCookieName, "")
+                .httpOnly(sharedConfig.keycloak.cookieProperties.httpOnly)
+                .secure(sharedConfig.keycloak.cookieProperties.secure)
+                .sameSite(sharedConfig.keycloak.cookieProperties.sameSite)
+                .path(sharedConfig.keycloak.cookieProperties.path)
                 .maxAge(Duration.ZERO)
                 .build()
 
@@ -252,7 +250,7 @@ class AuthProxyController(
     }
 
     private fun extractRefreshTokenFromCookie(exchange: ServerWebExchange): String? {
-        val cookieName = sharedConfig.cookie.refreshTokenCookieName
+        val cookieName = sharedConfig.keycloak.cookieProperties.refreshTokenCookieName
         return exchange.request.cookies
             .getFirst(cookieName)
             ?.value

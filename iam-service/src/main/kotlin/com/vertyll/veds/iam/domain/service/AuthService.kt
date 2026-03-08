@@ -7,7 +7,6 @@ import com.vertyll.veds.iam.domain.dto.ResetPasswordRequestDto
 import com.vertyll.veds.iam.domain.model.entity.User
 import com.vertyll.veds.iam.domain.model.entity.VerificationToken
 import com.vertyll.veds.iam.domain.model.enums.EmailTemplate
-import com.vertyll.veds.iam.domain.model.enums.RoleType
 import com.vertyll.veds.iam.domain.model.enums.SagaStepNames
 import com.vertyll.veds.iam.domain.model.enums.SagaTypes
 import com.vertyll.veds.iam.domain.model.enums.TokenTypes
@@ -17,6 +16,7 @@ import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
 import com.vertyll.veds.iam.infrastructure.kafka.AuthEventProducer
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
+import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -126,7 +126,7 @@ class AuthService(
                 status = SagaStepStatus.COMPLETED,
             )
 
-            val token = UUID.randomUUID().toString()
+            val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.getEmail(), token, TokenTypes.ACCOUNT_ACTIVATION.value, sagaId = saga.id)
 
             sagaManager.recordSagaStep(
@@ -174,9 +174,7 @@ class AuthService(
                 .findByToken(token)
                 .orElseThrow { ApiException(INVALID_TOKEN, HttpStatus.BAD_REQUEST) }
 
-        if (verificationToken.used || verificationToken.expiryDate.isBefore(LocalDateTime.now())) {
-            throw ApiException(TOKEN_EXPIRED_OR_USED, HttpStatus.BAD_REQUEST)
-        }
+        validateVerificationToken(verificationToken)
 
         val user =
             userRepository
@@ -212,7 +210,7 @@ class AuthService(
             )
 
         try {
-            val token = UUID.randomUUID().toString()
+            val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.getEmail(), token, TokenTypes.ACCOUNT_ACTIVATION.value, sagaId = saga.id)
 
             sagaManager.recordSagaStep(
@@ -275,7 +273,7 @@ class AuthService(
             )
 
         try {
-            val token = UUID.randomUUID().toString()
+            val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.getEmail(), token, TokenTypes.PASSWORD_RESET.value, sagaId = saga.id)
 
             sagaManager.recordSagaStep(
@@ -327,9 +325,7 @@ class AuthService(
                 .filter { it.tokenType == TokenTypes.PASSWORD_RESET.value }
                 .orElseThrow { ApiException(INVALID_TOKEN, HttpStatus.BAD_REQUEST) }
 
-        if (verificationToken.used || verificationToken.expiryDate.isBefore(LocalDateTime.now())) {
-            throw ApiException(TOKEN_EXPIRED_OR_USED, HttpStatus.BAD_REQUEST)
-        }
+        validateVerificationToken(verificationToken)
 
         val user =
             userRepository
@@ -375,7 +371,7 @@ class AuthService(
             )
 
         try {
-            val token = UUID.randomUUID().toString()
+            val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.getEmail(), token, TokenTypes.EMAIL_CHANGE.value, request.newEmail, saga.id)
 
             sagaManager.recordSagaStep(
@@ -425,9 +421,7 @@ class AuthService(
                 .filter { it.tokenType == TokenTypes.EMAIL_CHANGE.value }
                 .orElseThrow { ApiException(INVALID_TOKEN, HttpStatus.BAD_REQUEST) }
 
-        if (verificationToken.used || verificationToken.expiryDate.isBefore(LocalDateTime.now())) {
-            throw ApiException(TOKEN_EXPIRED_OR_USED, HttpStatus.BAD_REQUEST)
-        }
+        validateVerificationToken(verificationToken)
 
         val user =
             userRepository
@@ -496,7 +490,7 @@ class AuthService(
                 status = SagaStepStatus.COMPLETED,
             )
 
-            val token = UUID.randomUUID().toString()
+            val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.getEmail(), token, TokenTypes.PASSWORD_CHANGE_REQUEST.value, null, saga.id)
 
             sagaManager.recordSagaStep(
@@ -549,9 +543,7 @@ class AuthService(
                 .filter { it.tokenType == TokenTypes.PASSWORD_CHANGE_REQUEST.value }
                 .orElseThrow { ApiException(INVALID_TOKEN, HttpStatus.BAD_REQUEST) }
 
-        if (verificationToken.used || verificationToken.expiryDate.isBefore(LocalDateTime.now())) {
-            throw ApiException(TOKEN_EXPIRED_OR_USED, HttpStatus.BAD_REQUEST)
-        }
+        validateVerificationToken(verificationToken)
 
         val user =
             userRepository
@@ -592,9 +584,7 @@ class AuthService(
             throw ApiException(INVALID_CONFIRMATION_CODE, HttpStatus.BAD_REQUEST)
         }
 
-        if (verificationToken.used || verificationToken.expiryDate.isBefore(LocalDateTime.now())) {
-            throw ApiException(TOKEN_EXPIRED_OR_USED, HttpStatus.BAD_REQUEST)
-        }
+        validateVerificationToken(verificationToken)
 
         val user =
             userRepository
@@ -639,4 +629,12 @@ class AuthService(
             )
         return verificationTokenRepository.save(verificationToken)
     }
+
+    private fun validateVerificationToken(verificationToken: VerificationToken) {
+        if (verificationToken.used || verificationToken.expiryDate.isBefore(LocalDateTime.now())) {
+            throw ApiException(TOKEN_EXPIRED_OR_USED, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    private fun generateRandomToken(): String = UUID.randomUUID().toString()
 }

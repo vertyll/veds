@@ -5,7 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "veds.shared")
 data class SharedConfigProperties(
     val keycloak: KeycloakProperties,
-    val cookie: CookieProperties,
 ) {
     data class KeycloakProperties(
         val serverUrl: String,
@@ -15,13 +14,14 @@ data class SharedConfigProperties(
         val gatewayClientId: String,
         val gatewayClientSecret: String,
         val rolesClaimPath: String,
-    )
-
-    data class CookieProperties(
-        val refreshTokenCookieName: String,
-        val httpOnly: Boolean,
-        val secure: Boolean,
-        val sameSite: String,
-        val path: String,
-    )
+        val cookieProperties: CookieProperties,
+    ) {
+        data class CookieProperties(
+            val refreshTokenCookieName: String,
+            val httpOnly: Boolean,
+            val secure: Boolean,
+            val sameSite: String,
+            val path: String,
+        )
+    }
 }

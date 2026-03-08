@@ -21,11 +21,6 @@ class KeycloakAdminService(
 ) {
     private val logger = LoggerFactory.getLogger(KeycloakAdminService::class.java)
 
-    companion object {
-        private const val HTTP_CREATED = 201
-        private const val HTTP_CONFLICT = 409
-    }
-
     private val keycloak by lazy {
         KeycloakBuilder
             .builder()
@@ -74,7 +69,7 @@ class KeycloakAdminService(
         val response: Response = usersResource.create(userRepresentation)
 
         return when (response.status) {
-            HTTP_CREATED -> {
+            HttpStatus.CREATED.value() -> {
                 val locationHeader = response.location?.path ?: ""
                 val keycloakUserId = UUID.fromString(locationHeader.substringAfterLast("/"))
                 logger.info("Created Keycloak user: {} with id: {}", email, keycloakUserId)
@@ -84,7 +79,7 @@ class KeycloakAdminService(
 
                 keycloakUserId
             }
-            HTTP_CONFLICT -> {
+            HttpStatus.CONFLICT.value() -> {
                 logger.warn("User already exists in Keycloak: {}", email)
                 throw ApiException("User already exists", HttpStatus.CONFLICT)
             }

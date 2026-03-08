@@ -34,9 +34,9 @@ veds:
       gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
       gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:epDCazkfDMqxZhgrN01TidmBZ6zvA7Zn}
       roles-claim-path: realm_access.roles
-    cookie:
-      refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
-      http-only: true
-      secure: ${COOKIE_SECURE:false}
-      same-site: Strict
-      path: "/"
+      cookie:
+        refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
+        http-only: true
+        secure: ${COOKIE_SECURE:false}
+        same-site: Strict
+        path: "/"
