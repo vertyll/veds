@@ -224,11 +224,11 @@ class AuthProxyController(
     ) {
         val cookie =
             ResponseCookie
-                .from(sharedConfig.keycloak.cookieProperties.refreshTokenCookieName, refreshToken)
-                .httpOnly(sharedConfig.keycloak.cookieProperties.httpOnly)
-                .secure(sharedConfig.keycloak.cookieProperties.secure)
-                .sameSite(sharedConfig.keycloak.cookieProperties.sameSite)
-                .path(sharedConfig.keycloak.cookieProperties.path)
+                .from(sharedConfig.keycloak.cookie.refreshTokenCookieName, refreshToken)
+                .httpOnly(sharedConfig.keycloak.cookie.httpOnly)
+                .secure(sharedConfig.keycloak.cookie.secure)
+                .sameSite(sharedConfig.keycloak.cookie.sameSite)
+                .path(sharedConfig.keycloak.cookie.path)
                 .maxAge(Duration.ofSeconds(maxAgeSeconds))
                 .build()
 
@@ -238,11 +238,11 @@ class AuthProxyController(
     private fun deleteRefreshTokenCookie(exchange: ServerWebExchange) {
         val cookie =
             ResponseCookie
-                .from(sharedConfig.keycloak.cookieProperties.refreshTokenCookieName, "")
-                .httpOnly(sharedConfig.keycloak.cookieProperties.httpOnly)
-                .secure(sharedConfig.keycloak.cookieProperties.secure)
-                .sameSite(sharedConfig.keycloak.cookieProperties.sameSite)
-                .path(sharedConfig.keycloak.cookieProperties.path)
+                .from(sharedConfig.keycloak.cookie.refreshTokenCookieName, "")
+                .httpOnly(sharedConfig.keycloak.cookie.httpOnly)
+                .secure(sharedConfig.keycloak.cookie.secure)
+                .sameSite(sharedConfig.keycloak.cookie.sameSite)
+                .path(sharedConfig.keycloak.cookie.path)
                 .maxAge(Duration.ZERO)
                 .build()
 
@@ -250,7 +250,7 @@ class AuthProxyController(
     }
 
     private fun extractRefreshTokenFromCookie(exchange: ServerWebExchange): String? {
-        val cookieName = sharedConfig.keycloak.cookieProperties.refreshTokenCookieName
+        val cookieName = sharedConfig.keycloak.cookie.refreshTokenCookieName
         return exchange.request.cookies
             .getFirst(cookieName)
             ?.value

@@ -14,7 +14,7 @@ data class SharedConfigProperties(
         val gatewayClientId: String,
         val gatewayClientSecret: String,
         val rolesClaimPath: String,
-        val cookieProperties: CookieProperties,
+        val cookie: CookieProperties,
     ) {
         data class CookieProperties(
             val refreshTokenCookieName: String,
