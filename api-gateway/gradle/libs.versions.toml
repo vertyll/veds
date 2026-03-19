@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-spring-boot = "4.0.3"
+spring-boot = "4.0.4"
 spring-dependency-management = "1.1.7"
 ktlint-plugin = "14.0.1"
 detekt-plugin = "2.0.0-alpha.2"
