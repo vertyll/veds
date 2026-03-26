@@ -1,12 +1,18 @@
 SERVICES = api-gateway iam-service mail-service
 SHARED = shared-infrastructure
 
-.PHONY: build-all test-all clean-all format-all check-style-all
+.PHONY: build-all clean-build-all test-all clean-all format-all check-style-all
 
 build-all:
 	@for dir in $(SERVICES) $(SHARED); do \
 		echo "Building $$dir..."; \
 		(cd $$dir && ./gradlew build) || exit 1; \
+	done
+
+clean-build-all:
+	@for dir in $(SERVICES) $(SHARED); do \
+	    echo "Cleaning and building $$dir..."; \
+	    (cd $$dir && ./gradlew clean build) || exit 1; \
 	done
 
 test-all:
