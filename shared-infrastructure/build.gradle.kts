@@ -16,6 +16,9 @@ group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "Shared infrastructure for microservices"
 
+extra["author"] = "Mikołaj Gawron"
+extra["email"] = "gawrmiko@gmail.com"
+
 repositories {
     mavenCentral()
 }

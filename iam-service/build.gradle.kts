@@ -15,6 +15,9 @@ group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "IAM Microservice"
 
+extra["author"] = "Mikołaj Gawron"
+extra["email"] = "gawrmiko@gmail.com"
+
 repositories {
     mavenCentral()
 }

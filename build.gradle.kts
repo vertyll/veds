@@ -2,6 +2,9 @@ plugins {
     base
 }
 
+extra["author"] = "Mikołaj Gawron"
+extra["email"] = "gawrmiko@gmail.com"
+
 val ktlintCheck by tasks.registering {
     group = "verification"
     description = "Runs ktlintCheck on all included builds"
