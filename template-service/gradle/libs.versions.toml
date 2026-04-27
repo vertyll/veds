@@ -1,17 +1,17 @@
 [versions]
 # Plugins
-spring-boot = "4.0.5"
+spring-boot = "4.0.6"
 spring-dependency-management = "1.1.7"
 ktlint-plugin = "14.0.1"
-detekt-plugin = "2.0.0-alpha.2"
-kotlin = "2.3.0"
+detekt-plugin = "2.0.0-alpha.3"
+kotlin = "2.3.21"
 
 # Dependencies
 springdoc = "3.0.1"
 testcontainers = "1.21.3"
 kotlin-logging = "8.0.01"
 springframework-cloud = "2025.1.0"
-flyway = "12.4.0"
+flyway = "12.5.0"
 keycloak = "26.0.8"
 
 [libraries]
