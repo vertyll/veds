@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.web.dto
 
-data class RoleResponseDto(
+data class RoleResponse(
     val id: Long,
     val name: String,
     val description: String?,

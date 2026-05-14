@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.web.dto
 
-data class UserResponseDto(
+data class UserResponse(
     val id: Long,
     val keycloakId: String? = null,
     val firstName: String,

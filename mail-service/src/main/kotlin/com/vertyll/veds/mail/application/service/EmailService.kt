@@ -5,7 +5,7 @@ import com.vertyll.veds.mail.domain.model.EmailStatus
 import com.vertyll.veds.mail.domain.model.EmailTemplate
 import com.vertyll.veds.mail.domain.repository.EmailLogRepository
 import com.vertyll.veds.mail.infrastructure.config.MailProperties
-import com.vertyll.veds.mail.infrastructure.web.dto.EmailLogResponseDto
+import com.vertyll.veds.mail.infrastructure.web.dto.EmailLogResponse
 import jakarta.mail.internet.MimeMessage
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -158,5 +158,5 @@ class EmailService(
     }
 
     @Transactional(readOnly = true)
-    fun getEmailLogs(): Page<EmailLogResponseDto> = Page.empty()
+    fun getEmailLogs(): Page<EmailLogResponse> = Page.empty()
 }

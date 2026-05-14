@@ -3,8 +3,8 @@ package com.vertyll.veds.iam.application.service
 import com.vertyll.veds.iam.domain.model.User
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
-import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.UserResponseDto
+import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.UserResponse
 import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidator
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -22,16 +22,16 @@ class UserService(
     }
 
     @Transactional(readOnly = true)
-    fun getAllUsers(pageable: Pageable): Page<UserResponseDto> = userRepository.findAll(pageable).map { mapToDto(it) }
+    fun getAllUsers(pageable: Pageable): Page<UserResponse> = userRepository.findAll(pageable).map { mapToDto(it) }
 
     @Transactional(readOnly = true)
-    fun getUserById(id: Long): UserResponseDto {
+    fun getUserById(id: Long): UserResponse {
         val user = userRepository.findById(id) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
         return mapToDto(user)
     }
 
     @Transactional(readOnly = true)
-    fun getUserByEmail(email: String): UserResponseDto {
+    fun getUserByEmail(email: String): UserResponse {
         val user = userRepository.findByEmail(email) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
         return mapToDto(user)
     }
@@ -39,9 +39,9 @@ class UserService(
     @Transactional
     fun updateProfile(
         id: Long,
-        request: UpdateProfileRequestDto,
+        request: UpdateProfileRequest,
         version: Long? = null,
-    ): UserResponseDto {
+    ): UserResponse {
         val user = userRepository.findById(id) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 
         OptimisticLockingValidator.validate(user.version, version) {
@@ -59,8 +59,8 @@ class UserService(
         return mapToDto(userRepository.save(updated))
     }
 
-    private fun mapToDto(user: User): UserResponseDto =
-        UserResponseDto(
+    private fun mapToDto(user: User): UserResponse =
+        UserResponse(
             id = user.id!!,
             keycloakId = user.keycloakId?.toString(),
             firstName = user.firstName,

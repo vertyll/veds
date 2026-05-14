@@ -12,10 +12,10 @@ import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
-import com.vertyll.veds.iam.infrastructure.web.dto.ChangeEmailRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.ChangePasswordRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.RegisterRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.ResetPasswordRequestDto
+import com.vertyll.veds.iam.infrastructure.web.dto.ChangeEmailRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.ChangePasswordRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.RegisterRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.ResetPasswordRequest
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
 import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
@@ -55,7 +55,7 @@ class AuthService(
     }
 
     @Transactional
-    fun register(request: RegisterRequestDto) {
+    fun register(request: RegisterRequest) {
         if (userRepository.existsByEmail(request.email)) {
             logger.warn("Registration attempted with existing email: {}", request.email)
             throw ApiException(REGISTRATION_FAILED, HttpStatus.BAD_REQUEST)
@@ -298,7 +298,7 @@ class AuthService(
     @Transactional
     fun resetPassword(
         token: String,
-        request: ResetPasswordRequestDto,
+        request: ResetPasswordRequest,
     ) {
         val verificationToken =
             verificationTokenRepository.findByToken(token)
@@ -321,7 +321,7 @@ class AuthService(
     @Transactional
     fun requestEmailChange(
         email: String,
-        request: ChangeEmailRequestDto,
+        request: ChangeEmailRequest,
     ) {
         val user =
             userRepository.findByEmail(email)
@@ -435,7 +435,7 @@ class AuthService(
     @Transactional
     fun changePassword(
         email: String,
-        request: ChangePasswordRequestDto,
+        request: ChangePasswordRequest,
     ) {
         val user =
             userRepository.findByEmail(email)
@@ -543,7 +543,7 @@ class AuthService(
     @Transactional
     fun setNewPassword(
         tokenId: Long,
-        request: ResetPasswordRequestDto,
+        request: ResetPasswordRequest,
     ) {
         val verificationToken =
             verificationTokenRepository.findById(tokenId)

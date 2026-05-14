@@ -5,7 +5,7 @@ import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
-import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponseDto
+import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponse
 import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidator
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -24,22 +24,22 @@ class RoleService(
     }
 
     @Transactional(readOnly = true)
-    fun getRoleById(id: Long): RoleResponseDto {
+    fun getRoleById(id: Long): RoleResponse {
         val role = roleRepository.findById(id) ?: throw ApiException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND)
         return mapToDto(role)
     }
 
     @Transactional(readOnly = true)
-    fun getRoleByName(name: String): RoleResponseDto {
+    fun getRoleByName(name: String): RoleResponse {
         val role = roleRepository.findByName(name) ?: throw ApiException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND)
         return mapToDto(role)
     }
 
     @Transactional(readOnly = true)
-    fun getAllRoles(): List<RoleResponseDto> = roleRepository.findAll().map { mapToDto(it) }
+    fun getAllRoles(): List<RoleResponse> = roleRepository.findAll().map { mapToDto(it) }
 
     @Transactional(readOnly = true)
-    fun getRolesForUser(userId: Long): List<RoleResponseDto> {
+    fun getRolesForUser(userId: Long): List<RoleResponse> {
         val user = userRepository.findById(userId) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
         return user.roles.map { mapToDto(it) }
     }
@@ -82,8 +82,8 @@ class RoleService(
         updated.keycloakId?.let { identityProvider.removeRole(it.toString(), roleName) }
     }
 
-    private fun mapToDto(role: Role): RoleResponseDto =
-        RoleResponseDto(
+    private fun mapToDto(role: Role): RoleResponse =
+        RoleResponse(
             id = role.id!!,
             name = role.name,
             description = role.description,

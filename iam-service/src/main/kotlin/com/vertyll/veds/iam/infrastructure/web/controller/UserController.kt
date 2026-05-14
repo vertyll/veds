@@ -2,8 +2,8 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 
 import com.vertyll.veds.iam.application.service.UserService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
-import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.UserResponseDto
+import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.UserResponse
 import com.vertyll.veds.sharedinfrastructure.http.ETagUtil
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -41,7 +41,7 @@ class UserController(
     fun getAllUsers(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
-    ): ResponseEntity<ApiResponse<Page<UserResponseDto>>> {
+    ): ResponseEntity<ApiResponse<Page<UserResponse>>> {
         val pageable = PageRequest.of(page, size)
         val users = userService.getAllUsers(pageable)
         return ApiResponse.buildResponse(users, USERS_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
@@ -51,7 +51,7 @@ class UserController(
     @Operation(summary = "Get user by ID")
     fun getUserById(
         @PathVariable id: Long,
-    ): ResponseEntity<ApiResponse<UserResponseDto>> {
+    ): ResponseEntity<ApiResponse<UserResponse>> {
         val user = userService.getUserById(id)
         val etag = ETagUtil.buildWeakETag(user.version)
         val response = ApiResponse.buildResponse(user, USER_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
@@ -62,7 +62,7 @@ class UserController(
     @Operation(summary = "Get user by email")
     fun getUserByEmail(
         @PathVariable email: String,
-    ): ResponseEntity<ApiResponse<UserResponseDto>> {
+    ): ResponseEntity<ApiResponse<UserResponse>> {
         val user = userService.getUserByEmail(email)
         val etag = ETagUtil.buildWeakETag(user.version)
         val response = ApiResponse.buildResponse(user, USER_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
@@ -74,9 +74,9 @@ class UserController(
     @Operation(summary = "Update user profile (Admin only)")
     fun updateProfile(
         @PathVariable id: Long,
-        @Valid @RequestBody request: UpdateProfileRequestDto,
+        @Valid @RequestBody request: UpdateProfileRequest,
         @RequestHeader(HttpHeaders.IF_MATCH, required = false) ifMatch: String?,
-    ): ResponseEntity<ApiResponse<UserResponseDto>> {
+    ): ResponseEntity<ApiResponse<UserResponse>> {
         val version = ETagUtil.parseIfMatchToVersion(ifMatch)
         val user = userService.updateProfile(id, request, version)
         val etag = ETagUtil.buildWeakETag(user.version)

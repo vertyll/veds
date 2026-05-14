@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.web.dto
 
-data class EmailLogResponseDto(
+data class EmailLogResponse(
     val id: Long,
     val recipient: String,
     val subject: String,

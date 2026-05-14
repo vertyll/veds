@@ -2,11 +2,11 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 
 import com.vertyll.veds.iam.application.service.AuthService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
-import com.vertyll.veds.iam.infrastructure.web.dto.ChangeEmailRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.ChangePasswordRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.ConfirmPasswordChangeDto
-import com.vertyll.veds.iam.infrastructure.web.dto.RegisterRequestDto
-import com.vertyll.veds.iam.infrastructure.web.dto.ResetPasswordRequestDto
+import com.vertyll.veds.iam.infrastructure.web.dto.ChangeEmailRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.ChangePasswordRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.ConfirmPasswordChangeRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.RegisterRequest
+import com.vertyll.veds.iam.infrastructure.web.dto.ResetPasswordRequest
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
 import com.vertyll.veds.sharedinfrastructure.util.KeycloakJwtUtils
 import io.swagger.v3.oas.annotations.Operation
@@ -50,7 +50,7 @@ class AuthController(
     @Operation(summary = "Register new user")
     fun register(
         @RequestBody @Valid
-        request: RegisterRequestDto,
+        request: RegisterRequest,
     ): ResponseEntity<ApiResponse<Any>> {
         authService.register(request)
         return ApiResponse.buildResponse(null, USER_REGISTERED_SUCCESSFULLY, HttpStatus.OK)
@@ -88,7 +88,7 @@ class AuthController(
     fun resetPassword(
         @RequestParam token: String,
         @RequestBody @Valid
-        request: ResetPasswordRequestDto,
+        request: ResetPasswordRequest,
     ): ResponseEntity<ApiResponse<Any>> {
         authService.resetPassword(token, request)
         return ApiResponse.buildResponse(null, PASSWORD_RESET_SUCCESSFULLY, HttpStatus.OK)
@@ -99,7 +99,7 @@ class AuthController(
     fun requestEmailChange(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody @Valid
-        request: ChangeEmailRequestDto,
+        request: ChangeEmailRequest,
     ): ResponseEntity<ApiResponse<Any>> {
         val email = jwt.getClaimAsString("email")
         authService.requestEmailChange(email, request)
@@ -120,7 +120,7 @@ class AuthController(
     fun changePassword(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody @Valid
-        request: ChangePasswordRequestDto,
+        request: ChangePasswordRequest,
     ): ResponseEntity<ApiResponse<Any>> {
         val email = jwt.getClaimAsString("email")
         authService.changePassword(email, request)
@@ -132,7 +132,7 @@ class AuthController(
     fun confirmPasswordChange(
         @RequestParam token: String,
         @RequestBody @Valid
-        request: ConfirmPasswordChangeDto,
+        request: ConfirmPasswordChangeRequest,
     ): ResponseEntity<ApiResponse<Any>> {
         authService.confirmPasswordChange(token, request.newPassword)
         return ApiResponse.buildResponse(null, PASSWORD_CHANGED_SUCCESSFULLY, HttpStatus.OK)
@@ -143,7 +143,7 @@ class AuthController(
     fun setNewPassword(
         @RequestParam tokenId: Long,
         @RequestBody @Valid
-        request: ResetPasswordRequestDto,
+        request: ResetPasswordRequest,
     ): ResponseEntity<ApiResponse<Any>> {
         authService.setNewPassword(tokenId, request)
         return ApiResponse.buildResponse(null, PASSWORD_CHANGED_SUCCESSFULLY, HttpStatus.OK)

@@ -3,7 +3,7 @@ package com.vertyll.veds.iam.infrastructure.web.dto
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 
-data class ChangeEmailRequestDto(
+data class ChangeEmailRequest(
     @field:NotBlank(message = "Current password is required")
     val password: String = "",
     @field:NotBlank(message = "New email is required")

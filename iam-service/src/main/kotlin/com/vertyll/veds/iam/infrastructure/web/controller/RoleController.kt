@@ -2,7 +2,7 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 
 import com.vertyll.veds.iam.application.service.RoleService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
-import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponseDto
+import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponse
 import com.vertyll.veds.sharedinfrastructure.http.ETagUtil
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -35,7 +35,7 @@ class RoleController(
     @Operation(summary = "Get role by ID")
     fun getRoleById(
         @PathVariable id: Long,
-    ): ResponseEntity<ApiResponse<RoleResponseDto>> {
+    ): ResponseEntity<ApiResponse<RoleResponse>> {
         val role = roleService.getRoleById(id)
         val etag = ETagUtil.buildWeakETag(role.version)
         val response = ApiResponse.buildResponse(role, ROLE_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
@@ -46,7 +46,7 @@ class RoleController(
     @Operation(summary = "Get role by name")
     fun getRoleByName(
         @PathVariable name: String,
-    ): ResponseEntity<ApiResponse<RoleResponseDto>> {
+    ): ResponseEntity<ApiResponse<RoleResponse>> {
         val role = roleService.getRoleByName(name)
         val etag = ETagUtil.buildWeakETag(role.version)
         val response = ApiResponse.buildResponse(role, ROLE_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
@@ -55,7 +55,7 @@ class RoleController(
 
     @GetMapping
     @Operation(summary = "Get all roles")
-    fun getAllRoles(): ResponseEntity<ApiResponse<List<RoleResponseDto>>> {
+    fun getAllRoles(): ResponseEntity<ApiResponse<List<RoleResponse>>> {
         val roles = roleService.getAllRoles()
         return ApiResponse.buildResponse(roles, ROLE_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
     }
@@ -65,7 +65,7 @@ class RoleController(
     @Operation(summary = "Get roles for a user (Admin only)")
     fun getRolesForUser(
         @PathVariable userId: Long,
-    ): ResponseEntity<ApiResponse<List<RoleResponseDto>>> {
+    ): ResponseEntity<ApiResponse<List<RoleResponse>>> {
         val roles = roleService.getRolesForUser(userId)
         return ApiResponse.buildResponse(roles, USER_ROLES_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
     }

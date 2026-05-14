@@ -4,7 +4,7 @@ import com.vertyll.veds.mail.application.service.EmailBatchService
 import com.vertyll.veds.mail.application.service.EmailService
 import com.vertyll.veds.mail.domain.model.EmailTemplate
 import com.vertyll.veds.mail.infrastructure.response.ApiResponse
-import com.vertyll.veds.mail.infrastructure.web.dto.EmailLogResponseDto
+import com.vertyll.veds.mail.infrastructure.web.dto.EmailLogResponse
 import com.vertyll.veds.mail.infrastructure.web.dto.EmailResult
 import com.vertyll.veds.mail.infrastructure.web.dto.SendBatchEmailRequest
 import com.vertyll.veds.mail.infrastructure.web.dto.SendBatchEmailResponse
@@ -34,7 +34,7 @@ class EmailController(
     fun getEmailLogs(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
-    ): ResponseEntity<ApiResponse<Page<EmailLogResponseDto>>> {
+    ): ResponseEntity<ApiResponse<Page<EmailLogResponse>>> {
         val pageable = PageRequest.of(page, size)
         val logs = emailService.getEmailLogs()
         return ApiResponse.buildResponse(
