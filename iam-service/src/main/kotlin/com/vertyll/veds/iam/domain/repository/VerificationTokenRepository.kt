@@ -1,23 +1,25 @@
 package com.vertyll.veds.iam.domain.repository
 
-import com.vertyll.veds.iam.domain.model.entity.VerificationToken
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.Optional
+import com.vertyll.veds.iam.domain.model.VerificationToken
 
-@Repository
-interface VerificationTokenRepository : JpaRepository<VerificationToken, Long> {
-    fun findByToken(token: String): Optional<VerificationToken>
+interface VerificationTokenRepository {
+    fun save(verificationToken: VerificationToken): VerificationToken
+
+    fun findById(id: Long): VerificationToken?
+
+    fun findByToken(token: String): VerificationToken?
 
     fun findByUsernameAndTokenType(
         username: String,
         tokenType: String,
-    ): Optional<VerificationToken>
+    ): VerificationToken?
 
     fun findAllByUsernameAndTokenType(
         username: String,
         tokenType: String,
     ): List<VerificationToken>
 
-    fun findByAdditionalData(additionalData: String): Optional<VerificationToken>
+    fun findByAdditionalData(additionalData: String): VerificationToken?
+
+    fun deleteById(id: Long)
 }

@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.config
 
-import com.vertyll.veds.iam.domain.model.entity.Role
+import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import org.slf4j.LoggerFactory

@@ -1,7 +1,7 @@
 package com.vertyll.veds.iam.infrastructure.kafka
 
-import com.vertyll.veds.iam.domain.model.enums.SagaTypes
-import com.vertyll.veds.iam.domain.service.SagaManager
+import com.vertyll.veds.iam.application.saga.model.SagaTypes
+import com.vertyll.veds.iam.application.saga.port.SagaProcessPort
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
@@ -15,7 +15,7 @@ import tools.jackson.module.kotlin.readValue
 @Component
 class MailFeedbackConsumer(
     private val objectMapper: ObjectMapper,
-    private val sagaManager: SagaManager,
+    private val sagaProcessPort: SagaProcessPort,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -46,7 +46,7 @@ class MailFeedbackConsumer(
 
             logger.info("Received MailSentEvent for saga: {} (to: {})", sagaId, event.to)
 
-            val saga = sagaManager.findSagaById(sagaId)
+            val saga = sagaProcessPort.findSagaDomainById(sagaId)
             if (saga == null) {
                 logger.warn("Saga '{}' not found — skipping MailSentEvent", sagaId)
                 return
@@ -61,7 +61,7 @@ class MailFeedbackConsumer(
                 return
             }
 
-            sagaManager.completeSaga(sagaId)
+            sagaProcessPort.markSagaCompleted(sagaId)
         } catch (e: Exception) {
             logger.error("Failed to process MailSentEvent: {} — will be retried / sent to DLT", e.message, e)
             throw e
@@ -83,7 +83,7 @@ class MailFeedbackConsumer(
 
             logger.warn("Received MailFailedEvent for saga: {} (to: {}, error: {})", sagaId, event.to, event.error)
 
-            sagaManager.failSaga(sagaId, "Mail delivery failed: ${event.error}")
+            sagaProcessPort.markSagaFailed(sagaId, "Mail delivery failed: ${event.error}")
         } catch (e: Exception) {
             logger.error("Failed to process MailFailedEvent: {} — will be retried / sent to DLT", e.message, e)
             throw e

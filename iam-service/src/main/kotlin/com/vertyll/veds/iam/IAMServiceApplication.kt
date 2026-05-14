@@ -18,11 +18,11 @@ import org.springframework.kafka.annotation.EnableKafka
     "com.vertyll.veds.sharedinfrastructure",
 )
 @EnableJpaRepositories(
-    "com.vertyll.veds.iam.domain.repository",
+    "com.vertyll.veds.iam.infrastructure.persistence.repository",
     "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EntityScan(
-    "com.vertyll.veds.iam.domain.model",
+    "com.vertyll.veds.iam.infrastructure.persistence.entity",
     "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EnableKafka

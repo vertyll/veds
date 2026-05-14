@@ -1,13 +1,15 @@
 package com.vertyll.veds.iam.domain.repository
 
-import com.vertyll.veds.iam.domain.model.entity.Permission
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.Optional
+import com.vertyll.veds.iam.domain.model.Permission
 
-@Repository
-interface PermissionRepository : JpaRepository<Permission, Long> {
-    fun findByName(name: String): Optional<Permission>
+interface PermissionRepository {
+    fun save(permission: Permission): Permission
+
+    fun findById(id: Long): Permission?
+
+    fun findByName(name: String): Permission?
 
     fun existsByName(name: String): Boolean
+
+    fun findAll(): List<Permission>
 }

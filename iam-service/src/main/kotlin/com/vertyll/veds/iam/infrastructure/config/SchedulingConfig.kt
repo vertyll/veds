@@ -1,7 +1,7 @@
 package com.vertyll.veds.iam.infrastructure.config
 
-import com.vertyll.veds.iam.domain.repository.SagaRepository
-import com.vertyll.veds.iam.domain.service.SagaManager
+import com.vertyll.veds.iam.application.saga.port.SagaProcessPort
+import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaJpaRepository
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
@@ -14,8 +14,8 @@ import java.time.temporal.ChronoUnit
 @Configuration
 @EnableScheduling
 class SchedulingConfig(
-    private val sagaRepository: SagaRepository,
-    private val sagaManager: SagaManager,
+    private val sagaJpaRepository: SagaJpaRepository,
+    private val sagaProcessPort: SagaProcessPort,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -24,10 +24,6 @@ class SchedulingConfig(
         private const val STUCK_SAGA_THRESHOLD_HOURS = 24L
     }
 
-    /**
-     * Clean up old sagas that are completed or compensated
-     * Runs daily at 2:15 AM
-     */
     @Scheduled(cron = "0 15 2 * * ?")
     @Transactional
     fun cleanupOldSagas() {
@@ -36,23 +32,17 @@ class SchedulingConfig(
         logger.info("Cleaning up sagas completed before {}", cutoffDate)
 
         val statuses = listOf(SagaStatus.COMPLETED, SagaStatus.COMPENSATED)
-        val oldSagas = sagaRepository.findByStatusInAndStartedAtBefore(statuses, cutoffDate)
+        val oldSagas = sagaJpaRepository.findByStatusInAndStartedAtBefore(statuses, cutoffDate)
 
         if (oldSagas.isNotEmpty()) {
             logger.info("Found {} old sagas to clean up", oldSagas.size)
-            sagaRepository.deleteAll(oldSagas)
+            sagaJpaRepository.deleteAll(oldSagas)
             logger.info("Successfully cleaned up {} old sagas", oldSagas.size)
         } else {
             logger.info("No old sagas found to clean up")
         }
     }
 
-    /**
-     * Check for stuck sagas and automatically compensate for them.
-     * A saga is considered stuck if it has been in STARTED or COMPENSATING
-     * status for longer than [STUCK_SAGA_THRESHOLD_HOURS].
-     * Runs every hour at 20 minutes past the hour
-     */
     @Scheduled(cron = "0 20 * * * ?")
     @Transactional
     fun checkForStuckSagas() {
@@ -61,7 +51,7 @@ class SchedulingConfig(
         logger.info("Checking for stuck sagas started before {}", cutoffDate)
 
         val stuckSagas =
-            sagaRepository.findByStatusInAndStartedAtBefore(
+            sagaJpaRepository.findByStatusInAndStartedAtBefore(
                 listOf(SagaStatus.STARTED, SagaStatus.AWAITING_RESPONSE, SagaStatus.COMPENSATING),
                 cutoffDate,
             )
@@ -77,7 +67,7 @@ class SchedulingConfig(
                     saga.startedAt,
                 )
                 try {
-                    sagaManager.failSaga(
+                    sagaProcessPort.markSagaFailed(
                         saga.id,
                         "Saga timed out after $STUCK_SAGA_THRESHOLD_HOURS hours without completion",
                     )

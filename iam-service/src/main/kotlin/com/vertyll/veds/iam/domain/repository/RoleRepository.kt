@@ -1,13 +1,15 @@
 package com.vertyll.veds.iam.domain.repository
 
-import com.vertyll.veds.iam.domain.model.entity.Role
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.Optional
+import com.vertyll.veds.iam.domain.model.Role
 
-@Repository
-interface RoleRepository : JpaRepository<Role, Long> {
-    fun findByName(name: String): Optional<Role>
+interface RoleRepository {
+    fun save(role: Role): Role
+
+    fun findById(id: Long): Role?
+
+    fun findByName(name: String): Role?
 
     fun existsByName(name: String): Boolean
+
+    fun findAll(): List<Role>
 }

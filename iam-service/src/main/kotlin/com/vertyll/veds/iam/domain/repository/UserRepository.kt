@@ -1,22 +1,22 @@
 package com.vertyll.veds.iam.domain.repository
 
-import com.vertyll.veds.iam.domain.model.entity.User
-import org.springframework.data.jpa.repository.EntityGraph
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.Optional
+import com.vertyll.veds.iam.domain.model.User
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
-@Repository
-interface UserRepository : JpaRepository<User, Long> {
-    @EntityGraph(attributePaths = ["roles", "permissions"])
-    override fun findById(id: Long): Optional<User>
+interface UserRepository {
+    fun save(user: User): User
 
-    @EntityGraph(attributePaths = ["roles", "permissions"])
-    fun findByEmail(email: String): Optional<User>
+    fun findById(id: Long): User?
 
-    @EntityGraph(attributePaths = ["roles", "permissions"])
-    fun findByKeycloakId(keycloakId: UUID): Optional<User>
+    fun findByEmail(email: String): User?
+
+    fun findByKeycloakId(keycloakId: UUID): User?
 
     fun existsByEmail(email: String): Boolean
+
+    fun findAll(pageable: Pageable): Page<User>
+
+    fun deleteById(id: Long)
 }
