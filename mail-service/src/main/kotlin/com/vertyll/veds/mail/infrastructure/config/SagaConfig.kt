@@ -1,7 +1,7 @@
 package com.vertyll.veds.mail.infrastructure.config
 
-import com.vertyll.veds.mail.domain.model.entity.Saga
-import com.vertyll.veds.mail.domain.model.entity.SagaStep
+import com.vertyll.veds.mail.application.saga.model.Saga
+import com.vertyll.veds.mail.application.saga.model.SagaStep
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutbox
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.context.annotation.Configuration
