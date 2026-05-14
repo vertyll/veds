@@ -1,4 +1,4 @@
-package com.vertyll.veds.iam.domain.model.enums
+package com.vertyll.veds.iam.domain.model
 
 enum class TokenTypes(
     val value: String,

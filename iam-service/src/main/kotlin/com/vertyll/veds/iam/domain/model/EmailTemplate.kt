@@ -1,4 +1,4 @@
-package com.vertyll.veds.iam.domain.model.enums
+package com.vertyll.veds.iam.domain.model
 
 enum class EmailTemplate(
     val templateName: String,

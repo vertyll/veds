@@ -1,5 +1,7 @@
 package com.vertyll.veds.mail.application.service
 
+import com.vertyll.veds.mail.application.saga.model.SagaStepNames
+import com.vertyll.veds.mail.application.saga.model.SagaTypes
 import com.vertyll.veds.mail.application.saga.port.SagaProcessPort
 import com.vertyll.veds.mail.domain.model.EmailTemplate
 import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
@@ -30,24 +32,25 @@ class EmailSagaService(
         originalEventId: String? = null,
     ): Boolean {
         val sagaId =
-            sagaProcess.startSaga(
-                sagaType = "EMAIL_SENDING",
-                payload =
-                    mapOf(
-                        "to" to to,
-                        "subject" to subject,
-                        "templateName" to template.templateName,
-                        "variables" to variables,
-                        "replyTo" to replyTo,
-                        "originSagaId" to originSagaId,
-                        "originalEventId" to originalEventId,
-                    ),
-            )
+            sagaProcess
+                .beginSaga(
+                    sagaType = SagaTypes.EMAIL_SENDING,
+                    payload =
+                        mapOf(
+                            "to" to to,
+                            "subject" to subject,
+                            "templateName" to template.templateName,
+                            "variables" to variables,
+                            "replyTo" to replyTo,
+                            "originSagaId" to originSagaId,
+                            "originalEventId" to originalEventId,
+                        ),
+                ).id
 
         try {
-            sagaProcess.recordSagaStep(
+            sagaProcess.appendSagaStep(
                 sagaId = sagaId,
-                stepName = "PROCESS_TEMPLATE",
+                stepName = SagaStepNames.PROCESS_TEMPLATE,
                 status = SagaStepStatus.COMPLETED,
                 payload = mapOf("templateName" to template.templateName, "variables" to variables),
             )
@@ -62,7 +65,7 @@ class EmailSagaService(
                     mapOf("to" to to, "subject" to subject, "error" to "Failed to send email")
                 }
 
-            sagaProcess.recordSagaStep(sagaId, "SEND_EMAIL", status, payload)
+            sagaProcess.appendSagaStep(sagaId, SagaStepNames.SEND_EMAIL, status, payload)
 
             if (success) {
                 sagaProcess.markSagaCompleted(sagaId)
@@ -80,7 +83,7 @@ class EmailSagaService(
             return success
         } catch (e: Exception) {
             logger.error("Error in email saga: ${e.message}", e)
-            sagaProcess.recordSagaStep(sagaId, "SEND_EMAIL", SagaStepStatus.FAILED, mapOf("error" to e.message))
+            sagaProcess.appendSagaStep(sagaId, SagaStepNames.SEND_EMAIL, SagaStepStatus.FAILED, mapOf("error" to e.message))
             publishFeedbackEvent(false, to, subject, originSagaId, originalEventId ?: sagaId, e.message ?: "Unknown error")
             return false
         }

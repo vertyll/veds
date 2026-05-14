@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.domain.model
 
-import com.vertyll.veds.iam.domain.model.enums.TokenTypes
+import com.vertyll.veds.iam.domain.model.TokenTypes
 import java.time.Instant
 import java.time.LocalDateTime
 

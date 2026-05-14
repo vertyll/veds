@@ -5,9 +5,9 @@ import com.vertyll.veds.iam.application.port.out.IdentityProviderPort
 import com.vertyll.veds.iam.application.saga.model.SagaStepNames
 import com.vertyll.veds.iam.application.saga.model.SagaTypes
 import com.vertyll.veds.iam.application.saga.port.SagaProcessPort
+import com.vertyll.veds.iam.domain.model.EmailTemplate
+import com.vertyll.veds.iam.domain.model.TokenTypes
 import com.vertyll.veds.iam.domain.model.VerificationToken
-import com.vertyll.veds.iam.domain.model.enums.EmailTemplate
-import com.vertyll.veds.iam.domain.model.enums.TokenTypes
 import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
