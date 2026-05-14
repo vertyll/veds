@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
-class SagaPersistenceAdapter(
+internal class SagaPersistenceAdapter(
     private val repository: SagaJpaRepository,
 ) : SagaRepository {
     override fun save(saga: Saga): Saga = repository.save(saga.toJpaEntity()).toDomain()

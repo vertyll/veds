@@ -11,7 +11,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "permission")
-class PermissionJpaEntity(
+internal class PermissionJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,

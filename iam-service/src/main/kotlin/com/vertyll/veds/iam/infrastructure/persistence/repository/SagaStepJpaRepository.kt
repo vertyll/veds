@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface SagaStepJpaRepository :
+internal interface SagaStepJpaRepository :
     JpaRepository<SagaStepJpaEntity, Long>,
     BaseSagaStepRepository<SagaStepJpaEntity> {
     override fun findBySagaId(sagaId: String): List<SagaStepJpaEntity>

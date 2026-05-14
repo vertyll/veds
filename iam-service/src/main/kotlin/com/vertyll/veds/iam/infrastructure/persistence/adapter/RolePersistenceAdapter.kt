@@ -8,7 +8,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class RolePersistenceAdapter(
+internal class RolePersistenceAdapter(
     private val repository: RoleJpaRepository,
 ) : RoleRepository {
     override fun save(role: Role): Role = repository.save(role.toJpaEntity()).toDomain()

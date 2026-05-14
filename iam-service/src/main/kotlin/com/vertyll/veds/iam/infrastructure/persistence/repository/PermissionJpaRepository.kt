@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface PermissionJpaRepository : JpaRepository<PermissionJpaEntity, Long> {
+internal interface PermissionJpaRepository : JpaRepository<PermissionJpaEntity, Long> {
     fun findByName(name: String): Optional<PermissionJpaEntity>
 
     fun existsByName(name: String): Boolean

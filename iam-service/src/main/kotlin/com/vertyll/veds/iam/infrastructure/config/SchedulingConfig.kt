@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
 
 @Configuration
 @EnableScheduling
-class SchedulingConfig(
+internal class SchedulingConfig(
     private val sagaJpaRepository: SagaJpaRepository,
     private val sagaProcessPort: SagaProcessPort,
 ) {
