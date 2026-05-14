@@ -21,7 +21,7 @@ The project is split into the following components:
 4. **Shared Infrastructure** – Shared infrastructure, contracts, and utilities used across all microservices.
 5. **Template Service** – Baseline configuration for future microservices.
 
-Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other via Apache Kafka for event-driven architecture, primarily for notifying the Mail Service.
+Each microservice follows Hexagonal Architecture principles with a three-layer structure (`domain` / `application` / `infrastructure`) and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
 
 ### Detailed Description of Components
 
@@ -41,32 +41,38 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 #### IAM Service
 - Responsible for user profile management, authorization (roles & permissions), and account operations (activation, password/email change).
-- Authentication (credentials, tokens) is fully delegated to Keycloak.
+- Authentication (credentials, tokens) is fully delegated to Keycloak (via the `IdentityProviderPort` outbound port, implemented by `KeycloakIdentityProviderAdapter`).
 - Uses Keycloak Admin API (via service account) for user provisioning and role sync.
 - Database stores:
     - User profile data (first name, last name, preferences) linked by `keycloakId`.
     - Role definitions and user-role assignments.
     - User-specific permissions.
     - Verification tokens (activation, password/email change).
+    - Local saga state (`saga`, `saga_step` tables) for end-to-end traceability of distributed flows.
 - Provides endpoints for registration, profile management, and role administration.
-- Publishes mail request events to trigger email workflows.
-- Implements an internal Saga pattern for multi-step operations like user registration.
+- Publishes domain events to Kafka through the `AuthEventPublisherPort` outbound port (e.g., `MailRequestEvent`).
+- Consumes feedback events from mail-service (`MailSentEvent` / `MailFailedEvent`) and runs compensation logic via a dedicated `saga-compensation-iam` Kafka topic + `AuthCompensationService` use case (rollback user in Keycloak, delete verification token, revert email/password change).
 
 #### Mail Service
-- Responsible for sending emails based on templates.
+- Responsible for sending emails based on Thymeleaf templates.
 - Database stores:
-    - Email logs.
-    - Delivery status.
-- Consumes mail request events from other services.
-- Supports various email templates (welcome, password reset, account activation, etc.).
-- Acts as a reactive service in the choreography flow.
-- Uses hexagonal architecture to decouple email sending logic from external mail providers.
+    - Email logs and delivery status (`email_log` table).
+    - Local saga state (`saga`, `saga_step` tables).
+- Consumes `MailRequestEvent` events from other services (`MailEventConsumer`).
+- Publishes `MailSentEvent` / `MailFailedEvent` back through the Transactional Outbox (`KafkaOutboxProcessor`).
+- Supports various email templates (welcome, password reset, account activation, email change confirmation, etc.).
+- Acts as a reactive participant in the choreography flow — has no outbound business-event port (publication is a saga mechanic, not a domain concern).
+- Uses hexagonal architecture to decouple email sending logic from the SMTP/mail provider.
 
 #### Template Service
-- A template for implementing hexagonal architecture.
-- Example domain models, repositories, and services.
-- Sample event definitions and Kafka integration.
-- Basic Saga pattern implementation.
+- A baseline skeleton for spinning up a new microservice — structurally 1:1 with `mail-service`.
+- Provides:
+    - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/out`, `infrastructure/{persistence,kafka,saga,web,config,security,response,exception}`).
+    - Placeholder domain (`Template`, `TemplateStatus`, `TemplateRepository`) with rich-domain methods (`markProcessed`, `markFailed`).
+    - Saga choreography scaffolding: local `saga`/`saga_step` model, `SagaProcessPort`, `SagaManagerAdapter` (built on `BaseSagaManager` from `shared-infrastructure`), neutral compensation topic `saga-compensation-template`.
+    - Kafka skeleton: outbound `TemplateEventPublisherPort` + `KafkaTemplateEventPublisherAdapter` (using `KafkaOutboxProcessor`), inbound `TemplateEventConsumer`.
+    - REST controller `/template` + DTOs.
+- Intended to be copied and renamed when starting a new service.
 
 ## Technology Stack
 
@@ -119,12 +125,14 @@ cd <service-name>
 - `api-gateway`
 - `iam-service`
 - `mail-service`
+- `template-service` (skeleton — not started by default)
 - `shared-infrastructure` (library)
 
 4. Access the services:
 - API Gateway: http://localhost:8080
 - IAM Service: http://localhost:8082
 - Mail Service: http://localhost:8083
+- Template Service: http://localhost:8084 (when started; baseline skeleton)
 - Keycloak: http://localhost:9000
 - Kafka UI: http://localhost:8090
 - MailDev: http://localhost:1080
@@ -253,9 +261,20 @@ Each microservice is designed around a specific business domain with:
 - Encapsulated business logic.
 
 The project structure follows DDD principles within hexagonal architecture:
-- `domain`: Core business models, domain services, domain events, and business logic.
-- `application`: Controllers, DTOs, use cases, application services, and port definitions (Primary Adapters).
-- `infrastructure`: Adapters for external systems like databases, Kafka, email providers, etc. (Secondary Adapters).
+- `domain/`: Pure, framework-free core. Rich aggregate models (immutable `data class` with business methods like `User.withRole(...)`, `VerificationToken.markUsed()`, `EmailLog.markAsSent()`), domain enums (e.g. `EmailTemplate`, `TokenTypes`, `EmailStatus`), and **outbound port interfaces** for aggregate repositories (e.g. `UserRepository`, `EmailLogRepository`).
+- `application/`: Use cases — application services orchestrating the domain through ports (e.g. `AuthService`, `EmailSagaService`, `RoleService`, `UserService`, `AuthCompensationService`). Also contains:
+    - `application/port/out/` — outbound technology-facing ports (e.g. `AuthEventPublisherPort`, `IdentityProviderPort`).
+    - `application/saga/model/` — saga aggregates (`Saga`, `SagaStep`, enums `SagaTypes`, `SagaStepNames`, `SagaCompensationActions`).
+    - `application/saga/port/` — saga ports (`SagaProcessPort`, `SagaRepository`, `SagaStepRepository`).
+- `infrastructure/`: Adapters (both driving and driven).
+    - `infrastructure/web/{controller,dto}/` — REST inbound adapter.
+    - `infrastructure/persistence/{entity,repository,adapter}/` — JPA inbound and adapter implementations of repository ports (entities suffixed `*JpaEntity`, Spring Data interfaces suffixed `*JpaRepository`).
+    - `infrastructure/kafka/` — Kafka inbound consumers and outbound publisher adapters.
+    - `infrastructure/saga/` — saga manager and compensation adapters.
+    - `infrastructure/security/` — Spring Security and Keycloak adapters.
+    - `infrastructure/config/`, `infrastructure/exception/`, `infrastructure/response/` — wiring, error handling, response envelopes.
+
+Implementation details inside `infrastructure/persistence/{entity,repository,adapter}/` and `infrastructure/saga/*Adapter` are declared `internal` to hide adapter internals from the rest of the module.
 
 ### SOLID Principles and Separation of Concerns
 
@@ -286,28 +305,35 @@ Benefits of this approach:
 - Better resilience as there's no single point of failure.
 - Aligns well with hexagonal architecture by treating event communication as external adapters.
 
-### Saga Pattern for Distributed Transactions
+### Saga Pattern for Distributed Transactions (Choreography)
 
-For distributed transactions, we use the Saga pattern (currently internal to IAM Service but can be extended):
-1. A service or component initiates a multistep operation (e.g., registration).
-2. Each step is recorded in the Saga state machine.
-3. If a step fails, compensating transactions are triggered to maintain consistency.
+The system uses **choreography-based sagas** — there is no central orchestrator. Each participating service runs its own local saga (with its own `saga` / `saga_step` tables) and progresses by reacting to domain events on Kafka.
 
-Example: User Registration Saga (Internal to IAM Service)
-- Create User: Creates the user record.
-- Create Verification Token: Generates a token for account activation.
-- Send Welcome Email: Publishes a `MailRequestedEvent` to Kafka for the Mail Service.
+Key building blocks:
+1. Local saga state per service (`Saga`, `SagaStep` aggregates with their own ports + JPA adapters).
+2. **Transactional Outbox** (`KafkaOutboxProcessor` from `shared-infrastructure`) for at-least-once event publication with no dual-write problem.
+3. Domain facts on Kafka topics — services react to events, never receive commands.
+4. `AWAITING_RESPONSE` saga state — the initiating saga waits for the feedback event correlated by `sagaId` (Saga Log Correlation pattern).
+5. Idempotency through unique `(sagaId, stepName)` constraint + status checks before re-applying a step.
+6. Recovery via scheduled poller (`BaseSagaSchedulingHandler`) that finds stuck sagas.
 
-Each step is handled through hexagonal architecture, ensuring clean separation between the domain logic and persistence/event adapters.
+Example: User Registration (iam-service ⇄ mail-service)
+1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `CREATE_VERIFICATION_TOKEN` → `CREATE_MAIL_EVENT`, then transitions to `AWAITING_RESPONSE` and publishes `MailRequestEvent` through the Outbox.
+2. `mail-service` (`MailEventConsumer`) consumes the event, begins its own local saga `EMAIL_SENDING`, performs `SEND_EMAIL`, completes its saga, and publishes `MailSentEvent` (or `MailFailedEvent`) through the Outbox.
+3. `iam-service` (`MailFeedbackConsumer`) consumes the feedback:
+   - on `MailSentEvent` → `markSagaCompleted`,
+   - on `MailFailedEvent` → `markSagaFailed` + publishes compensation actions to the internal `saga-compensation-iam` topic; `SagaCompensationService` listens and delegates to the `AuthCompensationService` use case (rollback Keycloak user, delete verification token, revert email/password change).
+
+Compensation only exists where effects are reversible — `mail-service` therefore does **not** have a `SagaCompensationService` (a sent email cannot be un-sent).
 
 ### Event-Driven Communication
 
-Services communicate asynchronously through Kafka events:
-- **UserActivatedEvent**: Triggered when a user activates their account.
-- **MailRequestedEvent**: Triggered when an email needs to be sent (consumed by Mail Service).
-- **SagaCompensationEvent**: Internal event for triggering compensation logic.
+Services communicate asynchronously through Kafka events (definitions in `shared-infrastructure`):
+- **`MailRequestEvent`** — published by `iam-service` (via `AuthEventPublisherPort`/`KafkaAuthEventPublisherAdapter`), consumed by `mail-service` (`MailEventConsumer`).
+- **`MailSentEvent`** / **`MailFailedEvent`** — published by `mail-service` through the Transactional Outbox, consumed by `iam-service` (`MailFeedbackConsumer`) to advance or fail the originating saga.
+- **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic (e.g. `DELETE_USER`, `DELETE_VERIFICATION_TOKEN`, `REVERT_PASSWORD_UPDATE`, `REVERT_EMAIL_UPDATE`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService`.
 
-Event publishing and consuming are handled by dedicated adapters, keeping the domain core focused on business logic.
+Event publishing and consuming are handled by dedicated adapters in `infrastructure/kafka/`, keeping the domain core focused on business logic.
 
 ## Optimistic Locking and Concurrency Control
 
@@ -346,6 +372,7 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 Each service provides its own Swagger UI for API documentation:
 - IAM Service: http://localhost:8082/swagger-ui.html
 - Mail Service: http://localhost:8083/swagger-ui.html
+- Template Service: http://localhost:8084/swagger-ui.html (when started)
 
 ## Monitoring
 
