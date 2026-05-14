@@ -1,4 +1,4 @@
-package com.vertyll.veds.template.domain.model.entity
+package com.vertyll.veds.template.infrastructure.persistence.entity
 
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
@@ -14,7 +14,7 @@ import java.time.Instant
         UniqueConstraint(columnNames = ["sagaId", "stepName"]),
     ],
 )
-class SagaStep(
+internal class SagaStepJpaEntity(
     id: Long? = null,
     sagaId: String,
     stepName: String,
@@ -42,11 +42,6 @@ class SagaStep(
         sagaId = "",
         stepName = "",
         status = SagaStepStatus.STARTED,
-        payload = null,
-        errorMessage = null,
         createdAt = Instant.now(),
-        completedAt = null,
-        compensationStepId = null,
-        version = null,
     )
 }

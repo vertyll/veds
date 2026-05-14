@@ -1,4 +1,4 @@
-package com.vertyll.veds.template.domain.model.entity
+package com.vertyll.veds.template.infrastructure.persistence.entity
 
 import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSaga
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
@@ -8,13 +8,13 @@ import java.time.Instant
 
 @Entity
 @Table(name = "saga")
-class Saga(
+internal class SagaJpaEntity(
     id: String,
     type: String,
-    status: SagaStatus,
+    status: SagaStatus = SagaStatus.STARTED,
     payload: String,
     lastError: String? = null,
-    startedAt: Instant,
+    startedAt: Instant = Instant.now(),
     completedAt: Instant? = null,
     updatedAt: Instant = Instant.now(),
     version: Long? = null,
@@ -32,12 +32,6 @@ class Saga(
     constructor() : this(
         id = "",
         type = "",
-        status = SagaStatus.STARTED,
         payload = "",
-        lastError = null,
-        startedAt = Instant.now(),
-        completedAt = null,
-        updatedAt = Instant.now(),
-        version = null,
     )
 }

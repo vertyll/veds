@@ -1,11 +1,17 @@
-package com.vertyll.veds.template.domain.model.enums
+package com.vertyll.veds.template.application.saga.model
 
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaTypeValue
 
+/**
+ * Saga types for template-service.
+ *
+ * Replace these placeholder values with your actual business saga types
+ * when cloning this service for a new microservice.
+ */
 enum class SagaTypes(
     override val value: String,
 ) : SagaTypeValue {
-    EXAMPLE_SAGA("exampleSaga"),
+    TEMPLATE_PROCESSING("TemplateProcessing"),
     ;
 
     companion object {

@@ -4,6 +4,7 @@ import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import com.vertyll.veds.sharedinfrastructure.security.KeycloakJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -11,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
     private val keycloakJwtAuthenticationConverter: KeycloakJwtAuthenticationConverter,
 ) {
@@ -25,7 +27,7 @@ class SecurityConfig(
                 authorize
                     .requestMatchers("/actuator/**")
                     .permitAll()
-                    .requestMatchers("/templates/**")
+                    .requestMatchers("/template/**")
                     .hasRole(RoleType.ADMIN.value)
                     .anyRequest()
                     .authenticated()
