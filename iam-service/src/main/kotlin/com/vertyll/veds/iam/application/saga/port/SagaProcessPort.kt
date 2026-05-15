@@ -6,12 +6,12 @@ import com.vertyll.veds.iam.application.saga.model.SagaTypes
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 
 interface SagaProcessPort {
-    fun beginSaga(
+    fun startSaga(
         sagaType: SagaTypes,
         payload: Map<String, Any?>,
     ): Saga
 
-    fun appendSagaStep(
+    fun recordSagaStep(
         sagaId: String,
         stepName: SagaStepNames,
         status: SagaStepStatus,

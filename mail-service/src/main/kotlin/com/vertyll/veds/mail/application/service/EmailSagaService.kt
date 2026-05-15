@@ -33,7 +33,7 @@ class EmailSagaService(
     ): Boolean {
         val sagaId =
             sagaProcess
-                .beginSaga(
+                .startSaga(
                     sagaType = SagaTypes.EMAIL_SENDING,
                     payload =
                         mapOf(
@@ -48,7 +48,7 @@ class EmailSagaService(
                 ).id
 
         try {
-            sagaProcess.appendSagaStep(
+            sagaProcess.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.PROCESS_TEMPLATE,
                 status = SagaStepStatus.COMPLETED,
@@ -65,7 +65,7 @@ class EmailSagaService(
                     mapOf("to" to to, "subject" to subject, "error" to "Failed to send email")
                 }
 
-            sagaProcess.appendSagaStep(sagaId, SagaStepNames.SEND_EMAIL, status, payload)
+            sagaProcess.recordSagaStep(sagaId, SagaStepNames.SEND_EMAIL, status, payload)
 
             if (success) {
                 sagaProcess.markSagaCompleted(sagaId)
@@ -83,7 +83,7 @@ class EmailSagaService(
             return success
         } catch (e: Exception) {
             logger.error("Error in email saga: ${e.message}", e)
-            sagaProcess.appendSagaStep(sagaId, SagaStepNames.SEND_EMAIL, SagaStepStatus.FAILED, mapOf("error" to e.message))
+            sagaProcess.recordSagaStep(sagaId, SagaStepNames.SEND_EMAIL, SagaStepStatus.FAILED, mapOf("error" to e.message))
             publishFeedbackEvent(false, to, subject, originSagaId, originalEventId ?: sagaId, e.message ?: "Unknown error")
             return false
         }

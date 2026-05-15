@@ -5,8 +5,8 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
@@ -22,7 +22,10 @@ import org.springframework.util.backoff.FixedBackOff
 
 /**
  * Autoconfiguration for Kafka Producer and Consumer.
- * Only creates beans when kafka is enabled.
+ * Only creates beans when Kafka is enabled.
+ *
+ * Configuration is bound from `spring.kafka.*` via [KafkaInfraProperties], replacing
+ * `@Value` lookups. Style consistent with `MailProperties` and `SharedConfigProperties`.
  */
 @Configuration
 @ConditionalOnProperty(
@@ -30,6 +33,7 @@ import org.springframework.util.backoff.FixedBackOff
     havingValue = "true",
     matchIfMissing = true,
 )
+@EnableConfigurationProperties(KafkaInfraProperties::class)
 class KafkaTemplateAutoConfiguration {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -42,13 +46,10 @@ class KafkaTemplateAutoConfiguration {
     }
 
     @Bean
-    fun producerFactory(
-        @Value($$"${spring.kafka.bootstrap-servers:localhost:29092}")
-        bootstrapServers: String,
-    ): ProducerFactory<String, String> {
+    fun producerFactory(properties: KafkaInfraProperties): ProducerFactory<String, String> {
         val configProps =
             mapOf<String, Any>(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to properties.bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             )
@@ -59,19 +60,14 @@ class KafkaTemplateAutoConfiguration {
     fun kafkaTemplate(producerFactory: ProducerFactory<String, String>) = KafkaTemplate(producerFactory)
 
     @Bean
-    fun consumerFactory(
-        @Value($$"${spring.kafka.bootstrap-servers:localhost:29092}")
-        bootstrapServers: String,
-        @Value($$"${spring.kafka.consumer.group-id:default-group}")
-        groupId: String,
-    ): ConsumerFactory<String, String> {
+    fun consumerFactory(properties: KafkaInfraProperties): ConsumerFactory<String, String> {
         val configProps =
             mapOf<String, Any>(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
-                ConsumerConfig.GROUP_ID_CONFIG to groupId,
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to properties.bootstrapServers,
+                ConsumerConfig.GROUP_ID_CONFIG to properties.consumer.groupId,
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to properties.consumer.autoOffsetReset,
             )
         return DefaultKafkaConsumerFactory(configProps)
     }

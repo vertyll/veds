@@ -30,13 +30,13 @@ class TemplateSagaService(
     ): Template {
         val sagaId =
             sagaProcess
-                .beginSaga(
+                .startSaga(
                     sagaType = SagaTypes.TEMPLATE_PROCESSING,
                     payload = mapOf("name" to name),
                 ).id
 
         return try {
-            sagaProcess.appendSagaStep(
+            sagaProcess.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.PROCESS_TEMPLATE,
                 status = SagaStepStatus.COMPLETED,
@@ -45,7 +45,7 @@ class TemplateSagaService(
 
             val saved = templateRepository.save(Template(name = name, payload = payload))
 
-            sagaProcess.appendSagaStep(
+            sagaProcess.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.PERSIST_TEMPLATE,
                 status = SagaStepStatus.COMPLETED,
@@ -58,7 +58,7 @@ class TemplateSagaService(
             processed
         } catch (e: Exception) {
             logger.error("Template saga failed: ${e.message}", e)
-            sagaProcess.appendSagaStep(
+            sagaProcess.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.PERSIST_TEMPLATE,
                 status = SagaStepStatus.FAILED,

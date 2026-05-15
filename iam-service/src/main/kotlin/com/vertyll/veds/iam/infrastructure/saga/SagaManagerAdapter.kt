@@ -1,53 +1,30 @@
 package com.vertyll.veds.iam.infrastructure.saga
 
 import com.vertyll.veds.iam.application.saga.model.Saga
-import com.vertyll.veds.iam.application.saga.model.SagaCompensationActions
 import com.vertyll.veds.iam.application.saga.model.SagaStepNames
 import com.vertyll.veds.iam.application.saga.model.SagaTypes
 import com.vertyll.veds.iam.application.saga.port.SagaProcessPort
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaJpaEntity
-import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaStepJpaEntity
-import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaJpaRepository
-import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaStepJpaRepository
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
-import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
-import com.vertyll.veds.sharedinfrastructure.saga.service.BaseSagaManager
+import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine
 import org.springframework.stereotype.Service
-import tools.jackson.databind.ObjectMapper
-import java.time.Instant
 
 @Service
 internal class SagaManagerAdapter(
-    sagaRepository: SagaJpaRepository,
-    sagaStepRepository: SagaStepJpaRepository,
-    kafkaOutboxProcessor: KafkaOutboxProcessor,
-    objectMapper: ObjectMapper,
-) : BaseSagaManager<SagaJpaEntity, SagaStepJpaEntity>(
-        sagaRepository,
-        sagaStepRepository,
-        kafkaOutboxProcessor,
-        objectMapper,
-    ),
-    SagaProcessPort {
-    override val compensationTopic = SAGA_COMPENSATION_TOPIC
-
-    companion object {
-        const val SAGA_COMPENSATION_TOPIC = "saga-compensation-iam"
-    }
-
-    override fun beginSaga(
+    private val sagaEngine: SagaEngine<SagaJpaEntity, *>,
+) : SagaProcessPort {
+    override fun startSaga(
         sagaType: SagaTypes,
         payload: Map<String, Any?>,
-    ): Saga = super.startSaga(sagaType = sagaType, payload = payload).toSagaDomain()
+    ): Saga = sagaEngine.startSaga(sagaType = sagaType, payload = payload).toSagaDomain()
 
-    override fun appendSagaStep(
+    override fun recordSagaStep(
         sagaId: String,
         stepName: SagaStepNames,
         status: SagaStepStatus,
         payload: Map<String, Any?>,
     ) {
-        super.recordSagaStep(
+        sagaEngine.recordSagaStep(
             sagaId = sagaId,
             stepName = stepName,
             status = status,
@@ -56,166 +33,21 @@ internal class SagaManagerAdapter(
     }
 
     override fun markSagaCompleted(sagaId: String) {
-        super.completeSaga(sagaId)
+        sagaEngine.completeSaga(sagaId)
     }
 
     override fun markSagaFailed(
         sagaId: String,
         errorMessage: String,
     ) {
-        super.failSaga(sagaId, errorMessage)
+        sagaEngine.failSaga(sagaId, errorMessage)
     }
 
     override fun markAwaitingResponse(sagaId: String) {
-        super.awaitResponse(sagaId)
+        sagaEngine.awaitResponse(sagaId)
     }
 
-    override fun findSagaDomainById(sagaId: String): Saga? = super.findSagaById(sagaId)?.toSagaDomain()
-
-    override fun createSagaEntity(
-        id: String,
-        type: String,
-        status: SagaStatus,
-        payload: String,
-        startedAt: Instant,
-    ): SagaJpaEntity =
-        SagaJpaEntity(
-            id = id,
-            type = type,
-            status = status,
-            payload = payload,
-            startedAt = startedAt,
-        )
-
-    override fun createSagaStepEntity(
-        sagaId: String,
-        stepName: String,
-        status: SagaStepStatus,
-        payload: String?,
-        createdAt: Instant,
-    ): SagaStepJpaEntity =
-        SagaStepJpaEntity(
-            sagaId = sagaId,
-            stepName = stepName,
-            status = status,
-            payload = payload,
-            createdAt = createdAt,
-        )
-
-    override fun compensateStep(
-        saga: SagaJpaEntity,
-        step: SagaStepJpaEntity,
-    ) {
-        when (step.stepName) {
-            SagaStepNames.CREATE_USER.value -> compensateCreateUser(saga.id, step)
-            SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(saga.id, step)
-            SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step)
-            SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step)
-            SagaStepNames.CREATE_MAIL_EVENT.value ->
-                logger.info(
-                    "Mail event already published for saga '${saga.id}' — no compensation needed",
-                )
-            SagaStepNames.CREATE_USER_EVENT.value -> logger.info("User event step for saga '${saga.id}' — no compensation needed")
-            else -> logger.warn("No compensation defined for step '${step.stepName}'")
-        }
-    }
-
-    private fun compensateCreateUser(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-    ) {
-        runCatching {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-
-            publishCompensationEvent(
-                sagaId = sagaId,
-                stepId = step.id,
-                action = SagaCompensationActions.DELETE_USER.value,
-                extraPayload = mapOf("userId" to userId),
-            )
-        }.onFailure { e ->
-            logger.error("Failed to publish compensation event for step '${SagaStepNames.CREATE_USER.value}': ${e.message}", e)
-        }
-    }
-
-    private fun compensateCreateVerificationToken(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-    ) {
-        runCatching {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val tokenId = (payload["tokenId"] as Number).toLong()
-
-            publishCompensationEvent(
-                sagaId = sagaId,
-                stepId = step.id,
-                action = SagaCompensationActions.DELETE_VERIFICATION_TOKEN.value,
-                extraPayload = mapOf("tokenId" to tokenId),
-            )
-        }.onFailure { e ->
-            logger.error(
-                "Failed to publish compensation event for step '${SagaStepNames.CREATE_VERIFICATION_TOKEN.value}': ${e.message}",
-                e,
-            )
-        }
-    }
-
-    private fun compensateUpdatePassword(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-    ) {
-        runCatching {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-            val originalPasswordHash = payload["originalPasswordHash"]?.toString()
-
-            if (originalPasswordHash != null) {
-                publishCompensationEvent(
-                    sagaId = sagaId,
-                    stepId = step.id,
-                    action = SagaCompensationActions.REVERT_PASSWORD_UPDATE.value,
-                    extraPayload =
-                        mapOf(
-                            "userId" to userId,
-                            "originalPasswordHash" to originalPasswordHash,
-                        ),
-                )
-            } else {
-                logger.warn("Cannot compensate '${SagaStepNames.UPDATE_PASSWORD.value}' — original password hash missing for user $userId")
-            }
-        }.onFailure { e ->
-            logger.error("Failed to publish compensation event for step '${SagaStepNames.UPDATE_PASSWORD.value}': ${e.message}", e)
-        }
-    }
-
-    private fun compensateUpdateEmail(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-    ) {
-        runCatching {
-            val payload = objectMapper.readValue(step.payload, Map::class.java)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-            val originalEmail = payload["originalEmail"]?.toString()
-
-            if (originalEmail != null) {
-                publishCompensationEvent(
-                    sagaId = sagaId,
-                    stepId = step.id,
-                    action = SagaCompensationActions.REVERT_EMAIL_UPDATE.value,
-                    extraPayload =
-                        mapOf(
-                            "userId" to userId,
-                            "originalEmail" to originalEmail,
-                        ),
-                )
-            } else {
-                logger.warn("Cannot compensate '${SagaStepNames.UPDATE_EMAIL.value}' — original email missing for user $userId")
-            }
-        }.onFailure { e ->
-            logger.error("Failed to publish compensation event for step '${SagaStepNames.UPDATE_EMAIL.value}': ${e.message}", e)
-        }
-    }
+    override fun findSagaDomainById(sagaId: String): Saga? = sagaEngine.findSagaById(sagaId)?.toSagaDomain()
 }
 
 private fun SagaJpaEntity.toSagaDomain(): Saga =

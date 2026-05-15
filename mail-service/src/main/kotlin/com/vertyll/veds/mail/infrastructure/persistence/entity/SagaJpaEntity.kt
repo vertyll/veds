@@ -28,10 +28,4 @@ internal class SagaJpaEntity(
         completedAt = completedAt,
         updatedAt = updatedAt,
         version = version,
-    ) {
-    constructor() : this(
-        id = "",
-        type = "",
-        payload = "",
     )
-}

@@ -51,6 +51,10 @@ class AuthService(
         private const val REGISTRATION_FAILED = "Registration failed. Please check your information and try again."
         private const val CANNOT_CHANGE_EMAIL = "Cannot change to this email address"
         private const val DEFAULT_ROLE_NOT_FOUND = "Default USER role not found in system"
+        private const val SUBJECT_ACTIVATE_ACCOUNT = "Activate your account"
+        private const val SUBJECT_PASSWORD_RESET_REQUEST = "Password Reset Request"
+        private const val SUBJECT_CONFIRM_EMAIL_CHANGE = "Confirm Email Change"
+        private const val SUBJECT_CONFIRM_PASSWORD_CHANGE = "Confirm Password Change"
         private const val DEFAULT_VERIFICATION_TOKEN_EXPIRY_HOURS = 24L
     }
 
@@ -62,7 +66,7 @@ class AuthService(
         }
 
         val saga =
-            sagaProcessPort.beginSaga(
+            sagaProcessPort.startSaga(
                 sagaType = SagaTypes.USER_REGISTRATION,
                 payload =
                     mapOf(
@@ -99,7 +103,7 @@ class AuthService(
 
             val savedUser = userRepository.save(newUser)
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_USER,
                 status = SagaStepStatus.COMPLETED,
@@ -111,7 +115,7 @@ class AuthService(
                     ),
             )
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_USER_EVENT,
                 status = SagaStepStatus.COMPLETED,
@@ -120,7 +124,7 @@ class AuthService(
             val token = generateRandomToken()
             val verificationToken = saveVerificationToken(savedUser.email, token, TokenTypes.ACCOUNT_ACTIVATION.value, sagaId = saga.id)
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_VERIFICATION_TOKEN,
                 status = SagaStepStatus.COMPLETED,
@@ -134,7 +138,7 @@ class AuthService(
             authEventPublisher.sendMailRequestedEvent(
                 MailRequestedEvent(
                     to = savedUser.email,
-                    subject = "Activate your account",
+                    subject = SUBJECT_ACTIVATE_ACCOUNT,
                     templateName = EmailTemplate.ACTIVATE_ACCOUNT.name,
                     variables =
                         mapOf(
@@ -145,7 +149,7 @@ class AuthService(
                 ),
             )
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_MAIL_EVENT,
                 status = SagaStepStatus.COMPLETED,
@@ -184,7 +188,7 @@ class AuthService(
         }
 
         val saga =
-            sagaProcessPort.beginSaga(
+            sagaProcessPort.startSaga(
                 sagaType = SagaTypes.EMAIL_VERIFICATION,
                 payload =
                     mapOf(
@@ -197,7 +201,7 @@ class AuthService(
             val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.email, token, TokenTypes.ACCOUNT_ACTIVATION.value, sagaId = saga.id)
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_VERIFICATION_TOKEN,
                 status = SagaStepStatus.COMPLETED,
@@ -211,7 +215,7 @@ class AuthService(
             authEventPublisher.sendMailRequestedEvent(
                 MailRequestedEvent(
                     to = user.email,
-                    subject = "Activate your account",
+                    subject = SUBJECT_ACTIVATE_ACCOUNT,
                     templateName = EmailTemplate.ACTIVATE_ACCOUNT.name,
                     variables =
                         mapOf(
@@ -222,7 +226,7 @@ class AuthService(
                 ),
             )
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_MAIL_EVENT,
                 status = SagaStepStatus.COMPLETED,
@@ -244,7 +248,7 @@ class AuthService(
         }
 
         val saga =
-            sagaProcessPort.beginSaga(
+            sagaProcessPort.startSaga(
                 sagaType = SagaTypes.PASSWORD_RESET,
                 payload =
                     mapOf(
@@ -257,7 +261,7 @@ class AuthService(
             val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.email, token, TokenTypes.PASSWORD_RESET.value, sagaId = saga.id)
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_RESET_TOKEN,
                 status = SagaStepStatus.COMPLETED,
@@ -271,7 +275,7 @@ class AuthService(
             authEventPublisher.sendMailRequestedEvent(
                 MailRequestedEvent(
                     to = user.email,
-                    subject = "Password Reset Request",
+                    subject = SUBJECT_PASSWORD_RESET_REQUEST,
                     templateName = EmailTemplate.RESET_PASSWORD.name,
                     variables =
                         mapOf(
@@ -282,7 +286,7 @@ class AuthService(
                 ),
             )
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_MAIL_EVENT,
                 status = SagaStepStatus.COMPLETED,
@@ -337,7 +341,7 @@ class AuthService(
         }
 
         val saga =
-            sagaProcessPort.beginSaga(
+            sagaProcessPort.startSaga(
                 sagaType = SagaTypes.EMAIL_CHANGE,
                 payload =
                     mapOf(
@@ -351,7 +355,7 @@ class AuthService(
             val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.email, token, TokenTypes.EMAIL_CHANGE.value, request.newEmail, saga.id)
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_VERIFICATION_TOKEN,
                 status = SagaStepStatus.COMPLETED,
@@ -366,7 +370,7 @@ class AuthService(
             authEventPublisher.sendMailRequestedEvent(
                 MailRequestedEvent(
                     to = request.newEmail,
-                    subject = "Confirm Email Change",
+                    subject = SUBJECT_CONFIRM_EMAIL_CHANGE,
                     templateName = EmailTemplate.CHANGE_EMAIL.name,
                     variables =
                         mapOf(
@@ -377,7 +381,7 @@ class AuthService(
                 ),
             )
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_MAIL_EVENT,
                 status = SagaStepStatus.COMPLETED,
@@ -417,7 +421,7 @@ class AuthService(
         verificationTokenRepository.save(verificationToken.markUsed())
 
         verificationToken.sagaId?.let { sagaId ->
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.UPDATE_EMAIL,
                 status = SagaStepStatus.COMPLETED,
@@ -442,7 +446,7 @@ class AuthService(
                 ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 
         val saga =
-            sagaProcessPort.beginSaga(
+            sagaProcessPort.startSaga(
                 sagaType = SagaTypes.PASSWORD_CHANGE,
                 payload =
                     mapOf(
@@ -456,7 +460,7 @@ class AuthService(
                 throw ApiException(INVALID_CURRENT_PASSWORD, HttpStatus.UNAUTHORIZED)
             }
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.VERIFY_CURRENT_PASSWORD,
                 status = SagaStepStatus.COMPLETED,
@@ -465,7 +469,7 @@ class AuthService(
             val token = generateRandomToken()
             val verificationToken = saveVerificationToken(user.email, token, TokenTypes.PASSWORD_CHANGE_REQUEST.value, null, saga.id)
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_VERIFICATION_TOKEN,
                 status = SagaStepStatus.COMPLETED,
@@ -480,7 +484,7 @@ class AuthService(
             authEventPublisher.sendMailRequestedEvent(
                 MailRequestedEvent(
                     to = user.email,
-                    subject = "Confirm Password Change",
+                    subject = SUBJECT_CONFIRM_PASSWORD_CHANGE,
                     templateName = EmailTemplate.SET_NEW_PASSWORD.name,
                     variables =
                         mapOf(
@@ -491,7 +495,7 @@ class AuthService(
                 ),
             )
 
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
                 stepName = SagaStepNames.CREATE_MAIL_EVENT,
                 status = SagaStepStatus.COMPLETED,
@@ -527,7 +531,7 @@ class AuthService(
         verificationTokenRepository.save(verificationToken.markUsed())
 
         verificationToken.sagaId?.let { sagaId ->
-            sagaProcessPort.appendSagaStep(
+            sagaProcessPort.recordSagaStep(
                 sagaId = sagaId,
                 stepName = SagaStepNames.UPDATE_PASSWORD,
                 status = SagaStepStatus.COMPLETED,

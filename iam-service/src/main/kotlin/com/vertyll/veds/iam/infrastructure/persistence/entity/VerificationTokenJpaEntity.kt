@@ -43,16 +43,4 @@ internal class VerificationTokenJpaEntity(
     var updatedAt: Instant = Instant.now(),
     @Version
     val version: Long? = null,
-) {
-    constructor() : this(
-        id = null,
-        token = "",
-        username = "",
-        expiryDate = LocalDateTime.now(),
-        used = false,
-        tokenType = "",
-        additionalData = null,
-        sagaId = null,
-        version = null,
-    )
-}
+)

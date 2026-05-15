@@ -38,10 +38,4 @@ internal class EmailLogJpaEntity(
     var updatedAt: Instant = Instant.now(),
     @Column(nullable = true)
     var sentAt: Instant? = null,
-) {
-    constructor() : this(
-        recipient = "",
-        subject = "",
-        templateName = "",
-    )
-}
+)

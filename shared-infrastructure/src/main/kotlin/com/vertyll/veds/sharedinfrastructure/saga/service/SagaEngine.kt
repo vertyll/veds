@@ -10,174 +10,105 @@ import com.vertyll.veds.sharedinfrastructure.saga.repository.BaseSagaRepository
 import com.vertyll.veds.sharedinfrastructure.saga.repository.BaseSagaStepRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationContextAware
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 import java.util.UUID
 
 /**
- * Base saga participant for the **choreography** pattern.
+ * Reusable saga participant engine for the **choreography** pattern.
  *
- * In choreography no single component knows the full cross-service flow.
- * Each service tracks only **its own local steps** and reacts to domain
- * events published by other services. The calling code drives saga state transitions
- * explicitly:
+ * This class replaces the legacy `BaseSagaManager` Template Method base class
+ * with **composition**: it has no abstract methods and is not designed for
+ * inheritance. Service-specific behavior is injected via two collaborator
+ * interfaces:
  *
- * - [startSaga] — begins a new local saga
- * - [recordSagaStep] — records a local step (does NOT auto-complete the saga)
- * - [awaitResponse] — marks the saga as waiting for an external event
- * - [completeSaga] — explicitly marks the saga as completed (called when an
- *   incoming event confirms the full flow succeeded)
- * - [failSaga] — explicitly marks the saga as failed and triggers local compensation
+ *  - [SagaEntityFactory] — creates concrete `*JpaEntity` instances
+ *  - [SagaCompensator]   — performs domain-specific compensation per step
+ *
+ * The engine itself stays a `final` Spring bean per microservice, so
+ * `@Transactional` is honored naturally without any `ApplicationContextAware`
+ * proxy-self tricks.
+ *
+ * Choreography semantics (no central orchestrator):
+ *  - [startSaga] — begins a new local saga
+ *  - [recordSagaStep] — records a local step (does NOT auto-complete the saga)
+ *  - [awaitResponse] — marks the saga as waiting for an external event
+ *  - [completeSaga] — explicitly marks the saga as completed
+ *  - [failSaga] — explicitly marks the saga as failed and triggers compensation
  *
  * When a step is recorded with [SagaStepStatus.FAILED], compensation is still
  * triggered automatically because a local step failure is an immediate signal.
- *
- * Services should extend this class and implement the abstract factory and
- * compensation methods.
- *
- * Implements [ApplicationContextAware] to get a reference to the Spring
- * proxy of the concrete subclass. This allows enum-typed overloads to delegate
- * through the proxy, ensuring @Transactional is always honored — even when
- * called from within the same bean.
- *
- * @param S The saga entity type that extends BaseSaga
- * @param T The saga step entity type that extends BaseSagaStep
  */
-abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
-    protected val sagaRepository: BaseSagaRepository<S>,
-    protected val sagaStepRepository: BaseSagaStepRepository<T>,
-    protected val kafkaOutboxProcessor: KafkaOutboxProcessor,
-    protected val objectMapper: ObjectMapper,
-) : ApplicationContextAware {
-    protected val logger: Logger = LoggerFactory.getLogger(javaClass)
-
-    private lateinit var applicationContext: ApplicationContext
-
-    protected val self: BaseSagaManager<S, T> by lazy {
-        applicationContext.getBean(this::class.java)
-    }
-
-    override fun setApplicationContext(applicationContext: ApplicationContext) {
-        this.applicationContext = applicationContext
-    }
-
+open class SagaEngine<S : BaseSaga, T : BaseSagaStep>(
+    private val sagaRepository: BaseSagaRepository<S>,
+    private val sagaStepRepository: BaseSagaStepRepository<T>,
+    private val kafkaOutboxProcessor: KafkaOutboxProcessor,
+    private val objectMapper: ObjectMapper,
+    private val entityFactory: SagaEntityFactory<S, T>,
+    private val compensator: SagaCompensator<S, T>,
     /**
-     * The Kafka topic to which compensation events for this service are published.
-     * Each microservice uses its own dedicated topic (e.g. `saga-compensation-iam`)
-     * so that only the originating service's [BaseSagaCompensationService] consumes them.
+     * Kafka topic to which compensation events for the owning service are
+     * published (e.g. `saga-compensation-iam`).
      */
-    protected abstract val compensationTopic: String
+    private val compensationTopic: String,
+) {
+    private val logger: Logger = LoggerFactory.getLogger(SagaEngine::class.java)
 
-    /**
-     * Creates a new saga instance of the concrete type [S].
-     */
-    protected abstract fun createSagaEntity(
-        id: String,
-        type: String,
-        status: SagaStatus,
-        payload: String,
-        startedAt: Instant,
-    ): S
+    private val compensationContext: SagaCompensationContext =
+        object : SagaCompensationContext {
+            override fun publishCompensationEvent(
+                sagaId: String,
+                stepId: Long?,
+                action: String,
+                extraPayload: Map<String, Any?>,
+            ) {
+                publishCompensation(sagaId, stepId, action, extraPayload)
+            }
 
-    /**
-     * Creates a new saga step instance of the concrete type [T].
-     */
-    protected abstract fun createSagaStepEntity(
-        sagaId: String,
-        stepName: String,
-        status: SagaStepStatus,
-        payload: String?,
-        createdAt: Instant,
-    ): T
-
-    /**
-     * Performs domain-specific compensation for a single step.
-     * Called by [triggerCompensation] in reverse-chronological order.
-     */
-    protected abstract fun compensateStep(
-        saga: S,
-        step: T,
-    )
+            override fun readStepPayload(payload: String?): Map<String, Any?> {
+                if (payload.isNullOrBlank()) return emptyMap()
+                @Suppress("UNCHECKED_CAST")
+                return objectMapper.readValue(payload, Map::class.java) as Map<String, Any?>
+            }
+        }
 
     // ── Enum-typed convenience overloads ────────────────────────────────
 
-    /**
-     * Enum-typed entry point for starting a saga.
-     * Delegates through the Spring proxy to the String overload.
-     */
     @Transactional
     open fun startSaga(
         sagaType: SagaTypeValue,
         payload: Any,
-    ): S = self.startSaga(sagaType.value, payload)
+    ): S = startSaga(sagaType.value, payload)
 
-    /**
-     * Enum-typed entry point for recording a saga step.
-     * Delegates through the Spring proxy to the String overload.
-     */
     @Transactional
     open fun recordSagaStep(
         sagaId: String,
         stepName: SagaTypeValue,
         status: SagaStepStatus,
         payload: Any? = null,
-    ): T = self.recordSagaStep(sagaId, stepName.value, status, payload)
+    ): T = recordSagaStep(sagaId, stepName.value, status, payload)
 
     // ── Core saga operations ────────────────────────────────────────────
 
-    /**
-     * Starts a new saga.
-     *
-     * @param sagaType Raw saga type string (e.g. "UserRegistration")
-     * @param payload  Any serializable payload; Strings are stored as-is
-     * @return The persisted saga instance
-     */
     @Transactional
     open fun startSaga(
         sagaType: String,
         payload: Any,
     ): S {
         val payloadJson = payload as? String ?: objectMapper.writeValueAsString(payload)
-
         val saga =
-            createSagaEntity(
+            entityFactory.createSaga(
                 id = UUID.randomUUID().toString(),
                 type = sagaType,
                 status = SagaStatus.STARTED,
                 payload = payloadJson,
                 startedAt = Instant.now(),
             )
-
         logger.info("Starting saga of type '$sagaType' with id '${saga.id}'")
         return sagaRepository.save(saga)
     }
 
-    /**
-     * Records a local step in an existing saga.
-     *
-     * **Choreography note:** recording a step does NOT automatically complete the
-     * saga. Use [completeSaga] or [awaitResponse] to transition the saga state
-     * explicitly based on domain events.
-     *
-     * Idempotent for the same status: if a step with the same name already exists
-     * and has the same status, it is returned unchanged.
-     *
-     * Allows status transitions: if the existing step has a non-terminal status
-     * (e.g., STARTED) and a new terminal status is provided (e.g., COMPLETED, FAILED),
-     * the existing step is updated rather than duplicated.
-     *
-     * When [status] is [SagaStepStatus.FAILED] compensation is triggered automatically
-     * because a local step failure is an immediate signal.
-     *
-     * @param sagaId   The saga to attach this step to
-     * @param stepName Raw step name string (e.g. "CreateUser")
-     * @param status   Outcome of this step
-     * @param payload  Optional step payload; Strings are stored as-is
-     * @return The persisted saga step
-     */
     @Transactional
     open fun recordSagaStep(
         sagaId: String,
@@ -221,7 +152,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         if (saga.status.isTerminal()) {
             logger.warn("Saga '$sagaId' is already in terminal status '${saga.status}' — ignoring new step '$stepName'")
             val skippedStep =
-                createSagaStepEntity(
+                entityFactory.createSagaStep(
                     sagaId = sagaId,
                     stepName = stepName,
                     status = status,
@@ -235,7 +166,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         }
 
         val step =
-            createSagaStepEntity(
+            entityFactory.createSagaStep(
                 sagaId = sagaId,
                 stepName = stepName,
                 status = status,
@@ -248,17 +179,10 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         }
 
         val savedStep = sagaStepRepository.save(step)
-
         handleStepFailure(sagaId, stepName, status)
-
         return savedStep
     }
 
-    /**
-     * If a local step failed, immediately trigger compensation.
-     * Other statuses (COMPLETED, PARTIALLY_COMPLETED) do NOT change the saga
-     * status — the calling code must use [completeSaga] or [awaitResponse].
-     */
     private fun handleStepFailure(
         sagaId: String,
         stepName: String,
@@ -280,30 +204,18 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         triggerCompensation(saga)
     }
 
-    // ── Explicit saga state transitions (choreography) ──────────────────
+    // ── Explicit saga state transitions ─────────────────────────────────
 
-    /**
-     * Explicitly marks a saga as COMPLETED.
-     *
-     * In choreography, this is called when an incoming event confirms
-     * that the full cross-service flow has succeeded (e.g., a
-     * [com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent] confirms that the email was delivered).
-     *
-     * Guard clause: if the saga is already in a terminal state, the call
-     * is ignored.
-     */
     @Transactional
     open fun completeSaga(sagaId: String): S {
         val saga =
             sagaRepository.findById(sagaId).orElseThrow {
                 IllegalArgumentException("Saga with id '$sagaId' not found")
             }
-
         if (saga.status.isTerminal()) {
             logger.warn("Ignoring completeSaga for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
         }
-
         saga.status = SagaStatus.COMPLETED
         saga.completedAt = Instant.now()
         saga.updatedAt = Instant.now()
@@ -311,48 +223,24 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         return sagaRepository.save(saga)
     }
 
-    /**
-     * Returns the saga entity for the given ID, or `null` if not found.
-     */
     open fun findSagaById(sagaId: String): S? = sagaRepository.findById(sagaId).orElse(null)
 
-    /**
-     * Marks a saga as [SagaStatus.AWAITING_RESPONSE].
-     *
-     * Called after the local steps have been recorded, and the service is now
-     * waiting for an event from another participant (e.g., mail-service).
-     *
-     * Guard clause: if the saga is already in a terminal state, the call
-     * is ignored.
-     */
     @Transactional
     open fun awaitResponse(sagaId: String): S {
         val saga =
             sagaRepository.findById(sagaId).orElseThrow {
                 IllegalArgumentException("Saga with id '$sagaId' not found")
             }
-
         if (saga.status.isTerminal()) {
             logger.warn("Ignoring awaitResponse for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
         }
-
         saga.status = SagaStatus.AWAITING_RESPONSE
         saga.updatedAt = Instant.now()
         logger.info("Saga '$sagaId' marked AWAITING_RESPONSE")
         return sagaRepository.save(saga)
     }
 
-    /**
-     * Marks a saga as COMPENSATING and triggers compensation for all completed steps.
-     *
-     * The saga transitions: COMPENSATING → COMPENSATED (if all steps compensated)
-     * or COMPENSATING → COMPENSATION_FAILED (if any step failed to compensate).
-     *
-     * Guard clause: if the saga is already in a terminal state (COMPLETED, FAILED,
-     * COMPENSATED, COMPENSATION_FAILED), the call is ignored to prevent
-     * out-of-order event issues.
-     */
     @Transactional
     open fun failSaga(
         sagaId: String,
@@ -362,42 +250,25 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
             sagaRepository.findById(sagaId).orElseThrow {
                 IllegalArgumentException("Saga with id '$sagaId' not found")
             }
-
         if (saga.status.isTerminal()) {
-            logger.warn(
-                "Ignoring failSaga for saga '$sagaId' — already in terminal status '${saga.status}'",
-            )
+            logger.warn("Ignoring failSaga for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
         }
-
         saga.status = SagaStatus.COMPENSATING
         saga.lastError = error
         saga.updatedAt = Instant.now()
-
         val savedSaga = sagaRepository.save(saga)
         triggerCompensation(savedSaga)
-
         return savedSaga
     }
 
     // ── Compensation ────────────────────────────────────────────────────
 
-    /**
-     * Publishes a compensation event to the outbox for processing by
-     * [BaseSagaCompensationService]. The event is sent to the service-specific
-     * [compensationTopic] so that only this service's compensation handler
-     * receives it.
-     *
-     * @param sagaId       The saga being compensated
-     * @param stepId       The original step ID being compensated
-     * @param action       The compensation action identifier
-     * @param extraPayload Additional action-specific data
-     */
-    protected fun publishCompensationEvent(
+    private fun publishCompensation(
         sagaId: String,
         stepId: Long?,
         action: String,
-        extraPayload: Map<String, Any?> = emptyMap(),
+        extraPayload: Map<String, Any?>,
     ) {
         kafkaOutboxProcessor.saveOutboxMessage(
             topic = compensationTopic,
@@ -413,14 +284,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         )
     }
 
-    /**
-     * Triggers compensation for all completed steps in reverse-chronological order.
-     *
-     * Tracks whether all compensations succeeded:
-     * - If all succeed → saga status = COMPENSATED
-     * - If any fail → saga status = COMPENSATION_FAILED (requires manual intervention)
-     */
-    protected open fun triggerCompensation(saga: S) {
+    private fun triggerCompensation(saga: S) {
         val completedSteps =
             sagaStepRepository
                 .findBySagaIdAndStatus(saga.id, SagaStepStatus.COMPLETED)
@@ -433,7 +297,7 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
         completedSteps.forEach { step ->
             try {
                 logger.info("Compensating step '${step.stepName}' (id: ${step.id}) for saga '${saga.id}'")
-                compensateStep(saga, step)
+                compensator.compensateStep(saga, step, compensationContext)
                 step.status = SagaStepStatus.COMPENSATED
                 sagaStepRepository.save(step)
             } catch (e: Exception) {
@@ -457,9 +321,6 @@ abstract class BaseSagaManager<S : BaseSaga, T : BaseSagaStep>(
     }
 
     private companion object {
-        /**
-         * Step statuses that should not be overwritten by a new recordSagaStep call.
-         */
         val TERMINAL_STEP_STATUSES =
             setOf(
                 SagaStepStatus.COMPLETED,

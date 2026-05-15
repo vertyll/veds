@@ -61,15 +61,4 @@ internal class UserJpaEntity(
     var updatedAt: Instant = Instant.now(),
     @Version
     val version: Long? = null,
-) {
-    constructor() : this(
-        id = null,
-        keycloakId = null,
-        email = "",
-        firstName = "",
-        lastName = "",
-        roles = mutableSetOf(),
-        permissions = mutableSetOf(),
-        version = null,
-    )
-}
+)

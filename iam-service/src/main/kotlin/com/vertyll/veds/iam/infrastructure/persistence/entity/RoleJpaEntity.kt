@@ -25,11 +25,4 @@ internal class RoleJpaEntity(
     var updatedAt: Instant = Instant.now(),
     @Version
     val version: Long? = null,
-) {
-    constructor() : this(
-        id = null,
-        name = "",
-        description = null,
-        version = null,
-    )
-}
+)

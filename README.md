@@ -69,7 +69,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Provides:
     - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/out`, `infrastructure/{persistence,kafka,saga,web,config,security,response,exception}`).
     - Placeholder domain (`Template`, `TemplateStatus`, `TemplateRepository`) with rich-domain methods (`markProcessed`, `markFailed`).
-    - Saga choreography scaffolding: local `saga`/`saga_step` model, `SagaProcessPort`, `SagaManagerAdapter` (built on `BaseSagaManager` from `shared-infrastructure`), neutral compensation topic `saga-compensation-template`.
+    - Saga choreography scaffolding: local `saga`/`saga_step` model, `SagaProcessPort`, thin `SagaManagerAdapter` delegating to a shared `SagaEngine` (composition over inheritance, see Saga Pattern section), neutral compensation topic `saga-compensation-template`.
     - Kafka skeleton: outbound `TemplateEventPublisherPort` + `KafkaTemplateEventPublisherAdapter` (using `KafkaOutboxProcessor`), inbound `TemplateEventConsumer`.
     - REST controller `/template` + DTOs.
 - Intended to be copied and renamed when starting a new service.
@@ -316,6 +316,8 @@ Key building blocks:
 4. `AWAITING_RESPONSE` saga state — the initiating saga waits for the feedback event correlated by `sagaId` (Saga Log Correlation pattern).
 5. Idempotency through unique `(sagaId, stepName)` constraint + status checks before re-applying a step.
 6. Recovery via scheduled poller (`BaseSagaSchedulingHandler`) that finds stuck sagas.
+
+**Saga engine via composition.** The shared mechanism — transactional bookkeeping of saga + steps, publishing compensation events through the Outbox, replaying compensations in reverse order — lives in `SagaEngine<S, T>` in `shared-infrastructure`. Each service wires it in `SagaConfig` with two small hooks: `SagaEntityFactory<S, T>` (constructs the service's `SagaJpaEntity` / `SagaStepJpaEntity`) and `SagaCompensator<S, T>` (publishes service-specific compensation actions to the service's own topic, e.g. `saga-compensation-iam`). The `SagaManagerAdapter` is a thin class that implements `SagaProcessPort` and delegates to the injected `SagaEngine`, mapping JPA entities to/from domain `Saga` / `SagaStep`. This replaces the previous `BaseSagaManager` abstract template-method approach — adapters no longer inherit shared infrastructure plumbing, which removes signature collisions with the port and keeps the hexagon's adapter strictly responsible for one concern (implementing its port).
 
 Example: User Registration (iam-service ⇄ mail-service)
 1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `CREATE_VERIFICATION_TOKEN` → `CREATE_MAIL_EVENT`, then transitions to `AWAITING_RESPONSE` and publishes `MailRequestEvent` through the Outbox.
