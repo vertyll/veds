@@ -48,20 +48,6 @@ class KafkaOutbox(
     @Version
     val version: Long? = null,
 ) {
-    constructor() : this(
-        id = null,
-        topic = "",
-        key = "",
-        payload = "",
-        status = OutboxStatus.PENDING,
-        errorMessage = null,
-        processedAt = null,
-        retryCount = 0,
-        lastRetryAt = null,
-        sagaId = null,
-        version = null,
-    )
-
     enum class OutboxStatus {
         PENDING,
         PROCESSING,
