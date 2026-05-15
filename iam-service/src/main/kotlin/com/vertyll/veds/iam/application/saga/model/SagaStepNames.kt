@@ -6,9 +6,9 @@ enum class SagaStepNames(
     override val value: String,
 ) : SagaTypeValue {
     CREATE_USER("CreateUser"),
-    CREATE_USER_EVENT("CreateUserEvent"),
+    PUBLISH_USER_REGISTERED_EVENT("PublishUserRegisteredEvent"),
     CREATE_VERIFICATION_TOKEN("CreateVerificationToken"),
-    CREATE_MAIL_EVENT("CreateMailEvent"),
+    PUBLISH_MAIL_REQUESTED_EVENT("PublishMailRequestedEvent"),
     CREATE_RESET_TOKEN("CreateResetToken"),
     VERIFY_CURRENT_PASSWORD("VerifyCurrentPassword"),
     UPDATE_PASSWORD("UpdatePassword"),

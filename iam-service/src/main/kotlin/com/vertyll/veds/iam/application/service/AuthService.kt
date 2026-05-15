@@ -117,7 +117,7 @@ class AuthService(
 
             sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
-                stepName = SagaStepNames.CREATE_USER_EVENT,
+                stepName = SagaStepNames.PUBLISH_USER_REGISTERED_EVENT,
                 status = SagaStepStatus.COMPLETED,
             )
 
@@ -151,7 +151,7 @@ class AuthService(
 
             sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
-                stepName = SagaStepNames.CREATE_MAIL_EVENT,
+                stepName = SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT,
                 status = SagaStepStatus.COMPLETED,
             )
 
@@ -228,7 +228,7 @@ class AuthService(
 
             sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
-                stepName = SagaStepNames.CREATE_MAIL_EVENT,
+                stepName = SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT,
                 status = SagaStepStatus.COMPLETED,
             )
 
@@ -288,7 +288,7 @@ class AuthService(
 
             sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
-                stepName = SagaStepNames.CREATE_MAIL_EVENT,
+                stepName = SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT,
                 status = SagaStepStatus.COMPLETED,
             )
 
@@ -383,7 +383,7 @@ class AuthService(
 
             sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
-                stepName = SagaStepNames.CREATE_MAIL_EVENT,
+                stepName = SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT,
                 status = SagaStepStatus.COMPLETED,
             )
 
@@ -497,7 +497,7 @@ class AuthService(
 
             sagaProcessPort.recordSagaStep(
                 sagaId = saga.id,
-                stepName = SagaStepNames.CREATE_MAIL_EVENT,
+                stepName = SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT,
                 status = SagaStepStatus.COMPLETED,
             )
 

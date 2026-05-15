@@ -21,9 +21,9 @@ internal class IamSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEn
             SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(saga.id, step, context)
             SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step, context)
             SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step, context)
-            SagaStepNames.CREATE_MAIL_EVENT.value ->
+            SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT.value ->
                 logger.info("Mail event already published for saga '${saga.id}' — no compensation needed")
-            SagaStepNames.CREATE_USER_EVENT.value ->
+            SagaStepNames.PUBLISH_USER_REGISTERED_EVENT.value ->
                 logger.info("User event step for saga '${saga.id}' — no compensation needed")
             else -> logger.warn("No compensation defined for step '${step.stepName}'")
         }
