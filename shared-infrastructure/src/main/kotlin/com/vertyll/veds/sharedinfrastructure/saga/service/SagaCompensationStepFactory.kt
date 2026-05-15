@@ -10,6 +10,7 @@ import java.time.Instant
  * method previously found on `BaseSagaCompensationService` (Template Method)
  * with composition.
  */
+@Suppress("kotlin:S6517")
 interface SagaCompensationStepFactory<T : BaseSagaStep> {
     fun createCompensationStep(
         sagaId: String,

@@ -9,6 +9,7 @@ package com.vertyll.veds.sharedinfrastructure.saga.service
  * Replaces the abstract `processCompensation` method previously found on
  * `BaseSagaCompensationService` (Template Method) with composition.
  */
+@Suppress("kotlin:S6517")
 interface SagaCompensationHandler {
     fun handle(
         sagaId: String,
