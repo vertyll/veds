@@ -1,17 +1,16 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
-import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import java.time.Instant
 
 /**
  * Factory hook used by [SagaCompensationEngine] to create a service-specific
- * compensation step entity. Replaces the abstract `createCompensationStepEntity`
- * method previously found on `BaseSagaCompensationService` (Template Method)
- * with composition.
+ * compensation step instance against the persistence-agnostic [SagaStep]
+ * contract.
  */
 @Suppress("kotlin:S6517")
-interface SagaCompensationStepFactory<T : BaseSagaStep> {
+interface SagaCompensationStepFactory<T : SagaStep> {
     fun createCompensationStep(
         sagaId: String,
         stepName: String,

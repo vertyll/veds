@@ -1,7 +1,7 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
-import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSaga
-import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
+import com.vertyll.veds.sharedinfrastructure.saga.contract.Saga
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
 
 /**
  * Domain-specific compensation hook used by [SagaEngine].
@@ -11,11 +11,11 @@ import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
  * [SagaCompensationContext.publishCompensationEvent] which is then consumed by
  * a service-local Kafka listener.
  *
- * Replaces inheritance (Template Method on `BaseSagaManager.compensateStep`)
- * with composition.
+ * Works against the persistence-agnostic [Saga] / [SagaStep] contracts so it
+ * is independent of the underlying storage technology.
  */
 @Suppress("kotlin:S6517")
-interface SagaCompensator<S : BaseSaga, T : BaseSagaStep> {
+interface SagaCompensator<S : Saga, T : SagaStep> {
     fun compensateStep(
         saga: S,
         step: T,

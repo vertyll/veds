@@ -1,5 +1,6 @@
 package com.vertyll.veds.sharedinfrastructure.saga.entity
 
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import jakarta.persistence.Column
 import jakarta.persistence.EnumType
@@ -11,28 +12,74 @@ import jakarta.persistence.MappedSuperclass
 import jakarta.persistence.Version
 import java.time.Instant
 
+/**
+ * JPA-backed base implementation of the [SagaStep] port. See [BaseSaga] for
+ * the rationale behind the contract/adapter split — the engine sees an
+ * immutable port; this class mutates `var` fields internally and returns
+ * `this` so Hibernate can dirty-track the update.
+ */
 @MappedSuperclass
 abstract class BaseSagaStep(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    open val id: Long? = null,
+    override val id: Long? = null,
     @Column(nullable = false)
-    open val sagaId: String,
+    override val sagaId: String,
     @Column(nullable = false)
-    open val stepName: String,
+    override val stepName: String,
+    status: SagaStepStatus,
+    @Column(nullable = true, columnDefinition = "TEXT")
+    override val payload: String? = null,
+    errorMessage: String? = null,
+    @Column(nullable = false)
+    override val createdAt: Instant,
+    completedAt: Instant? = null,
+    compensationStepId: Long? = null,
+    @Version
+    override val version: Long? = null,
+) : SagaStep {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    open var status: SagaStepStatus,
-    @Column(nullable = true, columnDefinition = "TEXT")
-    open val payload: String? = null,
+    final override var status: SagaStepStatus = status
+        private set
+
     @Column(nullable = true)
-    open var errorMessage: String? = null,
-    @Column(nullable = false)
-    open val createdAt: Instant,
+    final override var errorMessage: String? = errorMessage
+        private set
+
     @Column(nullable = true)
-    open var completedAt: Instant? = null,
+    final override var completedAt: Instant? = completedAt
+        private set
+
     @Column(nullable = true)
-    open var compensationStepId: Long? = null,
-    @Version
-    open val version: Long? = null,
-)
+    final override var compensationStepId: Long? = compensationStepId
+        private set
+
+    override fun markCompleted(): SagaStep {
+        status = SagaStepStatus.COMPLETED
+        completedAt = Instant.now()
+        return this
+    }
+
+    override fun markFailed(error: String): SagaStep {
+        status = SagaStepStatus.FAILED
+        errorMessage = error
+        return this
+    }
+
+    override fun markCompensated(): SagaStep {
+        status = SagaStepStatus.COMPENSATED
+        return this
+    }
+
+    override fun markCompensationFailed(error: String?): SagaStep {
+        status = SagaStepStatus.COMPENSATION_FAILED
+        if (error != null) errorMessage = error
+        return this
+    }
+
+    override fun linkToCompensationStep(compensationStepId: Long): SagaStep {
+        this.compensationStepId = compensationStepId
+        return this
+    }
+}

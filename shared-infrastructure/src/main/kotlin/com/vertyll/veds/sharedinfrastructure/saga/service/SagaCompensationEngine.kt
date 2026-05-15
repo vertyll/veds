@@ -1,8 +1,8 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
-import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
+import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStepRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
-import com.vertyll.veds.sharedinfrastructure.saga.repository.BaseSagaStepRepository
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
@@ -11,20 +11,13 @@ import java.time.Instant
 /**
  * Engine for the **choreography** saga compensation flow.
  *
- * Uses composition instead of inheritance (replaces the previous
- * `BaseSagaCompensationService` Template Method): it depends on two narrow
- * hooks — [SagaCompensationStepFactory] (service-specific JPA step entity) and
- * [SagaCompensationHandler] (domain-specific compensation dispatch).
- *
- * Each microservice listens on its own dedicated Kafka topic
- * (e.g. `saga-compensation-iam`); the Kafka adapter is a thin `@KafkaListener`
- * that delegates a single call to [handleCompensationEvent].
- *
- * `open` solely because Spring's `@Transactional` requires CGLIB proxy when
- * the bean has no interface; this class is **not** designed for subclassing.
+ * Depends only on the persistence-agnostic [SagaStepRepositoryPort] and two
+ * collaborator hooks ([SagaCompensationStepFactory] and
+ * [SagaCompensationHandler]) so it is decoupled from the underlying storage
+ * technology (JPA today, others possible).
  */
-open class SagaCompensationEngine<T : BaseSagaStep>(
-    private val sagaStepRepository: BaseSagaStepRepository<T>,
+open class SagaCompensationEngine<T : SagaStep>(
+    private val sagaStepRepository: SagaStepRepositoryPort<T>,
     private val objectMapper: ObjectMapper,
     private val stepFactory: SagaCompensationStepFactory<T>,
     private val handler: SagaCompensationHandler,
@@ -54,7 +47,7 @@ open class SagaCompensationEngine<T : BaseSagaStep>(
         event: Map<String, Any?>,
     ) {
         val stepId = event["stepId"] as? Number ?: return
-        val step = sagaStepRepository.findById(stepId.toLong()).orElse(null) ?: return
+        val step = sagaStepRepository.findOneById(stepId.toLong()) ?: return
 
         val compensationStep =
             stepFactory.createCompensationStep(

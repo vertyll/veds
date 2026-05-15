@@ -1,5 +1,7 @@
 package com.vertyll.veds.sharedinfrastructure.kafka
 
+import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessage
+import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -13,45 +15,40 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * Entity representing a message to be sent to Kafka.
- * Implements the Outbox Pattern for reliable event publishing in distributed transactions.
+ * JPA-backed implementation of the [OutboxMessage] port.
+ *
+ * Other persistence flavors (Mongo, in-memory, …) can be added as parallel
+ * implementations of [OutboxMessage] without touching the outbox processor.
  */
 @Entity
 @Table(name = "kafka_outbox")
 class KafkaOutbox(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    override val id: Long? = null,
     @Column(nullable = false)
-    var eventId: String = UUID.randomUUID().toString(),
+    override var eventId: String = UUID.randomUUID().toString(),
     @Column(nullable = false)
-    val topic: String,
+    override val topic: String,
     @Column(nullable = false)
-    val key: String,
+    override val key: String,
     @Column(nullable = false, columnDefinition = "TEXT")
-    val payload: String,
+    override val payload: String,
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    var status: OutboxStatus = OutboxStatus.PENDING,
+    override var status: OutboxStatus = OutboxStatus.PENDING,
     @Column(nullable = true)
-    var errorMessage: String? = null,
+    override var errorMessage: String? = null,
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
+    override val createdAt: Instant = Instant.now(),
     @Column(nullable = true)
-    var processedAt: Instant? = null,
+    override var processedAt: Instant? = null,
     @Column(nullable = false)
-    var retryCount: Int = 0,
+    override var retryCount: Int = 0,
     @Column(nullable = true)
-    var lastRetryAt: Instant? = null,
+    override var lastRetryAt: Instant? = null,
     @Column(nullable = true)
-    var sagaId: String? = null,
+    override var sagaId: String? = null,
     @Version
-    val version: Long? = null,
-) {
-    enum class OutboxStatus {
-        PENDING,
-        PROCESSING,
-        COMPLETED,
-        FAILED,
-    }
-}
+    override val version: Long? = null,
+) : OutboxMessage
