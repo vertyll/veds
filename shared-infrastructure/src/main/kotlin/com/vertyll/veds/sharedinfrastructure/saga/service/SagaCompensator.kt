@@ -14,6 +14,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.entity.BaseSagaStep
  * Replaces inheritance (Template Method on `BaseSagaManager.compensateStep`)
  * with composition.
  */
+@Suppress("kotlin:S6517")
 interface SagaCompensator<S : BaseSaga, T : BaseSagaStep> {
     fun compensateStep(
         saga: S,
