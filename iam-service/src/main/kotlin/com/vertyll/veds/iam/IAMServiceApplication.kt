@@ -19,11 +19,9 @@ import org.springframework.kafka.annotation.EnableKafka
 )
 @EnableJpaRepositories(
     "com.vertyll.veds.iam.infrastructure.persistence.repository",
-    "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EntityScan(
     "com.vertyll.veds.iam.infrastructure.persistence.entity",
-    "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EnableKafka
 class IAMServiceApplication

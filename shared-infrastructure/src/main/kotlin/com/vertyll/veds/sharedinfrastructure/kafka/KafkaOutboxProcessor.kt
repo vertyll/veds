@@ -56,40 +56,28 @@ class KafkaOutboxProcessor(
 
         pendingMessages.forEach { message ->
             try {
-                // Mark as processing using OL
-                message.status = OutboxStatus.PROCESSING
-                message.processedAt = Instant.now()
-                outboxRepository.save(message)
+                val processing = outboxRepository.save(message.markProcessing())
 
                 val kafkaMessage =
                     MessageBuilder
-                        .withPayload(message.payload)
-                        .setHeader(KafkaHeaders.TOPIC, message.topic)
-                        .setHeader(KafkaHeaders.KEY, message.key)
-                        .setHeader("eventId", message.eventId)
+                        .withPayload(processing.payload)
+                        .setHeader(KafkaHeaders.TOPIC, processing.topic)
+                        .setHeader(KafkaHeaders.KEY, processing.key)
+                        .setHeader("eventId", processing.eventId)
                         .build()
 
                 val result = kafkaTemplate.send(kafkaMessage).get()
 
                 logger.info(
-                    "Successfully sent message to Kafka: topic=${message.topic}, " +
+                    "Successfully sent message to Kafka: topic=${processing.topic}, " +
                         "partition=${result.recordMetadata.partition()}, " +
                         "offset=${result.recordMetadata.offset()}",
                 )
 
-                // Mark as completed using OL
-                message.status = OutboxStatus.COMPLETED
-                message.processedAt = Instant.now()
-                outboxRepository.save(message)
+                outboxRepository.save(processing.markCompleted())
             } catch (e: Exception) {
                 logger.error("Failed to process outbox message id=${message.id}: ${e.message}", e)
-
-                // Mark as failed using OL
-                message.status = OutboxStatus.FAILED
-                message.errorMessage = e.message ?: UNKNOWN_ERROR
-                message.retryCount += 1
-                message.lastRetryAt = Instant.now()
-                outboxRepository.save(message)
+                outboxRepository.save(message.markFailed(e.message ?: UNKNOWN_ERROR))
             }
         }
     }

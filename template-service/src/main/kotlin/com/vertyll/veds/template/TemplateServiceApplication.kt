@@ -19,11 +19,9 @@ import org.springframework.kafka.annotation.EnableKafka
 )
 @EnableJpaRepositories(
     "com.vertyll.veds.template.infrastructure.persistence.repository",
-    "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EntityScan(
     "com.vertyll.veds.template.infrastructure.persistence.entity",
-    "com.vertyll.veds.sharedinfrastructure.kafka",
 )
 @EnableKafka
 class TemplateServiceApplication

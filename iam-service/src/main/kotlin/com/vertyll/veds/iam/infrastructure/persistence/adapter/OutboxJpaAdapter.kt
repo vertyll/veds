@@ -1,28 +1,29 @@
-package com.vertyll.veds.sharedinfrastructure.kafka
+package com.vertyll.veds.iam.infrastructure.persistence.adapter
 
+import com.vertyll.veds.iam.infrastructure.persistence.entity.OutboxJpaEntity
+import com.vertyll.veds.iam.infrastructure.persistence.repository.OutboxJpaRepository
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessage
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessageFactory
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxStatus
+import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
 
 /**
- * JPA implementation of the [OutboxRepositoryPort] and [OutboxMessageFactory]
- * ports. Delegates to the Spring Data JPA repository [KafkaOutboxRepository].
+ * JPA-backed implementation of the outbox ports for the iam-service.
  *
- * Registered as a Spring bean by [JpaOutboxAdapterAutoConfiguration] only
- * when no other [OutboxRepositoryPort] / [OutboxMessageFactory] bean has been
- * provided by the application — services backed by a different storage
- * technology (MongoDB, Cassandra, …) supply their own port bean and this
- * adapter steps aside.
+ * The shared-infrastructure module provides only the [BaseOutbox]
+ * `@MappedSuperclass` and the persistence-agnostic ports; this adapter
+ * owns the concrete `@Entity` and Spring Data repository.
  */
-internal class KafkaOutboxJpaAdapter(
-    private val repository: KafkaOutboxRepository,
+@Component
+internal class OutboxJpaAdapter(
+    private val repository: OutboxJpaRepository,
 ) : OutboxRepositoryPort,
     OutboxMessageFactory {
     override fun save(message: OutboxMessage): OutboxMessage {
-        val entity = message as? KafkaOutbox ?: copyToJpaEntity(message)
+        val entity = message as? OutboxJpaEntity ?: copyToJpaEntity(message)
         return repository.save(entity)
     }
 
@@ -43,7 +44,7 @@ internal class KafkaOutboxJpaAdapter(
         sagaId: String?,
         eventId: String?,
     ): OutboxMessage =
-        KafkaOutbox(
+        OutboxJpaEntity(
             topic = topic,
             key = key,
             payload = payload,
@@ -51,8 +52,8 @@ internal class KafkaOutboxJpaAdapter(
             eventId = eventId ?: UUID.randomUUID().toString(),
         )
 
-    private fun copyToJpaEntity(message: OutboxMessage): KafkaOutbox =
-        KafkaOutbox(
+    private fun copyToJpaEntity(message: OutboxMessage): OutboxJpaEntity =
+        OutboxJpaEntity(
             id = message.id,
             eventId = message.eventId,
             topic = message.topic,
