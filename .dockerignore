@@ -1,7 +1,7 @@
 # Global ignore
 **/.gradle
 **/build
-**/out
+out/
 **/.idea
 **/.vscode
 **/.DS_Store
