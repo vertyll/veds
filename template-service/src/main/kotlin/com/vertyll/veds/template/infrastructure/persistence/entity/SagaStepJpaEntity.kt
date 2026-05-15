@@ -36,12 +36,4 @@ internal class SagaStepJpaEntity(
         completedAt = completedAt,
         compensationStepId = compensationStepId,
         version = version,
-    ) {
-    constructor() : this(
-        id = null,
-        sagaId = "",
-        stepName = "",
-        status = SagaStepStatus.STARTED,
-        createdAt = Instant.now(),
     )
-}
