@@ -35,7 +35,6 @@ class EmailController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<ApiResponse<Page<EmailLogResponse>>> {
-        val pageable = PageRequest.of(page, size)
         val logs = emailService.getEmailLogs()
         return ApiResponse.buildResponse(
             data = logs,
