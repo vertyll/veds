@@ -35,7 +35,7 @@ internal class VerificationTokenPersistenceAdapter(
     }
 }
 
-internal fun VerificationToken.toJpaEntity() =
+private fun VerificationToken.toJpaEntity() =
     VerificationTokenJpaEntity(
         id = this.id,
         token = this.token,
@@ -50,7 +50,7 @@ internal fun VerificationToken.toJpaEntity() =
         version = this.version,
     )
 
-internal fun VerificationTokenJpaEntity.toDomain() =
+private fun VerificationTokenJpaEntity.toDomain() =
     VerificationToken(
         id = this.id,
         token = this.token,

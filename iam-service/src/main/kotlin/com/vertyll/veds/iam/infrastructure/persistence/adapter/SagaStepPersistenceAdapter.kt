@@ -33,7 +33,7 @@ internal class SagaStepPersistenceAdapter(
         repository.findBySagaIdOrderByCreatedAtDesc(sagaId).map { it.toDomain() }
 }
 
-internal fun SagaStep.toJpaEntity() =
+private fun SagaStep.toJpaEntity() =
     SagaStepJpaEntity(
         id = this.id,
         sagaId = this.sagaId,
@@ -47,7 +47,7 @@ internal fun SagaStep.toJpaEntity() =
         version = this.version,
     )
 
-internal fun SagaStepJpaEntity.toDomain() =
+private fun SagaStepJpaEntity.toDomain() =
     SagaStep(
         id = this.id,
         sagaId = this.sagaId,

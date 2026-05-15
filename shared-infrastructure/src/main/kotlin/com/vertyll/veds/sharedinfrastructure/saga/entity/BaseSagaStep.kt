@@ -22,21 +22,21 @@ import java.time.Instant
 abstract class BaseSagaStep(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    override val id: Long? = null,
+    override var id: Long? = null,
     @Column(nullable = false)
-    override val sagaId: String,
+    override var sagaId: String,
     @Column(nullable = false)
-    override val stepName: String,
+    override var stepName: String,
     status: SagaStepStatus,
     @Column(nullable = true, columnDefinition = "TEXT")
-    override val payload: String? = null,
+    override var payload: String? = null,
     errorMessage: String? = null,
     @Column(nullable = false)
-    override val createdAt: Instant,
+    override var createdAt: Instant,
     completedAt: Instant? = null,
     compensationStepId: Long? = null,
     @Version
-    override val version: Long? = null,
+    override var version: Long? = null,
 ) : SagaStep {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

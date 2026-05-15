@@ -16,24 +16,24 @@ import java.time.Instant
 internal class EmailLogJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
     @Column(nullable = false)
-    val recipient: String,
+    var recipient: String,
     @Column(nullable = false)
-    val subject: String,
+    var subject: String,
     @Column(nullable = false)
-    val templateName: String,
+    var templateName: String,
     @Column(nullable = true, length = 4000)
-    val variables: String? = null,
+    var variables: String? = null,
     @Column(nullable = true)
-    val replyTo: String? = null,
+    var replyTo: String? = null,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: EmailStatus = EmailStatus.PENDING,
     @Column(nullable = true, length = 1000)
     var errorMessage: String? = null,
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
     @Column(nullable = false)
     var updatedAt: Instant = Instant.now(),
     @Column(nullable = true)

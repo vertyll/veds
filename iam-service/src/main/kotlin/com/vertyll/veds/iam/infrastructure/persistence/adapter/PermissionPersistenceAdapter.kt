@@ -22,7 +22,7 @@ internal class PermissionPersistenceAdapter(
     override fun findAll(): List<Permission> = repository.findAll().map { it.toDomain() }
 }
 
-internal fun Permission.toJpaEntity() =
+private fun Permission.toJpaEntity() =
     PermissionJpaEntity(
         id = this.id,
         name = this.name,

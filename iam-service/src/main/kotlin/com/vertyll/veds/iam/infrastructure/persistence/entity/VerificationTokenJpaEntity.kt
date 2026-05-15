@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 internal class VerificationTokenJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
     @Column(nullable = false, unique = true, length = 1024)
     var token: String,
     @Column(nullable = false)
@@ -38,9 +38,9 @@ internal class VerificationTokenJpaEntity(
     @Column(nullable = true)
     var sagaId: String? = null,
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
     @Column(nullable = false)
     var updatedAt: Instant = Instant.now(),
     @Version
-    val version: Long? = null,
+    var version: Long? = null,
 )

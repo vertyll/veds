@@ -26,19 +26,19 @@ import java.time.Instant
 @MappedSuperclass
 abstract class BaseSaga(
     @Id
-    override val id: String,
+    override var id: String,
     @Column(nullable = false)
-    override val type: String,
+    override var type: String,
     status: SagaStatus,
     @Column(nullable = false, columnDefinition = "TEXT")
-    override val payload: String,
+    override var payload: String,
     lastError: String? = null,
     @Column(nullable = false)
-    override val startedAt: Instant,
+    override var startedAt: Instant,
     completedAt: Instant? = null,
     updatedAt: Instant = Instant.now(),
     @Version
-    override val version: Long? = null,
+    override var version: Long? = null,
 ) : Saga {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

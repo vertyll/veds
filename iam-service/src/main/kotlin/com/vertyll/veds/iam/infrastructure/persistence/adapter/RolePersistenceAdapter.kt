@@ -22,7 +22,7 @@ internal class RolePersistenceAdapter(
     override fun findAll(): List<Role> = repository.findAll().map { it.toDomain() }
 }
 
-internal fun Role.toJpaEntity() =
+private fun Role.toJpaEntity() =
     RoleJpaEntity(
         id = this.id,
         name = this.name,

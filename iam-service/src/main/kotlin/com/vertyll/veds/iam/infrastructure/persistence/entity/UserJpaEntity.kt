@@ -26,7 +26,7 @@ import java.util.UUID
 internal class UserJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
     @Column(name = "keycloak_id", nullable = true, unique = true)
     var keycloakId: UUID? = null,
     @Column(nullable = false, unique = true)
@@ -56,9 +56,9 @@ internal class UserJpaEntity(
     @Column(nullable = true)
     var address: String? = null,
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
     @Column(nullable = false)
     var updatedAt: Instant = Instant.now(),
     @Version
-    val version: Long? = null,
+    var version: Long? = null,
 )

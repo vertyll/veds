@@ -63,7 +63,7 @@ internal class UserPersistenceAdapter(
     }
 }
 
-internal fun UserJpaEntity.toDomain(): User =
+private fun UserJpaEntity.toDomain(): User =
     User(
         id = this.id,
         keycloakId = this.keycloakId,

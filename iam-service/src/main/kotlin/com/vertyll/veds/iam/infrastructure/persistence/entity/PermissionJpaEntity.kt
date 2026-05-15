@@ -14,15 +14,15 @@ import java.time.Instant
 internal class PermissionJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
     @Column(nullable = false, unique = true)
-    val name: String,
+    var name: String,
     @Column(nullable = true)
-    val description: String? = null,
+    var description: String? = null,
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
     @Column(nullable = false)
     var updatedAt: Instant = Instant.now(),
     @Version
-    val version: Long? = null,
+    var version: Long? = null,
 )

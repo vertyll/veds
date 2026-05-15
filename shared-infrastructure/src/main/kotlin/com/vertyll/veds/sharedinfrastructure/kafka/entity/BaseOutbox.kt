@@ -33,25 +33,25 @@ import java.util.UUID
 abstract class BaseOutbox(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    override val id: Long? = null,
+    override var id: Long? = null,
     eventId: String = UUID.randomUUID().toString(),
     @Column(nullable = false)
-    override val topic: String,
+    override var topic: String,
     @Column(nullable = false)
-    override val key: String,
+    override var key: String,
     @Column(nullable = false, columnDefinition = "TEXT")
-    override val payload: String,
+    override var payload: String,
     status: OutboxStatus = OutboxStatus.PENDING,
     errorMessage: String? = null,
     @Column(nullable = false)
-    override val createdAt: Instant = Instant.now(),
+    override var createdAt: Instant = Instant.now(),
     processedAt: Instant? = null,
     retryCount: Int = 0,
     lastRetryAt: Instant? = null,
     @Column(nullable = true)
-    override val sagaId: String? = null,
+    override var sagaId: String? = null,
     @Version
-    override val version: Long? = null,
+    override var version: Long? = null,
 ) : OutboxMessage {
     @Column(nullable = false)
     final override var eventId: String = eventId

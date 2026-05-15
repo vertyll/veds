@@ -28,7 +28,7 @@ internal class SagaPersistenceAdapter(
     ): List<Saga> = repository.findByStatusAndUpdatedAtBefore(status, updatedAt).map { it.toDomain() }
 }
 
-internal fun Saga.toJpaEntity() =
+private fun Saga.toJpaEntity() =
     SagaJpaEntity(
         id = this.id,
         type = this.type,
@@ -41,7 +41,7 @@ internal fun Saga.toJpaEntity() =
         version = this.version,
     )
 
-internal fun SagaJpaEntity.toDomain() =
+private fun SagaJpaEntity.toDomain() =
     Saga(
         id = this.id,
         type = this.type,
