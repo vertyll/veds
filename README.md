@@ -8,7 +8,7 @@
 
 ## Project Assumptions
 
-A microservices-based architecture, following Domain-Driven Design (DDD) principles, Hexagonal Architecture (Ports & Adapters), Separation of Concerns (SoC), SOLID principles, Choreography pattern for service coordination, and the Saga pattern for distributed transactions.
+A microservices-based architecture, following Domain-Driven Design principles, Hexagonal Architecture, Separation of Concerns, SOLID principles, Choreography pattern for service coordination with the Saga pattern for distributed transactions.
 
 ## Architecture
 
@@ -21,7 +21,7 @@ The project is split into the following components:
 4. **Shared Infrastructure** – Shared infrastructure, contracts, and utilities used across all microservices.
 5. **Template Service** – Baseline configuration for future microservices.
 
-Each microservice follows Hexagonal Architecture principles with a three-layer structure (`domain` / `application` / `infrastructure`) and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
+Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
 
 ### Detailed Description of Components
 
@@ -32,25 +32,25 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 #### Shared Infrastructure
 - Provides shared code, DTOs, event definitions, and utilities for all microservices.
-- Implements shared patterns like an Outbox pattern.
-- Contains reusable components for Kafka integration, exception handling, and API responses.
+- Implements contracts for shared patterns like an Outbox pattern.
+- Contains reusable components for Kafka integration.
 - Ensures consistency in how services communicate and process events.
 - Includes base classes for implementing event choreography.
 - Provides shared ports and adapters interfaces for consistent hexagonal architecture implementation.
 - Integration events definitions for inter-service communication.
 
 #### IAM Service
-- Responsible for user profile management, authorization (roles & permissions), and account operations (activation, password/email change).
-- Authentication (credentials, tokens) is fully delegated to Keycloak (via the `IdentityProviderPort` outbound port, implemented by `KeycloakIdentityProviderAdapter`).
+- Responsible for user profile management, authorization, and account operations.
+- Authentication is fully delegated to Keycloak (via the `IdentityProviderPort` outbound port, implemented by `KeycloakIdentityProviderAdapter`).
 - Uses Keycloak Admin API (via service account) for user provisioning and role sync.
 - Database stores:
     - User profile data (first name, last name, preferences) linked by `keycloakId`.
     - Role definitions and user-role assignments.
     - User-specific permissions.
-    - Verification tokens (activation, password/email change).
+    - Verification tokens.
     - Local saga state (`saga`, `saga_step` tables) for end-to-end traceability of distributed flows.
 - Provides endpoints for registration, profile management, and role administration.
-- Publishes domain events to Kafka through the `AuthEventPublisherPort` outbound port (e.g., `MailRequestEvent`).
+- Publishes events to Kafka through the `AuthEventPublisherPort` outbound port (e.g., `MailRequestEvent`).
 - Consumes feedback events from mail-service (`MailSentEvent` / `MailFailedEvent`) and runs compensation logic via a dedicated `saga-compensation-iam` Kafka topic + `AuthCompensationService` use case (rollback user in Keycloak, delete verification token, revert email/password change).
 
 #### Mail Service
@@ -67,8 +67,9 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 #### Template Service
 - A baseline skeleton for spinning up a new microservice — structurally 1:1 with `mail-service`.
 - Provides:
-    - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/out`, `infrastructure/{persistence,kafka,saga,web,config,security,response,exception}`).
+    - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/out`, `infrastructure/{persistence,kafka,saga,web,config,response,exception}`).
     - Placeholder domain (`Template`, `TemplateStatus`, `TemplateRepository`) with rich-domain methods (`markProcessed`, `markFailed`).
+    - Transactional Outbox scaffolding: local JPA entity implementing the shared read-only `OutboxMessage` contract, ensuring guaranteed decoupled event publication.
     - Saga choreography scaffolding: local `saga`/`saga_step` model, `SagaProcessPort`, thin `SagaManagerAdapter` delegating to a shared `SagaEngine` (composition over inheritance, see Saga Pattern section), neutral compensation topic `saga-compensation-template`.
     - Kafka skeleton: outbound `TemplateEventPublisherPort` + `KafkaTemplateEventPublisherAdapter` (using `KafkaOutboxProcessor`), inbound `TemplateEventConsumer`.
     - REST controller `/template` + DTOs.
@@ -81,7 +82,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - **Message Broker**: Apache Kafka KRaft (Zookeeper-less).
 - **Identity Provider**: Keycloak (OAuth2 / OpenID Connect).
 - **API Documentation**: OpenAPI (Swagger).
-- **Containerization**: Docker/Podman, Docker Compose/Podman Compose.
+- **Containerization**: Docker/Podman containers.
 - **Authentication**: Keycloak JWT + refresh tokens (HttpOnly secure cookie via BFF pattern).
 - **Testing**: JUnit, Testcontainers.
 
@@ -89,7 +90,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 ### Prerequisites
 
-- Docker/Podman and Docker Compose/Podman Compose
+- Docker/Podman
 - JDK 25 LTS
 - Gradle
 
@@ -305,22 +306,24 @@ Benefits of this approach:
 - Better resilience as there's no single point of failure.
 - Aligns well with hexagonal architecture by treating event communication as external adapters.
 
-### Saga Pattern for Distributed Transactions (Choreography)
+### Saga Pattern & Transactional Outbox (Choreography and Polyglot Persistence)
 
-The system uses **choreography-based sagas** — there is no central orchestrator. Each participating service runs its own local saga (with its own `saga` / `saga_step` tables) and progresses by reacting to domain events on Kafka.
+The system uses **choreography-based sagas** — there is no central orchestrator. Each participating service runs its own local saga and progresses by reacting to domain events on Kafka.
+
+**Polyglot Persistence via Shared Contracts:**
+The implementation of both the **Saga** and **Transactional Outbox** patterns relies on extracted, database-agnostic contracts (`OutboxMessage`, `Saga`, `SagaStep`) defined in the `shared-infrastructure` module. 
+- **Immutable Domain (`val`)**: These contracts are strictly read-only domain models (using Kotlin `val` properties), enforcing immutability and encapsulating business rules. They are completely decoupled from any database or ORM.
+- **Polyglot Persistence**: Because the shared abstractions know nothing about the storage mechanism, every microservice has full architectural freedom to choose its own desired database (e.g., PostgreSQL, MongoDB). Inside its infrastructure adapter, the microservice implements these contracts using its own mapping and mutable DB entities (using `var` as required by frameworks like Hibernate).
 
 Key building blocks:
-1. Local saga state per service (`Saga`, `SagaStep` aggregates with their own ports + JPA adapters).
-2. **Transactional Outbox** (`KafkaOutboxProcessor` from `shared-infrastructure`) for at-least-once event publication with no dual-write problem.
-3. Domain facts on Kafka topics — services react to events, never receive commands.
-4. `AWAITING_RESPONSE` saga state — the initiating saga waits for the feedback event correlated by `sagaId` (Saga Log Correlation pattern).
-5. Idempotency through unique `(sagaId, stepName)` constraint + status checks before re-applying a step.
-6. Recovery via scheduled poller (`BaseSagaSchedulingHandler`) that finds stuck sagas.
-
-**Saga engine via composition.** The shared mechanism — transactional bookkeeping of saga + steps, publishing compensation events through the Outbox, replaying compensations in reverse order — lives in `SagaEngine<S, T>` in `shared-infrastructure`. Each service wires it in `SagaConfig` with two small hooks: `SagaEntityFactory<S, T>` (constructs the service's `SagaJpaEntity` / `SagaStepJpaEntity`) and `SagaCompensator<S, T>` (publishes service-specific compensation actions to the service's own topic, e.g. `saga-compensation-iam`). The `SagaManagerAdapter` is a thin class that implements `SagaProcessPort` and delegates to the injected `SagaEngine`, mapping JPA entities to/from domain `Saga` / `SagaStep`. This replaces the previous `BaseSagaManager` abstract template-method approach — adapters no longer inherit shared infrastructure plumbing, which removes signature collisions with the port and keeps the hexagon's adapter strictly responsible for one concern (implementing its port).
+1. **Transactional Outbox & Saga Engines** (`SagaEngine`, `KafkaOutboxProcessor` from `shared-infrastructure`): Reusable choreography coordinators operating strictly on interfaces. They ensure at-least-once event publication (no dual-write problem) and orchestrate compensation flows.
+2. Domain facts on Kafka topics — services react to events, never receive commands.
+3. `AWAITING_RESPONSE` saga state — the initiating saga waits for the feedback event correlated by `sagaId` (Saga Log Correlation pattern).
+4. Idempotency through localized status checks and unique constraints before re-applying a step.
+5. Recovery via scheduled jobs (e.g., `@Scheduled` inside `SchedulingConfig`) that poll the database for stuck sagas based on the provided generic interface implementations.
 
 Example: User Registration (iam-service ⇄ mail-service)
-1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `CREATE_VERIFICATION_TOKEN` → `CREATE_MAIL_EVENT`, then transitions to `AWAITING_RESPONSE` and publishes `MailRequestEvent` through the Outbox.
+1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `PUBLISH_USER_REGISTERED_EVENT` → `CREATE_VERIFICATION_TOKEN` → `PUBLISH_MAIL_REQUESTED_EVENT`, then transitions to `AWAITING_RESPONSE` and publishes `MailRequestedEvent` through the Outbox.
 2. `mail-service` (`MailEventConsumer`) consumes the event, begins its own local saga `EMAIL_SENDING`, performs `SEND_EMAIL`, completes its saga, and publishes `MailSentEvent` (or `MailFailedEvent`) through the Outbox.
 3. `iam-service` (`MailFeedbackConsumer`) consumes the feedback:
    - on `MailSentEvent` → `markSagaCompleted`,
@@ -331,7 +334,7 @@ Compensation only exists where effects are reversible — `mail-service` therefo
 ### Event-Driven Communication
 
 Services communicate asynchronously through Kafka events (definitions in `shared-infrastructure`):
-- **`MailRequestEvent`** — published by `iam-service` (via `AuthEventPublisherPort`/`KafkaAuthEventPublisherAdapter`), consumed by `mail-service` (`MailEventConsumer`).
+- **`MailRequestedEvent`** — published by `iam-service` (via `AuthEventPublisherPort`/`KafkaAuthEventPublisherAdapter`), consumed by `mail-service` (`MailEventConsumer`).
 - **`MailSentEvent`** / **`MailFailedEvent`** — published by `mail-service` through the Transactional Outbox, consumed by `iam-service` (`MailFeedbackConsumer`) to advance or fail the originating saga.
 - **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic (e.g. `DELETE_USER`, `DELETE_VERIFICATION_TOKEN`, `REVERT_PASSWORD_UPDATE`, `REVERT_EMAIL_UPDATE`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService`.
 
