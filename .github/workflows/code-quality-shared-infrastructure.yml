@@ -1,4 +1,4 @@
-name: Shared Infrastructure – Quality
+name: Code Quality - Shared Infrastructure
 
 on:
   push:
@@ -15,6 +15,6 @@ on:
 
 jobs:
   quality:
-    uses: ./.github/workflows/quality.yml
+    uses: ./.github/workflows/code-quality.yml
     with:
       service: shared-infrastructure

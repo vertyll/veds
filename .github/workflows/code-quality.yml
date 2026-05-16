@@ -1,4 +1,4 @@
-name: Quality (ktlint, detekt, test)
+name: Code Quality
 
 on:
   workflow_call:
@@ -19,11 +19,13 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 25 (Zulu)
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "25"
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -33,9 +35,15 @@ jobs:
           key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
           restore-keys: |
             gradle-${{ inputs.service }}-
+
+      - name: Make gradlew executable
+        working-directory: ${{ inputs.service }}
+        run: chmod +x ./gradlew
+
       - name: ktlintCheck
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon ktlintCheck
+
       - name: Upload ktlint reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -51,11 +59,13 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 25 (Zulu)
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "25"
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -65,9 +75,15 @@ jobs:
           key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
           restore-keys: |
             gradle-${{ inputs.service }}-
+
+      - name: Make gradlew executable
+        working-directory: ${{ inputs.service }}
+        run: chmod +x ./gradlew
+
       - name: detekt
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon detekt
+
       - name: Upload detekt reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,11 +99,13 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 25 (Zulu)
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "25"
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -97,9 +115,15 @@ jobs:
           key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
           restore-keys: |
             gradle-${{ inputs.service }}-
+
+      - name: Make gradlew executable
+        working-directory: ${{ inputs.service }}
+        run: chmod +x ./gradlew
+
       - name: Tests
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon test
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4

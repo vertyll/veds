@@ -40,6 +40,10 @@ jobs:
           restore-keys: |
             gradle-dokka-
 
+      - name: Make gradlew executable
+        working-directory: shared-infrastructure
+        run: chmod +x ./gradlew
+
       - name: Generate Dokka HTML
         working-directory: shared-infrastructure
         run: ./gradlew --no-daemon dokkaGenerate
