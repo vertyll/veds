@@ -1,4 +1,4 @@
-package com.vertyll.veds.sharedinfrastructure.util
+package com.vertyll.veds.sharedinfrastructure.utils
 
 import org.springframework.security.oauth2.jwt.Jwt
 

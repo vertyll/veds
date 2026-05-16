@@ -3,7 +3,7 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 import com.vertyll.veds.iam.application.service.RoleService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponse
-import com.vertyll.veds.sharedinfrastructure.util.ETagUtils
+import com.vertyll.veds.sharedinfrastructure.utils.ETagUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpHeaders

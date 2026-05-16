@@ -1,7 +1,7 @@
 package com.vertyll.veds.sharedinfrastructure.security
 
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
-import com.vertyll.veds.sharedinfrastructure.util.KeycloakJwtUtils
+import com.vertyll.veds.sharedinfrastructure.utils.KeycloakJwtUtils
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority

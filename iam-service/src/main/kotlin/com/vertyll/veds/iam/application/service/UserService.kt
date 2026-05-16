@@ -5,7 +5,7 @@ import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
 import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.UserResponse
-import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidatorUtils
+import com.vertyll.veds.sharedinfrastructure.utils.OptimisticLockingValidatorUtils
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus

@@ -1,4 +1,4 @@
-package com.vertyll.veds.sharedinfrastructure.util
+package com.vertyll.veds.sharedinfrastructure.utils
 
 object ETagUtils {
     private const val WEAK_PREFIX = "W/\""

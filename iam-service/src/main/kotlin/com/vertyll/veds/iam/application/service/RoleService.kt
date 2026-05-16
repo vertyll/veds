@@ -6,7 +6,7 @@ import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
 import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponse
-import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidatorUtils
+import com.vertyll.veds.sharedinfrastructure.utils.OptimisticLockingValidatorUtils
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
