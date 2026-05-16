@@ -1,8 +1,5 @@
 name: Shared Infrastructure – Quality
 
-# shared-infrastructure has no deployable artifact — it's a library consumed
-# by every service. We run the same quality gates whenever it changes.
-
 on:
   push:
     branches: [main]

@@ -1,9 +1,5 @@
 name: Template Service – Quality
 
-# template-service is a reference module without a Dockerfile. We still
-# want quality gates on every change, so it only runs the reusable quality
-# workflow (ktlint + detekt + tests).
-
 on:
   push:
     branches: [main]

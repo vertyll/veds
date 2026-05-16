@@ -1,8 +1,5 @@
 name: Publish KDoc (shared-infrastructure)
 
-# Generates Dokka documentation for shared-infrastructure and publishes it
-# to GitHub Pages on every push to main that touches the library.
-
 on:
   push:
     branches: [main]
@@ -65,4 +62,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-

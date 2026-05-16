@@ -1,9 +1,5 @@
 name: Quality (ktlint, detekt, test)
 
-# Reusable workflow: runs Avro codegen + ktlint + detekt + unit tests for a single
-# Gradle subproject. Called by every microservice pipeline before the Docker
-# image is built and pushed.
-
 on:
   workflow_call:
     inputs:
