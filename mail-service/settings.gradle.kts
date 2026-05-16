@@ -7,3 +7,5 @@ project(":application").name = "mail-application"
 project(":infrastructure").name = "mail-infrastructure"
 
 includeBuild("../shared-infrastructure")
+includeBuild("../iam-contracts")
+includeBuild("../mail-contracts")

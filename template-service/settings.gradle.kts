@@ -7,3 +7,4 @@ project(":application").name = "template-application"
 project(":infrastructure").name = "template-infrastructure"
 
 includeBuild("../shared-infrastructure")
+includeBuild("../template-contracts")
