@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: mail-service
+    
+  datasource:
+    url: jdbc:postgresql://localhost:5433/mail_service
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    validate-on-migrate: true
+
+  kafka:
+    consumer:
+      group-id: mail-service-group
+
+  mail:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    from: no-reply@veds.local
+    properties:
+      mail:
+        smtp:
+          trust: "*"
+          auth: false
+          starttls:
+            enable: false
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
+server:
+  port: 8083
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    url: /api-docs
+    config-url: /api-docs/swagger-config
+
+logging:
+  level:
+    ROOT: INFO
+    com.vertyll.veds: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.mail: DEBUG
