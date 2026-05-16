@@ -7,6 +7,7 @@ package com.vertyll.veds.mail.application.port.outbound
  * template engine (e.g. Thymeleaf). Keeps the application layer free of
  * any specific templating dependency.
  */
+@Suppress("kotlin:S6517")
 interface TemplateRendererPort {
     /**
      * Renders the named template with the supplied variables.

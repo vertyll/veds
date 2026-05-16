@@ -30,21 +30,10 @@ Schemas are registered to Schema Registry using the topic name as the subject:
 
 ## Code generation (SpecificRecord)
 
-Every service generates Java `SpecificRecord` classes from **all** `.avsc` files
-under `contracts/` at build time, via a Gradle task (`generateAvroJava`) that
-invokes `avro-tools`. Generated sources land in
-`build/generated/sources/avro/main/java` and are added to the service's main
-Java source set.
+Dedicated services generates Java `SpecificRecord` classes from `.avsc` files.
 
-Use the generated classes (e.g. `com.vertyll.veds.iam.mail.MailRequestedEvent`)
-in publishers and consumers via the typed `Builder` API. Do **not** hand-roll
-`GenericRecord` instances – they defeat the type-safety we get from codegen.
-
-To regenerate locally:
-
-```
-./gradlew :iam-service:generateAvroJava :mail-service:generateAvroJava
-```
+Use the generated classes in publishers and consumers via the typed `Builder` API. 
+Do **not** hand-roll `GenericRecord` instances – they defeat the type-safety we get from codegen.
 
 ## Compatibility mode
 
@@ -55,14 +44,11 @@ using the previous version.
 
 Override via:
 
-```
+```bash
 python scripts/schema_registry/register_schemas.py \
   --registry-url $SCHEMA_REGISTRY_URL \
   --compatibility FULL
 ```
-
-In the GitHub Actions workflow (`.github/workflows/schema-registry.yml`) the
-mode is configurable via the `SCHEMA_COMPATIBILITY` repository variable.
 
 ## Ownership
 

@@ -292,7 +292,7 @@ tasks for IDE users.
 | Tail container logs                       | `./gradlew infraLogs`                                                                   | —                                                                                       |
 | Provision Kafka topics (Terraform, local) | `./gradlew provisionTopics`                                                             | **Infra: Provision topics**                                                             |
 | Register Avro schemas (local)             | `./gradlew registerSchemas`                                                             | **Infra: Register schemas**                                                             |
-| Provision **prod** topics + schemas       | `podman compose --profile provision run --rm veds-provisioner` *(on server, see below)* | —                                                                                       |
+| Provision **prod** topics + schemas       | `podman-compose --profile provision run --rm veds-provisioner` *(on server, see below)* | —                                                                                       |
 | Run all services together                 | —                                                                                       | **All services** (Compound)                                                             |
 
 ## Architecture Design

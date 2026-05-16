@@ -80,6 +80,7 @@ services:
       retries: 5
       start_period: 30s
 
+  # Schema Registry for managing Avro schemas, configured to connect to the Kafka broker
   schema-registry:
     image: docker.io/confluentinc/cp-schema-registry:7.8.7
     container_name: schema-registry
@@ -124,7 +125,7 @@ services:
       - microservices-network
     restart: "no"
 
-  # One-shot bootstrap: registers every Avro schema under contracts to the Schema Registry with BACKWARD compatibility
+  # One-shot bootstrap: registers every Avro schema under contracts to the Schema Registry
   schemas-init:
     image: docker.io/library/python:3.11-alpine
     container_name: schemas-init
@@ -180,6 +181,7 @@ services:
       retries: 5
       start_period: 60s
 
+  # Keycloak database
   keycloak-db:
     image: postgres:17-alpine
     container_name: keycloak-db

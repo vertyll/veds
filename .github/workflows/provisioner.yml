@@ -94,6 +94,6 @@ jobs:
 
             echo "=== Running provisioner (topics + schemas) ==="
             # --rm cleans up the container, --force-recreate ensures latest image is used.
-            podman compose -f veds.yml run --rm veds-provisioner
+            podman-compose -f veds.yml run --rm veds-provisioner
 
             echo "✓ Provisioning finished"
