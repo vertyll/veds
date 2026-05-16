@@ -36,7 +36,7 @@ internal class OutboxJpaAdapter(
     override fun create(
         topic: String,
         key: String,
-        payload: String,
+        payload: ByteArray,
         sagaId: String?,
         eventId: String?,
     ): OutboxMessage =

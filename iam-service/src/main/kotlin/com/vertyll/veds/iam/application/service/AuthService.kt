@@ -16,7 +16,6 @@ import com.vertyll.veds.iam.infrastructure.web.dto.ChangeEmailRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.ChangePasswordRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.RegisterRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.ResetPasswordRequest
-import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
 import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.Logger
@@ -136,17 +135,15 @@ class AuthService(
             )
 
             authEventPublisher.sendMailRequestedEvent(
-                MailRequestedEvent(
-                    to = savedUser.email,
-                    subject = SUBJECT_ACTIVATE_ACCOUNT,
-                    templateName = EmailTemplate.ACTIVATE_ACCOUNT.name,
-                    variables =
-                        mapOf(
-                            "firstName" to savedUser.firstName,
-                            "activationToken" to token,
-                        ),
-                    sagaId = saga.id,
-                ),
+                to = savedUser.email,
+                subject = SUBJECT_ACTIVATE_ACCOUNT,
+                templateName = EmailTemplate.ACTIVATE_ACCOUNT.name,
+                variables =
+                    mapOf(
+                        "firstName" to savedUser.firstName,
+                        "activationToken" to token,
+                    ),
+                sagaId = saga.id,
             )
 
             sagaProcessPort.recordSagaStep(
@@ -213,17 +210,15 @@ class AuthService(
             )
 
             authEventPublisher.sendMailRequestedEvent(
-                MailRequestedEvent(
-                    to = user.email,
-                    subject = SUBJECT_ACTIVATE_ACCOUNT,
-                    templateName = EmailTemplate.ACTIVATE_ACCOUNT.name,
-                    variables =
-                        mapOf(
-                            "firstName" to user.firstName,
-                            "activationToken" to token,
-                        ),
-                    sagaId = saga.id,
-                ),
+                to = user.email,
+                subject = SUBJECT_ACTIVATE_ACCOUNT,
+                templateName = EmailTemplate.ACTIVATE_ACCOUNT.name,
+                variables =
+                    mapOf(
+                        "firstName" to user.firstName,
+                        "activationToken" to token,
+                    ),
+                sagaId = saga.id,
             )
 
             sagaProcessPort.recordSagaStep(
@@ -273,17 +268,15 @@ class AuthService(
             )
 
             authEventPublisher.sendMailRequestedEvent(
-                MailRequestedEvent(
-                    to = user.email,
-                    subject = SUBJECT_PASSWORD_RESET_REQUEST,
-                    templateName = EmailTemplate.RESET_PASSWORD.name,
-                    variables =
-                        mapOf(
-                            "firstName" to user.firstName,
-                            "resetToken" to token,
-                        ),
-                    sagaId = saga.id,
-                ),
+                to = user.email,
+                subject = SUBJECT_PASSWORD_RESET_REQUEST,
+                templateName = EmailTemplate.RESET_PASSWORD.name,
+                variables =
+                    mapOf(
+                        "firstName" to user.firstName,
+                        "resetToken" to token,
+                    ),
+                sagaId = saga.id,
             )
 
             sagaProcessPort.recordSagaStep(
@@ -368,17 +361,15 @@ class AuthService(
             )
 
             authEventPublisher.sendMailRequestedEvent(
-                MailRequestedEvent(
-                    to = request.newEmail,
-                    subject = SUBJECT_CONFIRM_EMAIL_CHANGE,
-                    templateName = EmailTemplate.CHANGE_EMAIL.name,
-                    variables =
-                        mapOf(
-                            "firstName" to user.firstName,
-                            "confirmationToken" to token,
-                        ),
-                    sagaId = saga.id,
-                ),
+                to = request.newEmail,
+                subject = SUBJECT_CONFIRM_EMAIL_CHANGE,
+                templateName = EmailTemplate.CHANGE_EMAIL.name,
+                variables =
+                    mapOf(
+                        "firstName" to user.firstName,
+                        "confirmationToken" to token,
+                    ),
+                sagaId = saga.id,
             )
 
             sagaProcessPort.recordSagaStep(
@@ -482,17 +473,15 @@ class AuthService(
             )
 
             authEventPublisher.sendMailRequestedEvent(
-                MailRequestedEvent(
-                    to = user.email,
-                    subject = SUBJECT_CONFIRM_PASSWORD_CHANGE,
-                    templateName = EmailTemplate.SET_NEW_PASSWORD.name,
-                    variables =
-                        mapOf(
-                            "firstName" to user.firstName,
-                            "confirmationToken" to token,
-                        ),
-                    sagaId = saga.id,
-                ),
+                to = user.email,
+                subject = SUBJECT_CONFIRM_PASSWORD_CHANGE,
+                templateName = EmailTemplate.SET_NEW_PASSWORD.name,
+                variables =
+                    mapOf(
+                        "firstName" to user.firstName,
+                        "confirmationToken" to token,
+                    ),
+                sagaId = saga.id,
             )
 
             sagaProcessPort.recordSagaStep(

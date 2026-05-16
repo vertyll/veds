@@ -6,12 +6,17 @@ on:
     paths:
       - 'mail-service/**'
       - 'shared-infrastructure/**'
+      - 'contracts/mail-service/**'
+      - 'contracts/iam-service/mail-requested/**'
       - '.github/workflows/mail-service.yml'
+      - '.github/workflows/quality.yml'
   pull_request:
     branches: [main]
     paths:
       - 'mail-service/**'
       - 'shared-infrastructure/**'
+      - 'contracts/mail-service/**'
+      - 'contracts/iam-service/mail-requested/**'
   workflow_dispatch:
 
 env:
@@ -19,7 +24,13 @@ env:
   IMAGE_NAME: ${{ github.repository }}-mail-service
 
 jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      service: mail-service
+
   build-and-push:
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read

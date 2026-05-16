@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "MailSentEvent",
+  "namespace": "com.vertyll.veds.mail.mail",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" } },
+    { "name": "to", "type": "string" },
+    { "name": "subject", "type": "string" },
+    { "name": "originalEventId", "type": "string" },
+    { "name": "sagaId", "type": ["null", "string"], "default": null }
+  ]
+}
+

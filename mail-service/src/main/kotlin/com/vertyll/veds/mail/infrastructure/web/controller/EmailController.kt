@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -30,10 +29,7 @@ class EmailController(
 ) {
     @GetMapping("/logs")
     @PreAuthorize("hasRole('ADMIN')")
-    fun getEmailLogs(
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int,
-    ): ResponseEntity<ApiResponse<Page<EmailLogResponse>>> {
+    fun getEmailLogs(): ResponseEntity<ApiResponse<Page<EmailLogResponse>>> {
         val logs = emailService.getEmailLogs()
         return ApiResponse.buildResponse(
             data = logs,

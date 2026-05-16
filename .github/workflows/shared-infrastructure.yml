@@ -1,0 +1,23 @@
+name: Shared Infrastructure – Quality
+
+# shared-infrastructure has no deployable artifact — it's a library consumed
+# by every service. We run the same quality gates whenever it changes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shared-infrastructure/**'
+      - '.github/workflows/shared-infrastructure.yml'
+      - '.github/workflows/quality.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'shared-infrastructure/**'
+  workflow_dispatch:
+
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      service: shared-infrastructure

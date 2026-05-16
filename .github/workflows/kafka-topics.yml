@@ -1,0 +1,29 @@
+name: Provision Kafka Topics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  provision-topics:
+    runs-on: ubuntu-latest
+    env:
+      KAFKA_BOOTSTRAP_SERVERS: ${{ secrets.KAFKA_BOOTSTRAP_SERVERS }}
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      - name: Init
+        working-directory: infra/kafka
+        run: |
+          terraform init
+
+      - name: Apply
+        working-directory: infra/kafka
+        run: |
+          terraform apply -auto-approve -var="bootstrap_servers=$KAFKA_BOOTSTRAP_SERVERS"

@@ -61,3 +61,14 @@ logs/
 
 ### Compiled class files ###
 *.class
+
+### Terraform ###
+infra/**/.terraform/
+infra/**/.terraform.lock.hcl
+infra/**/terraform.tfstate
+infra/**/terraform.tfstate.*
+infra/**/*.tfstate.backup
+
+### Run configs (whitelist) ###
+!.idea/runConfigurations/
+!.idea/runConfigurations/**

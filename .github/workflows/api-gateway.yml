@@ -7,6 +7,7 @@ on:
       - 'api-gateway/**'
       - 'shared-infrastructure/**'
       - '.github/workflows/api-gateway.yml'
+      - '.github/workflows/quality.yml'
   pull_request:
     branches: [main]
     paths:
@@ -19,7 +20,13 @@ env:
   IMAGE_NAME: ${{ github.repository }}-api-gateway
 
 jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      service: api-gateway
+
   build-and-push:
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read

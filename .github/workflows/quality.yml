@@ -1,0 +1,64 @@
+name: Quality (ktlint, detekt, test)
+
+# Reusable workflow: runs Avro codegen + ktlint + detekt + unit tests for a single
+# Gradle subproject. Called by every microservice pipeline before the Docker
+# image is built and pushed.
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: "Gradle subproject directory (e.g. iam-service)"
+        required: true
+        type: string
+      runs-on:
+        description: "GitHub runner label (e.g. ubuntu-latest, ubuntu-24.04-arm)"
+        required: false
+        type: string
+        default: "ubuntu-latest"
+
+jobs:
+  quality:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25 (Zulu)
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "25"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ inputs.service }}-
+
+      - name: ktlint
+        working-directory: ${{ inputs.service }}
+        run: ./gradlew --no-daemon ktlintCheck
+
+      - name: detekt
+        working-directory: ${{ inputs.service }}
+        run: ./gradlew --no-daemon detekt
+
+      - name: Tests
+        working-directory: ${{ inputs.service }}
+        run: ./gradlew --no-daemon test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ inputs.service }}
+          path: |
+            ${{ inputs.service }}/build/reports/tests/
+            ${{ inputs.service }}/build/reports/ktlint/
+            ${{ inputs.service }}/build/reports/detekt/
+          if-no-files-found: ignore

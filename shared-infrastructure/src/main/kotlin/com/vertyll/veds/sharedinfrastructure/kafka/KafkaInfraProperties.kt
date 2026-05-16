@@ -15,6 +15,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class KafkaInfraProperties(
     /** Comma-separated list of Kafka broker addresses (host:port). */
     val bootstrapServers: String = "localhost:29092",
+    /** Schema Registry endpoint used by Avro serializer/deserializer. */
+    val schemaRegistryUrl: String = "http://localhost:8081",
     val consumer: Consumer = Consumer(),
 ) {
     data class Consumer(

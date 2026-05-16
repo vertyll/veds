@@ -5,11 +5,17 @@ import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaStepJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaJpaRepository
 import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaStepJpaRepository
+import com.vertyll.veds.iam.infrastructure.saga.IamCompensationEventSerializer
 import com.vertyll.veds.iam.infrastructure.saga.IamSagaCompensationHandler
 import com.vertyll.veds.iam.infrastructure.saga.IamSagaCompensationStepFactory
 import com.vertyll.veds.iam.infrastructure.saga.IamSagaCompensator
 import com.vertyll.veds.iam.infrastructure.saga.IamSagaEntityFactory
+import com.vertyll.veds.sharedinfrastructure.avro.AvroCompensationEventDeserializer
+import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
+import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventDeserializer
+import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSerializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationEngine
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine
 import org.springframework.context.annotation.Bean
@@ -29,6 +35,7 @@ internal class SagaConfig {
         sagaRepository: SagaJpaRepository,
         sagaStepRepository: SagaStepJpaRepository,
         kafkaOutboxProcessor: KafkaOutboxProcessor,
+        compensationEventSerializer: CompensationEventSerializer,
         objectMapper: ObjectMapper,
     ): SagaEngine<SagaJpaEntity, SagaStepJpaEntity> =
         SagaEngine(
@@ -38,19 +45,34 @@ internal class SagaConfig {
             objectMapper = objectMapper,
             entityFactory = IamSagaEntityFactory(),
             compensator = IamSagaCompensator(),
+            compensationEventSerializer = compensationEventSerializer,
             compensationTopic = SAGA_COMPENSATION_TOPIC,
         )
 
     @Bean
     fun iamSagaCompensationEngine(
         sagaStepRepository: SagaStepJpaRepository,
-        objectMapper: ObjectMapper,
+        compensationEventDeserializer: CompensationEventDeserializer,
         authCompensationService: AuthCompensationService,
     ): SagaCompensationEngine<SagaStepJpaEntity> =
         SagaCompensationEngine(
             sagaStepRepository = sagaStepRepository,
-            objectMapper = objectMapper,
+            compensationEventDeserializer = compensationEventDeserializer,
             stepFactory = IamSagaCompensationStepFactory(),
             handler = IamSagaCompensationHandler(authCompensationService),
+        )
+
+    @Bean
+    fun iamCompensationEventSerializer(avroPayloadSerializer: AvroPayloadSerializer): CompensationEventSerializer =
+        IamCompensationEventSerializer(
+            avroPayloadSerializer = avroPayloadSerializer,
+            topic = SAGA_COMPENSATION_TOPIC,
+        )
+
+    @Bean
+    fun iamCompensationEventDeserializer(avroPayloadDeserializer: AvroPayloadDeserializer): CompensationEventDeserializer =
+        AvroCompensationEventDeserializer(
+            avroPayloadDeserializer = avroPayloadDeserializer,
+            topic = SAGA_COMPENSATION_TOPIC,
         )
 }

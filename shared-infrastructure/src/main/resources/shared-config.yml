@@ -1,22 +1,9 @@
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
     consumer:
       auto-offset-reset: earliest
-      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      properties:
-        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        spring.json.trusted.packages: "com.vertyll.veds.*"
-        spring.json.value.default.type: "com.vertyll.veds.sharedinfrastructure.event.DomainEvent"
-        spring.json.use.type.headers: true
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: true
-        spring.json.value.default.type: "com.vertyll.veds.sharedinfrastructure.event.DomainEvent"
   security:
     oauth2:
       resourceserver:

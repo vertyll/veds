@@ -44,6 +44,7 @@ open class SagaEngine<S : Saga, T : SagaStep>(
     private val objectMapper: ObjectMapper,
     private val entityFactory: SagaEntityFactory<S, T>,
     private val compensator: SagaCompensator<S, T>,
+    private val compensationEventSerializer: CompensationEventSerializer,
     /**
      * Kafka topic to which compensation events for the owning service are
      * published (e.g. `saga-compensation-iam`).
@@ -246,16 +247,17 @@ open class SagaEngine<S : Saga, T : SagaStep>(
         action: String,
         extraPayload: Map<String, Any?>,
     ) {
+        val payload =
+            compensationEventSerializer.serializeCompensationEvent(
+                sagaId = sagaId,
+                stepId = stepId,
+                action = action,
+                extraPayload = extraPayload,
+            )
         kafkaOutboxProcessor.saveOutboxMessage(
             topic = compensationTopic,
             key = sagaId,
-            payload =
-                buildMap {
-                    put("sagaId", sagaId)
-                    put("stepId", stepId)
-                    put("action", action)
-                    putAll(extraPayload)
-                },
+            payload = payload,
             sagaId = sagaId,
         )
     }

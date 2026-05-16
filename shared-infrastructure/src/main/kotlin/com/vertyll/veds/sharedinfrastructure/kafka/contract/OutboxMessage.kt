@@ -18,7 +18,7 @@ interface OutboxMessage {
     val eventId: String
     val topic: String
     val key: String
-    val payload: String
+    val payload: ByteArray
     val status: OutboxStatus
     val errorMessage: String?
     val createdAt: Instant

@@ -2,6 +2,8 @@ package com.vertyll.veds.sharedinfrastructure.kafka
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.ByteArrayDeserializer
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
@@ -46,27 +48,27 @@ class KafkaTemplateAutoConfiguration {
     }
 
     @Bean
-    fun producerFactory(properties: KafkaInfraProperties): ProducerFactory<String, String> {
+    fun producerFactory(properties: KafkaInfraProperties): ProducerFactory<String, ByteArray> {
         val configProps =
             mapOf<String, Any>(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to properties.bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to ByteArraySerializer::class.java,
             )
         return DefaultKafkaProducerFactory(configProps)
     }
 
     @Bean
-    fun kafkaTemplate(producerFactory: ProducerFactory<String, String>) = KafkaTemplate(producerFactory)
+    fun kafkaTemplate(producerFactory: ProducerFactory<String, ByteArray>) = KafkaTemplate(producerFactory)
 
     @Bean
-    fun consumerFactory(properties: KafkaInfraProperties): ConsumerFactory<String, String> {
+    fun consumerFactory(properties: KafkaInfraProperties): ConsumerFactory<String, ByteArray> {
         val configProps =
             mapOf<String, Any>(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to properties.bootstrapServers,
                 ConsumerConfig.GROUP_ID_CONFIG to properties.consumer.groupId,
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ByteArrayDeserializer::class.java,
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to properties.consumer.autoOffsetReset,
             )
         return DefaultKafkaConsumerFactory(configProps)
@@ -78,7 +80,7 @@ class KafkaTemplateAutoConfiguration {
      * (original-topic.DLT) via [DeadLetterPublishingRecoverer].
      */
     @Bean
-    fun kafkaErrorHandler(kafkaTemplate: KafkaTemplate<String, String>): CommonErrorHandler {
+    fun kafkaErrorHandler(kafkaTemplate: KafkaTemplate<String, ByteArray>): CommonErrorHandler {
         val recoverer = DeadLetterPublishingRecoverer(kafkaTemplate)
         val backOff = FixedBackOff(RETRY_INTERVAL_MS, MAX_RETRIES)
         val errorHandler = DefaultErrorHandler(recoverer, backOff)
@@ -92,10 +94,10 @@ class KafkaTemplateAutoConfiguration {
 
     @Bean
     fun kafkaListenerContainerFactory(
-        consumerFactory: ConsumerFactory<String, String>,
+        consumerFactory: ConsumerFactory<String, ByteArray>,
         kafkaErrorHandler: CommonErrorHandler,
-    ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
+    ): ConcurrentKafkaListenerContainerFactory<String, ByteArray> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, ByteArray>()
         factory.setConsumerFactory(consumerFactory)
         factory.setCommonErrorHandler(kafkaErrorHandler)
         return factory

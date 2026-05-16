@@ -6,12 +6,19 @@ on:
     paths:
       - 'iam-service/**'
       - 'shared-infrastructure/**'
+      - 'contracts/iam-service/**'
+      - 'contracts/mail-service/mail-sent/**'
+      - 'contracts/mail-service/mail-failed/**'
       - '.github/workflows/iam-service.yml'
+      - '.github/workflows/quality.yml'
   pull_request:
     branches: [main]
     paths:
       - 'iam-service/**'
       - 'shared-infrastructure/**'
+      - 'contracts/iam-service/**'
+      - 'contracts/mail-service/mail-sent/**'
+      - 'contracts/mail-service/mail-failed/**'
   workflow_dispatch:
 
 env:
@@ -19,7 +26,13 @@ env:
   IMAGE_NAME: ${{ github.repository }}-iam-service
 
 jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      service: iam-service
+
   build-and-push:
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read

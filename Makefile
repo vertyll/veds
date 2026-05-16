@@ -1,7 +1,8 @@
-SERVICES = api-gateway iam-service mail-service
+SERVICES = api-gateway iam-service mail-service template-service
 SHARED = shared-infrastructure
 
-.PHONY: build-all clean-build-all test-all clean-all format-all check-style-all
+.PHONY: build-all clean-build-all test-all clean-all format-all check-style-all \
+        up down logs bootstrap register-schemas provision-topics
 
 build-all:
 	@for dir in $(SERVICES) $(SHARED); do \
@@ -38,3 +39,25 @@ check-style-all:
 		echo "Checking style $$dir..."; \
 		(cd $$dir && ./gradlew ktlintCheck detekt) || exit 1; \
 	done
+
+# --- Local infra (podman-compose) ---
+
+up:
+	podman-compose up -d kafka schema-registry iam-db mail-db keycloak-db keycloak mail-dev kafka-ui
+	$(MAKE) bootstrap
+
+down:
+	podman-compose down
+
+logs:
+	podman-compose logs -f --tail=200
+
+# Provision topics (Terraform) + register Avro schemas (Python).
+# Both are idempotent: re-running on a populated cluster is a no-op.
+bootstrap: provision-topics register-schemas
+
+provision-topics:
+	podman-compose run --rm topics-init
+
+register-schemas:
+	podman-compose run --rm schemas-init

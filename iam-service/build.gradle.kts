@@ -20,6 +20,7 @@ extra["email"] = "gawrmiko@gmail.com"
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 configure<JavaPluginExtension> {
@@ -29,6 +30,45 @@ configure<JavaPluginExtension> {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
 }
+
+sourceSets {
+    main {
+        java.srcDir(layout.buildDirectory.dir("generated/sources/avro/main/java"))
+    }
+}
+
+// --- Avro code generation (SpecificRecord) ---
+val avroTools: Configuration by configurations.creating
+dependencies {
+    avroTools(libs.apache.avro.tools)
+}
+
+val avroContractsDir = file("$rootDir/../contracts")
+val avroGeneratedDir = layout.buildDirectory.dir("generated/sources/avro/main/java")
+
+val generateAvroJava by tasks.registering(JavaExec::class) {
+    group = "build"
+    description = "Generate Java SpecificRecord classes from all Avro schemas in contracts/."
+    inputs.dir(avroContractsDir)
+    outputs.dir(avroGeneratedDir)
+    classpath = avroTools
+    mainClass.set("org.apache.avro.tool.Main")
+    doFirst {
+        val outDir = avroGeneratedDir.get().asFile
+        outDir.deleteRecursively()
+        outDir.mkdirs()
+        val schemas =
+            avroContractsDir
+                .walkTopDown()
+                .filter { it.isFile && it.extension == "avsc" }
+                .map { it.absolutePath }
+                .toList()
+        args = listOf("compile", "schema", "-string") + schemas + listOf(outDir.absolutePath)
+    }
+}
+
+tasks.named("compileKotlin") { dependsOn(generateAvroJava) }
+tasks.named("compileJava") { dependsOn(generateAvroJava) }
 
 dependencyManagement {
     imports {

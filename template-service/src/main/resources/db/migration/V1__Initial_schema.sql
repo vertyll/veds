@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS kafka_outbox (
     event_id VARCHAR(255) NOT NULL,
     topic VARCHAR(255) NOT NULL,
     key VARCHAR(255) NOT NULL,
-    payload TEXT NOT NULL,
+    payload BYTEA NOT NULL,
     status VARCHAR(50) NOT NULL,
     error_message TEXT NULL,
     created_at TIMESTAMP NOT NULL,

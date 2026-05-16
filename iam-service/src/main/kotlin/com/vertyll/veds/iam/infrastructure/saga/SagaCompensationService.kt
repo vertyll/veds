@@ -18,5 +18,5 @@ internal class SagaCompensationService(
     private val sagaCompensationEngine: SagaCompensationEngine<SagaStepJpaEntity>,
 ) {
     @KafkaListener(topics = [SagaConfig.SAGA_COMPENSATION_TOPIC])
-    fun handleCompensationEvent(payload: String) = sagaCompensationEngine.handleCompensationEvent(payload)
+    fun handleCompensationEvent(payload: ByteArray) = sagaCompensationEngine.handleCompensationEvent(payload)
 }

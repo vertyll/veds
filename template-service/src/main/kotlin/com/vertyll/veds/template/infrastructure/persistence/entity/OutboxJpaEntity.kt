@@ -14,7 +14,7 @@ internal class OutboxJpaEntity(
     eventId: String = UUID.randomUUID().toString(),
     topic: String,
     key: String,
-    payload: String,
+    payload: ByteArray,
     status: OutboxStatus = OutboxStatus.PENDING,
     errorMessage: String? = null,
     createdAt: Instant = Instant.now(),

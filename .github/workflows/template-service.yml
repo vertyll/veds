@@ -1,0 +1,28 @@
+name: Template Service – Quality
+
+# template-service is a reference module without a Dockerfile. We still
+# want quality gates on every change, so it only runs the reusable quality
+# workflow (ktlint + detekt + tests).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'template-service/**'
+      - 'shared-infrastructure/**'
+      - 'contracts/template-service/**'
+      - '.github/workflows/template-service.yml'
+      - '.github/workflows/quality.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'template-service/**'
+      - 'shared-infrastructure/**'
+      - 'contracts/template-service/**'
+  workflow_dispatch:
+
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      service: template-service

@@ -6,6 +6,7 @@ import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessage
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessageFactory
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxStatus
+import com.vertyll.veds.sharedinfrastructure.kafka.entity.BaseOutbox
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
@@ -40,7 +41,7 @@ internal class OutboxJpaAdapter(
     override fun create(
         topic: String,
         key: String,
-        payload: String,
+        payload: ByteArray,
         sagaId: String?,
         eventId: String?,
     ): OutboxMessage =

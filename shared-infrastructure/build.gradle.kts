@@ -21,6 +21,15 @@ extra["email"] = "gawrmiko@gmail.com"
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
+}
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("org.eclipse.jetty:jetty-bom:9.4.59"))
+            .using(module("org.eclipse.jetty:jetty-bom:9.4.59.v20231031"))
+            .because("Confluent 7.8.7 references jetty-bom:9.4.59 which is not published")
+    }
 }
 
 configure<JavaPluginExtension> {
@@ -67,6 +76,8 @@ dependencies {
     // --- Infrastructure API ---
     api(libs.bundles.shared.infrastructure.api)
     api(libs.postgresql)
+    api(libs.apache.avro)
+    api(libs.confluent.kafka.avro.serializer)
 
     // --- Reactor (needed for ReactiveKeycloakJwtAuthenticationConverter, provided at runtime by gateway) ---
     compileOnly("io.projectreactor:reactor-core")

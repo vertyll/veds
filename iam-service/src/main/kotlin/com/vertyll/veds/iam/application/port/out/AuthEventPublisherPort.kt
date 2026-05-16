@@ -1,7 +1,13 @@
 package com.vertyll.veds.iam.application.port.out
 
-import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
-
 interface AuthEventPublisherPort {
-    fun sendMailRequestedEvent(event: MailRequestedEvent)
+    fun sendMailRequestedEvent(
+        to: String,
+        subject: String,
+        templateName: String,
+        variables: Map<String, String>,
+        replyTo: String? = null,
+        priority: Int = 0,
+        sagaId: String? = null,
+    )
 }

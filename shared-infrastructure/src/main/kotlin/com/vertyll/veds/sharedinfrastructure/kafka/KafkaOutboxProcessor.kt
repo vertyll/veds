@@ -26,7 +26,7 @@ import java.time.Instant
 class KafkaOutboxProcessor(
     private val outboxRepository: OutboxRepositoryPort,
     private val outboxMessageFactory: OutboxMessageFactory,
-    private val kafkaTemplate: KafkaTemplate<String, String>,
+    private val kafkaTemplate: KafkaTemplate<String, ByteArray>,
     private val objectMapper: ObjectMapper,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -83,20 +83,7 @@ class KafkaOutboxProcessor(
     }
 
     /**
-     * Creates a new outbox message and saves it via the configured port.
-     */
-    @Transactional
-    fun saveOutboxMessage(
-        topic: KafkaTopicNames,
-        key: String,
-        payload: Any,
-        sagaId: String? = null,
-        eventId: String? = null,
-    ): OutboxMessage = saveOutboxMessage(topic.value, key, payload, sagaId, eventId)
-
-    /**
-     * Creates a new outbox message for a raw topic name. Use this overload
-     * for service-specific topics not registered in [KafkaTopicNames].
+     * Creates a new outbox message for a raw topic name.
      */
     @Transactional
     fun saveOutboxMessage(
@@ -106,13 +93,18 @@ class KafkaOutboxProcessor(
         sagaId: String? = null,
         eventId: String? = null,
     ): OutboxMessage {
-        val payloadJson = payload as? String ?: objectMapper.writeValueAsString(payload)
+        val payloadBytes =
+            when (payload) {
+                is ByteArray -> payload
+                is String -> payload.toByteArray(Charsets.UTF_8)
+                else -> objectMapper.writeValueAsBytes(payload)
+            }
 
         val message =
             outboxMessageFactory.create(
                 topic = topic,
                 key = key,
-                payload = payloadJson,
+                payload = payloadBytes,
                 sagaId = sagaId,
                 eventId = eventId,
             )

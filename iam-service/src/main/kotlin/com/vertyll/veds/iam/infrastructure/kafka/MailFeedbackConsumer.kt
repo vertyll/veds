@@ -1,89 +1,47 @@
 package com.vertyll.veds.iam.infrastructure.kafka
 
-import com.vertyll.veds.iam.application.saga.model.SagaTypes
-import com.vertyll.veds.iam.application.saga.port.SagaProcessPort
-import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
-import com.vertyll.veds.sharedinfrastructure.event.mail.MailSentEvent
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
+import com.vertyll.veds.iam.application.service.MailFeedbackService
+import com.vertyll.veds.mail.mail.MailFailedEvent
+import com.vertyll.veds.mail.mail.MailSentEvent
+import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
 
+/**
+ * Inbound Kafka adapter for mail-delivery feedback topics.
+ *
+ * Decodes the Avro payload and forwards to [MailFeedbackService]; no business
+ * decisions live here.
+ */
 @Component
-class MailFeedbackConsumer(
-    private val objectMapper: ObjectMapper,
-    private val sagaProcessPort: SagaProcessPort,
+internal class MailFeedbackConsumer(
+    private val avroPayloadDeserializer: AvroPayloadDeserializer,
+    private val mailFeedbackService: MailFeedbackService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        /**
-         * Saga types where the saga should NOT be completed on mail delivery,
-         * because they require an additional user confirmation step.
-         */
-        val SAGA_TYPES_AWAITING_USER_CONFIRMATION =
-            setOf(
-                SagaTypes.EMAIL_CHANGE.value,
-                SagaTypes.PASSWORD_CHANGE.value,
-            )
-    }
-
-    @KafkaListener(topics = [KafkaTopicNames.Topics.MAIL_SENT])
+    @KafkaListener(topics = [IamKafkaTopics.MAIL_SENT])
     fun handleMailSent(
-        @Payload payload: String,
+        @Payload payload: ByteArray,
     ) {
         try {
-            val event = objectMapper.readValue<MailSentEvent>(payload)
-            val sagaId = event.sagaId
-
-            if (sagaId == null) {
-                logger.debug("Received MailSentEvent without sagaId — skipping saga step recording")
-                return
-            }
-
-            logger.info("Received MailSentEvent for saga: {} (to: {})", sagaId, event.to)
-
-            val saga = sagaProcessPort.findSagaDomainById(sagaId)
-            if (saga == null) {
-                logger.warn("Saga '{}' not found — skipping MailSentEvent", sagaId)
-                return
-            }
-
-            if (saga.type in SAGA_TYPES_AWAITING_USER_CONFIRMATION) {
-                logger.info(
-                    "Mail delivered for saga '{}' (type: {}) — saga remains AWAITING_RESPONSE until user confirms",
-                    sagaId,
-                    saga.type,
-                )
-                return
-            }
-
-            sagaProcessPort.markSagaCompleted(sagaId)
+            val event = avroPayloadDeserializer.deserialize(IamKafkaTopics.MAIL_SENT, payload) as MailSentEvent
+            mailFeedbackService.handleMailSent(sagaId = event.sagaId, to = event.to)
         } catch (e: Exception) {
             logger.error("Failed to process MailSentEvent: {} — will be retried / sent to DLT", e.message, e)
             throw e
         }
     }
 
-    @KafkaListener(topics = [KafkaTopicNames.Topics.MAIL_FAILED])
+    @KafkaListener(topics = [IamKafkaTopics.MAIL_FAILED])
     fun handleMailFailed(
-        @Payload payload: String,
+        @Payload payload: ByteArray,
     ) {
         try {
-            val event = objectMapper.readValue<MailFailedEvent>(payload)
-            val sagaId = event.sagaId
-
-            if (sagaId == null) {
-                logger.debug("Received MailFailedEvent without sagaId — skipping saga failure")
-                return
-            }
-
-            logger.warn("Received MailFailedEvent for saga: {} (to: {}, error: {})", sagaId, event.to, event.error)
-
-            sagaProcessPort.markSagaFailed(sagaId, "Mail delivery failed: ${event.error}")
+            val event = avroPayloadDeserializer.deserialize(IamKafkaTopics.MAIL_FAILED, payload) as MailFailedEvent
+            mailFeedbackService.handleMailFailed(sagaId = event.sagaId, to = event.to, error = event.error)
         } catch (e: Exception) {
             logger.error("Failed to process MailFailedEvent: {} — will be retried / sent to DLT", e.message, e)
             throw e

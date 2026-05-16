@@ -39,8 +39,8 @@ abstract class BaseOutbox(
     override var topic: String,
     @Column(nullable = false)
     override var key: String,
-    @Column(nullable = false, columnDefinition = "TEXT")
-    override var payload: String,
+    @Column(nullable = false, columnDefinition = "BYTEA")
+    override var payload: ByteArray,
     status: OutboxStatus = OutboxStatus.PENDING,
     errorMessage: String? = null,
     @Column(nullable = false)

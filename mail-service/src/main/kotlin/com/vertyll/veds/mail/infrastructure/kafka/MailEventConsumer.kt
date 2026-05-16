@@ -1,105 +1,47 @@
 package com.vertyll.veds.mail.infrastructure.kafka
 
+import com.vertyll.veds.iam.mail.MailRequestedEvent
 import com.vertyll.veds.mail.application.service.EmailSagaService
-import com.vertyll.veds.mail.domain.model.EmailTemplate
-import com.vertyll.veds.sharedinfrastructure.event.EventType
-import com.vertyll.veds.sharedinfrastructure.event.mail.MailFailedEvent
-import com.vertyll.veds.sharedinfrastructure.event.mail.MailRequestedEvent
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaTopicNames
+import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
-import tools.jackson.core.JacksonException
-import tools.jackson.databind.JsonNode
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
-import java.time.Instant
 
+/**
+ * Inbound Kafka adapter for the `mail-requested` topic.
+ *
+ * Single responsibility: decode the Avro payload and delegate the use case to
+ * the application layer ([EmailSagaService]). No business decisions here.
+ */
 @Component
-class MailEventConsumer(
-    private val objectMapper: ObjectMapper,
+internal class MailEventConsumer(
+    private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val emailSagaService: EmailSagaService,
-    private val kafkaOutboxProcessor: KafkaOutboxProcessor,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [KafkaTopicNames.Topics.MAIL_REQUESTED])
+    @KafkaListener(topics = [MailKafkaTopics.MAIL_REQUESTED])
     fun consume(
-        record: ConsumerRecord<String, String>,
-        @Payload payload: String,
+        record: ConsumerRecord<String, ByteArray>,
+        @Payload payload: ByteArray,
     ) {
         try {
-            logger.info("Received mail request message: {}", record.key())
-            val event =
-                try {
-                    objectMapper.readValue<MailRequestedEvent>(payload)
-                } catch (_: JacksonException) {
-                    logger.warn("Could not directly deserialize payload, attempting manual parsing")
-                    val cleanPayload = cleanJsonPayload(payload)
-                    createMailRequestedEventFromJson(objectMapper.readTree(cleanPayload))
-                }
-
-            val template = EmailTemplate.fromTemplateName(event.templateName)
-            if (template != null) {
-                emailSagaService.sendEmailWithSaga(
-                    to = event.to,
-                    subject = event.subject,
-                    template = template,
-                    variables = event.variables,
-                    replyTo = event.replyTo,
-                    originSagaId = event.sagaId,
-                    originalEventId = event.eventId,
-                )
-            } else {
-                logger.error("Invalid template name: {}. Email will not be sent.", event.templateName)
-                if (event.sagaId != null) {
-                    val failedEvent =
-                        MailFailedEvent(
-                            to = event.to,
-                            subject = event.subject,
-                            originalEventId = event.eventId,
-                            error = "Invalid template name: ${event.templateName}",
-                            sagaId = event.sagaId,
-                        )
-                    kafkaOutboxProcessor.saveOutboxMessage(
-                        KafkaTopicNames.MAIL_FAILED,
-                        event.sagaId!!,
-                        failedEvent,
-                        event.sagaId!!,
-                        failedEvent.eventId,
-                    )
-                }
-            }
+            logger.info("Received {} message: key={}", MailKafkaTopics.MAIL_REQUESTED, record.key())
+            val event = avroPayloadDeserializer.deserialize(MailKafkaTopics.MAIL_REQUESTED, payload) as MailRequestedEvent
+            emailSagaService.sendEmailWithSaga(
+                to = event.to,
+                subject = event.subject,
+                templateName = event.templateName,
+                variables = event.variables ?: emptyMap(),
+                replyTo = event.replyTo,
+                originSagaId = event.sagaId,
+                originalEventId = event.eventId,
+            )
         } catch (e: Exception) {
             logger.error("Error processing message from topic {}", record.topic(), e)
             throw e
         }
-    }
-
-    private fun cleanJsonPayload(payload: String): String =
-        if (payload.startsWith("\"") && payload.endsWith("\"")) {
-            payload.substring(1, payload.length - 1).replace("\\\"", "\"")
-        } else {
-            payload
-        }
-
-    private fun createMailRequestedEventFromJson(jsonNode: JsonNode): MailRequestedEvent {
-        val variables =
-            jsonNode["variables"]?.takeIf { !it.isNull }?.properties()?.associate { (k, v) -> k to (v.asString() ?: "") } ?: emptyMap()
-        return MailRequestedEvent(
-            eventId = jsonNode["eventId"]?.asString() ?: "",
-            timestamp = runCatching { objectMapper.convertValue(jsonNode["timestamp"], Instant::class.java) }.getOrDefault(Instant.now()),
-            eventType = jsonNode["eventType"]?.asString() ?: EventType.MAIL_REQUESTED.value,
-            to = jsonNode["to"]?.asString() ?: "",
-            subject = jsonNode["subject"]?.asString() ?: "",
-            templateName = jsonNode["templateName"]?.asString() ?: "",
-            variables = variables,
-            replyTo = jsonNode["replyTo"]?.asString(),
-            priority = jsonNode["priority"]?.asInt() ?: 0,
-            sagaId = jsonNode["sagaId"]?.asString(),
-        )
     }
 }

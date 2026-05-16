@@ -5,7 +5,6 @@ import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStepRepositoryPor
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
 /**
@@ -18,17 +17,16 @@ import java.time.Instant
  */
 open class SagaCompensationEngine<T : SagaStep>(
     private val sagaStepRepository: SagaStepRepositoryPort<T>,
-    private val objectMapper: ObjectMapper,
+    private val compensationEventDeserializer: CompensationEventDeserializer,
     private val stepFactory: SagaCompensationStepFactory<T>,
     private val handler: SagaCompensationHandler,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    open fun handleCompensationEvent(payload: String) {
+    open fun handleCompensationEvent(payload: ByteArray) {
         try {
-            @Suppress("UNCHECKED_CAST")
-            val event = objectMapper.readValue(payload, Map::class.java) as Map<String, Any?>
+            val event = compensationEventDeserializer.deserializeCompensationEvent(payload)
             val sagaId = event["sagaId"] as String
             val actionStr = event["action"] as String
 
