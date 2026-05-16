@@ -10,52 +10,66 @@ import java.time.Instant
 /**
  * Engine for the **choreography** saga compensation flow.
  *
- * Depends only on the persistence-agnostic [SagaStepRepositoryPort] and two
- * collaborator hooks ([SagaCompensationStepFactory] and
- * [SagaCompensationHandler]) so it is decoupled from the underlying storage
- * technology (JPA today, others possible).
+ * Depends only on the persistence-agnostic [SagaStepRepositoryPort] and
+ * two collaborator hooks ([SagaCompensationStepFactory] and
+ * [CompensationCommandHandler]) so it is decoupled from the underlying
+ * storage technology (JPA today, others possible) and from the wire
+ * format of compensation events.
+ *
+ * The type parameter [TCommand] is the service-local, strongly-typed
+ * compensation command (typically a Kotlin `sealed interface` mirroring
+ * the Avro tagged union). The engine never sees `Map<String, Any?>` or
+ * stringly-typed action discriminators — the Anti-Corruption Layer that
+ * decodes raw Kafka bytes into [TCommand] lives in each service's
+ * infrastructure module (an implementation of
+ * [CompensationCommandDeserializer]).
+ *
+ * Exceptions thrown by [CompensationCommandHandler] are intentionally
+ * propagated so the inbound Kafka listener can trigger broker-level
+ * retry / DLT routing — the [SagaWatchdog] still provides a slower
+ * cooldown-based safety net for stuck sagas.
  */
-open class SagaCompensationEngine<T : SagaStep<T>>(
+open class SagaCompensationEngine<T : SagaStep<T>, TCommand : Any>(
     private val sagaStepRepository: SagaStepRepositoryPort<T>,
-    private val compensationEventDeserializer: CompensationEventDeserializer,
+    private val commandDeserializer: CompensationCommandDeserializer<TCommand>,
     private val stepFactory: SagaCompensationStepFactory<T>,
-    private val handler: SagaCompensationHandler,
+    private val handler: CompensationCommandHandler<TCommand>,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * Entry point for inbound compensation events.
      *
-     * Deserializes [payload] via [CompensationEventDeserializer], delegates
-     * the domain action to [SagaCompensationHandler], and records a
-     * `Compensate<originalStep>` audit row through
-     * [SagaCompensationStepFactory]. Exceptions are logged and swallowed —
-     * by the time we reach this method the originating saga is already in
-     * a compensation flow; the watchdog will retry later if needed.
+     * Deserializes [payload] via [CompensationCommandDeserializer],
+     * delegates the domain action to [CompensationCommandHandler], and
+     * records a `Compensate<originalStep>` audit row via
+     * [SagaCompensationStepFactory].
+     *
+     * Exceptions are intentionally propagated to the caller so the Kafka
+     * listener can trigger broker-level retry / DLT routing. Idempotency
+     * is preserved by the inbound `ProcessedEventGuard` (consumer side)
+     * and by the unique-constraint on saga step `(sagaId, stepName)`.
      */
     @Transactional
     open fun handleCompensationEvent(payload: ByteArray) {
-        try {
-            val event = compensationEventDeserializer.deserializeCompensationEvent(payload)
-            val sagaId = event["sagaId"] as String
-            val actionStr = event["action"] as String
+        val decoded = commandDeserializer.deserialize(payload)
+        logger.info(
+            "Processing compensation command: {} for saga {}",
+            decoded.command::class.simpleName,
+            decoded.sagaId,
+        )
 
-            logger.info("Processing compensation action: {} for saga {}", actionStr, sagaId)
+        handler.handle(decoded.sagaId, decoded.command)
 
-            handler.handle(sagaId, actionStr, event)
-
-            recordCompensationStep(sagaId, event)
-        } catch (e: Exception) {
-            logger.error("Failed to process compensation event: ${e.message}", e)
-        }
+        recordCompensationStep(decoded.sagaId, decoded.stepId)
     }
 
     private fun recordCompensationStep(
         sagaId: String,
-        event: Map<String, Any?>,
+        stepId: Long?,
     ) {
-        val stepId = event["stepId"] as? Number ?: return
-        val step = sagaStepRepository.findOneById(stepId.toLong()) ?: return
+        val id = stepId ?: return
+        val step = sagaStepRepository.findOneById(id) ?: return
 
         val compensationStep =
             stepFactory.createCompensationStep(

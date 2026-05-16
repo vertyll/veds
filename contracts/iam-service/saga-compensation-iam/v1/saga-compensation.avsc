@@ -2,10 +2,47 @@
   "type": "record",
   "name": "SagaCompensationEvent",
   "namespace": "com.vertyll.veds.iam.saga",
+  "doc": "Internal compensation event published by iam-service to the saga-compensation-iam topic. The 'action' field is a tagged union of typed compensation actions — each variant carries the data needed by AuthCompensationService. No untyped 'extraPayload: map<string>' is used so values keep their domain types end-to-end.",
   "fields": [
     { "name": "sagaId", "type": "string" },
     { "name": "stepId", "type": ["null", "long"], "default": null },
-    { "name": "action", "type": "string" },
-    { "name": "extraPayload", "type": { "type": "map", "values": "string" }, "default": {} }
+    {
+      "name": "action",
+      "type": [
+        {
+          "type": "record",
+          "name": "DeleteUserAction",
+          "doc": "Compensates CreateUser step — deletes the local user aggregate.",
+          "fields": [
+            { "name": "userId", "type": "long" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "DeleteVerificationTokenAction",
+          "doc": "Compensates CreateVerificationToken step — deletes the local verification token.",
+          "fields": [
+            { "name": "tokenId", "type": "long" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "RevertPasswordUpdateAction",
+          "doc": "Compensates UpdatePassword step. Password material is intentionally NOT carried on the wire — actual rollback (if at all possible) is performed against the local snapshot inside the service.",
+          "fields": [
+            { "name": "userId", "type": "long" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "RevertEmailUpdateAction",
+          "doc": "Compensates UpdateEmail step — reverts the user's email back to the supplied original value.",
+          "fields": [
+            { "name": "userId", "type": "long" },
+            { "name": "originalEmail", "type": "string" }
+          ]
+        }
+      ]
+    }
   ]
 }

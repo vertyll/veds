@@ -2,12 +2,22 @@ package com.vertyll.veds.iam.application.service
 
 import com.vertyll.veds.iam.application.port.inbound.AuthCompensationUseCase
 import com.vertyll.veds.iam.application.port.outbound.IdentityProviderPort
-import com.vertyll.veds.iam.application.saga.model.SagaCompensationActions
+import com.vertyll.veds.iam.application.saga.model.AuthCompensationCommand
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
+/**
+ * Dispatches typed [AuthCompensationCommand]s onto the appropriate domain
+ * repositories / outbound ports. Exhaustive `when` over the sealed
+ * hierarchy — adding a new compensation action becomes a compile-time
+ * error rather than a runtime NPE.
+ *
+ * Intentionally does NOT swallow exceptions — propagating them lets the
+ * inbound Kafka listener trigger broker-level retry / DLT, and the
+ * `SagaWatchdog` still provides a slower cooldown-based safety net.
+ */
 @Service
 internal class AuthCompensationService(
     private val userRepository: UserRepository,
@@ -16,75 +26,61 @@ internal class AuthCompensationService(
 ) : AuthCompensationUseCase {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun compensate(
-        action: String,
-        event: Map<String, Any?>,
-    ) {
-        when (action) {
-            SagaCompensationActions.DELETE_USER.value -> compensateCreateUser(event)
-            SagaCompensationActions.DELETE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(event)
-            SagaCompensationActions.REVERT_PASSWORD_UPDATE.value -> compensateUpdatePassword(event)
-            SagaCompensationActions.REVERT_EMAIL_UPDATE.value -> compensateUpdateEmail(event)
-            else -> logger.warn("Unknown compensation action: $action")
+    override fun compensate(command: AuthCompensationCommand) {
+        when (command) {
+            is AuthCompensationCommand.DeleteUser -> deleteUser(command)
+            is AuthCompensationCommand.DeleteVerificationToken -> deleteVerificationToken(command)
+            is AuthCompensationCommand.RevertPasswordUpdate -> revertPasswordUpdate(command)
+            is AuthCompensationCommand.RevertEmailUpdate -> revertEmailUpdate(command)
         }
     }
 
-    private fun compensateCreateUser(event: Map<String, Any?>) {
-        try {
-            val userId = (event["userId"] as Number).toLong()
-            userRepository.findById(userId)?.let {
-                logger.info("Compensating CreateUser step: Deleting user with ID $userId")
-                userRepository.deleteById(userId)
-            }
-        } catch (e: Exception) {
-            logger.error("Failed to compensate CreateUser step: ${e.message}", e)
-            throw e
-        }
+    private fun deleteUser(command: AuthCompensationCommand.DeleteUser) {
+        userRepository.findById(command.userId)?.let {
+            logger.info("Compensating CreateUser step: deleting user with ID {}", command.userId)
+            userRepository.deleteById(command.userId)
+        } ?: logger.info(
+            "Compensation no-op: user {} already absent (already-compensated or never persisted)",
+            command.userId,
+        )
     }
 
-    private fun compensateCreateVerificationToken(event: Map<String, Any?>) {
-        try {
-            val tokenId = (event["tokenId"] as Number).toLong()
-            verificationTokenRepository.findById(tokenId)?.let {
-                logger.info("Compensating CreateVerificationToken step: Deleting token with ID $tokenId")
-                verificationTokenRepository.deleteById(tokenId)
-            }
-        } catch (e: Exception) {
-            logger.error("Failed to compensate CreateVerificationToken step: ${e.message}", e)
-            throw e
-        }
-    }
-
-    private fun compensateUpdatePassword(event: Map<String, Any?>) {
-        try {
-            val userId = (event["userId"] as Number).toLong()
-            logger.warn(
-                "Cannot revert password change for user $userId — passwords are managed by Keycloak. " +
-                    "Manual intervention may be required.",
+    private fun deleteVerificationToken(command: AuthCompensationCommand.DeleteVerificationToken) {
+        verificationTokenRepository.findById(command.tokenId)?.let {
+            logger.info(
+                "Compensating CreateVerificationToken step: deleting token with ID {}",
+                command.tokenId,
             )
-        } catch (e: Exception) {
-            logger.error("Failed to compensate UpdatePassword step: ${e.message}", e)
-            throw e
-        }
+            verificationTokenRepository.deleteById(command.tokenId)
+        } ?: logger.info(
+            "Compensation no-op: verification token {} already absent",
+            command.tokenId,
+        )
     }
 
-    private fun compensateUpdateEmail(event: Map<String, Any?>) {
-        try {
-            val userId = (event["userId"] as Number).toLong()
-            val originalEmail = event["originalEmail"]?.toString()
+    private fun revertPasswordUpdate(command: AuthCompensationCommand.RevertPasswordUpdate) {
+        // Passwords are owned by Keycloak — a true rollback would require
+        // the previous hash, which we intentionally do NOT carry on the
+        // wire. We surface the situation in logs for manual remediation.
+        logger.warn(
+            "Cannot revert password change for user {} — passwords are managed by Keycloak and the " +
+                "previous credential is not retained. Manual intervention may be required.",
+            command.userId,
+        )
+    }
 
-            if (originalEmail != null) {
-                userRepository.findById(userId)?.let { user ->
-                    logger.info("Compensating UpdateEmail step: Reverting email for user ID $userId to $originalEmail")
-                    user.keycloakId?.let { identityProvider.updateEmail(it, originalEmail) }
-                    userRepository.save(user.withEmail(originalEmail))
-                }
-            } else {
-                logger.warn("No original email available for compensating email update for user $userId")
-            }
-        } catch (e: Exception) {
-            logger.error("Failed to compensate UpdateEmail step: ${e.message}", e)
-            throw e
-        }
+    private fun revertEmailUpdate(command: AuthCompensationCommand.RevertEmailUpdate) {
+        userRepository.findById(command.userId)?.let { user ->
+            logger.info(
+                "Compensating UpdateEmail step: reverting email for user ID {} to {}",
+                command.userId,
+                command.originalEmail,
+            )
+            user.keycloakId?.let { identityProvider.updateEmail(it, command.originalEmail) }
+            userRepository.save(user.withEmail(command.originalEmail))
+        } ?: logger.warn(
+            "Cannot revert email for user {} — user no longer exists locally",
+            command.userId,
+        )
     }
 }

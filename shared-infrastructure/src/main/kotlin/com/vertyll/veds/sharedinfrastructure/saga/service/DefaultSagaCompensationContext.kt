@@ -12,24 +12,22 @@ import tools.jackson.databind.ObjectMapper
  * circular dependency on the engine: both collaborators receive the same
  * context instance from configuration.
  */
-class DefaultSagaCompensationContext(
+class DefaultSagaCompensationContext<TCommand : Any>(
     private val kafkaOutboxProcessor: KafkaOutboxProcessor,
-    private val compensationEventSerializer: CompensationEventSerializer,
+    private val compensationEventSerializer: CompensationEventSerializer<TCommand>,
     private val compensationTopic: String,
     private val objectMapper: ObjectMapper,
-) : SagaCompensationContext {
+) : SagaCompensationContext<TCommand> {
     override fun publishCompensationEvent(
         sagaId: String,
         stepId: Long?,
-        action: String,
-        extraPayload: Map<String, Any?>,
+        command: TCommand,
     ) {
         val payload =
-            compensationEventSerializer.serializeCompensationEvent(
+            compensationEventSerializer.serialize(
                 sagaId = sagaId,
                 stepId = stepId,
-                action = action,
-                extraPayload = extraPayload,
+                command = command,
             )
         kafkaOutboxProcessor.saveOutboxMessage(
             topic = compensationTopic,

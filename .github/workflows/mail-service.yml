@@ -6,6 +6,8 @@ on:
     paths:
       - 'mail-service/**'
       - 'shared-infrastructure/**'
+      - 'iam-contracts/**'
+      - 'mail-contracts/**'
       - 'contracts/mail-service/**'
       - 'contracts/iam-service/mail-requested/**'
       - '.github/workflows/mail-service.yml'
@@ -15,6 +17,8 @@ on:
     paths:
       - 'mail-service/**'
       - 'shared-infrastructure/**'
+      - 'iam-contracts/**'
+      - 'mail-contracts/**'
       - 'contracts/mail-service/**'
       - 'contracts/iam-service/mail-requested/**'
   workflow_dispatch:

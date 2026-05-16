@@ -1,5 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.config
 
+import com.vertyll.veds.mail.application.saga.model.MailCompensationCommand
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaStepJpaEntity
 import com.vertyll.veds.mail.infrastructure.persistence.repository.SagaJpaRepository
@@ -32,9 +33,9 @@ internal class SagaConfig {
     @Bean
     fun mailSagaCompensationContext(
         kafkaOutboxProcessor: KafkaOutboxProcessor,
-        compensationEventSerializer: CompensationEventSerializer,
+        compensationEventSerializer: CompensationEventSerializer<MailCompensationCommand>,
         objectMapper: ObjectMapper,
-    ): SagaCompensationContext =
+    ): SagaCompensationContext<MailCompensationCommand> =
         DefaultSagaCompensationContext(
             kafkaOutboxProcessor = kafkaOutboxProcessor,
             compensationEventSerializer = compensationEventSerializer,
@@ -46,8 +47,8 @@ internal class SagaConfig {
     fun mailSagaCompensationRunner(
         sagaRepository: SagaJpaRepository,
         sagaStepRepository: SagaStepJpaRepository,
-        compensationContext: SagaCompensationContext,
-    ): SagaCompensationRunner<SagaJpaEntity, SagaStepJpaEntity> =
+        compensationContext: SagaCompensationContext<MailCompensationCommand>,
+    ): SagaCompensationRunner<SagaJpaEntity, SagaStepJpaEntity, MailCompensationCommand> =
         SagaCompensationRunner(
             sagaRepository = sagaRepository,
             sagaStepRepository = sagaStepRepository,
@@ -60,7 +61,7 @@ internal class SagaConfig {
         sagaRepository: SagaJpaRepository,
         sagaStepRepository: SagaStepJpaRepository,
         objectMapper: ObjectMapper,
-        compensationRunner: SagaCompensationRunner<SagaJpaEntity, SagaStepJpaEntity>,
+        compensationRunner: SagaCompensationRunner<SagaJpaEntity, SagaStepJpaEntity, MailCompensationCommand>,
     ): SagaEngine<SagaJpaEntity, SagaStepJpaEntity> =
         SagaEngine(
             sagaRepository = sagaRepository,
@@ -71,7 +72,9 @@ internal class SagaConfig {
         )
 
     @Bean
-    fun mailCompensationEventSerializer(avroPayloadSerializer: AvroPayloadSerializer): CompensationEventSerializer =
+    fun mailCompensationEventSerializer(
+        avroPayloadSerializer: AvroPayloadSerializer,
+    ): CompensationEventSerializer<MailCompensationCommand> =
         MailCompensationEventSerializer(
             avroPayloadSerializer = avroPayloadSerializer,
             topic = SAGA_COMPENSATION_TOPIC,

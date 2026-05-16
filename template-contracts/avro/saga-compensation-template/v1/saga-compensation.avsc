@@ -1,0 +1,32 @@
+{
+  "type": "record",
+  "name": "SagaCompensationEvent",
+  "namespace": "com.vertyll.veds.template.saga",
+  "doc": "Internal compensation event published by template-service to the saga-compensation-template topic. The 'action' field is a tagged union of typed compensation actions — each variant carries the data needed by TemplateCompensationService. No untyped 'extraPayload: map<string>' is used so values keep their domain types end-to-end. Mirrors the sealed TemplateCompensationCommand hierarchy in the application layer.",
+  "fields": [
+    { "name": "sagaId", "type": "string" },
+    { "name": "stepId", "type": ["null", "long"], "default": null },
+    {
+      "name": "action",
+      "type": [
+        {
+          "type": "record",
+          "name": "DeleteTemplateAction",
+          "doc": "Compensates PersistTemplate step — deletes the local template aggregate that the failed flow created.",
+          "fields": [
+            { "name": "templateId", "type": "string" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "LogTemplateCompensationAction",
+          "doc": "Compensates PublishTemplateEvent step — the published Kafka event cannot be un-published, so the compensation only records a log entry (kept as a placeholder for clone-time replacement).",
+          "fields": [
+            { "name": "templateId", "type": "string" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

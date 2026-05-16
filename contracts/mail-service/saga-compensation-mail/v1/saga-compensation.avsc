@@ -2,10 +2,39 @@
   "type": "record",
   "name": "SagaCompensationEvent",
   "namespace": "com.vertyll.veds.mail.saga",
+  "doc": "Internal compensation event published by mail-service. There is no consumer today (a sent email cannot be unsent) — the topic exists so the choreography pattern stays uniform across services and so future reversible mail operations (e.g. cancelling a queued bulk send) can be wired in without contract changes. The 'action' field is a tagged union for type-safe dispatch.",
   "fields": [
     { "name": "sagaId", "type": "string" },
     { "name": "stepId", "type": ["null", "long"], "default": null },
-    { "name": "action", "type": "string" },
-    { "name": "extraPayload", "type": { "type": "map", "values": "string" }, "default": {} }
+    {
+      "name": "action",
+      "type": [
+        {
+          "type": "record",
+          "name": "LogEmailCompensationAction",
+          "doc": "No-op compensation marker for a SendEmail step — emails are not retractable, this event just records the intent for audit purposes.",
+          "fields": [
+            { "name": "emailId", "type": "string" },
+            { "name": "to", "type": "string" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "DeleteEmailLogAction",
+          "doc": "Compensates RecordEmailLog step — removes the local email log entry.",
+          "fields": [
+            { "name": "logId", "type": "long" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "LogTemplateCompensationAction",
+          "doc": "Audit-only compensation for a TemplateUpdate step.",
+          "fields": [
+            { "name": "templateName", "type": "string" }
+          ]
+        }
+      ]
+    }
   ]
 }

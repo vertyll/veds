@@ -48,8 +48,11 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
      * Separate Spring bean that runs the compensation sequence in its own
      * `REQUIRES_NEW` transaction. Extracted out of [SagaEngine] so the call
      * goes through Spring's AOP proxy (self-invocation would bypass it).
+     *
+     * Declared as the non-generic [SagaCompensationTrigger] so [SagaEngine]
+     * stays free of the participant's command-type parameter.
      */
-    private val compensationRunner: SagaCompensationRunner<S, T>,
+    private val compensationRunner: SagaCompensationTrigger,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(SagaEngine::class.java)
 

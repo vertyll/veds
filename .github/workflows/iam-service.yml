@@ -6,6 +6,8 @@ on:
     paths:
       - 'iam-service/**'
       - 'shared-infrastructure/**'
+      - 'iam-contracts/**'
+      - 'mail-contracts/**'
       - 'contracts/iam-service/**'
       - 'contracts/mail-service/mail-sent/**'
       - 'contracts/mail-service/mail-failed/**'
@@ -16,6 +18,8 @@ on:
     paths:
       - 'iam-service/**'
       - 'shared-infrastructure/**'
+      - 'iam-contracts/**'
+      - 'mail-contracts/**'
       - 'contracts/iam-service/**'
       - 'contracts/mail-service/mail-sent/**'
       - 'contracts/mail-service/mail-failed/**'

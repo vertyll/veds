@@ -8,6 +8,11 @@ WORKDIR /app
 # Copy shared infrastructure first (dependency for other services)
 COPY shared-infrastructure/ ./shared-infrastructure/
 
+# Copy Avro Published Language modules (DDD) + their schema sources.
+COPY contracts/ ./contracts/
+COPY iam-contracts/ ./iam-contracts/
+COPY mail-contracts/ ./mail-contracts/
+
 # Copy the service code
 COPY iam-service/ ./iam-service/
 

@@ -1,132 +1,101 @@
 package com.vertyll.veds.iam.infrastructure.saga
 
-import com.vertyll.veds.iam.application.saga.model.SagaCompensationActions
+import com.vertyll.veds.iam.application.saga.model.AuthCompensationCommand
 import com.vertyll.veds.iam.application.saga.model.SagaStepNames
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaStepJpaEntity
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationContext
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensator
+import com.vertyll.veds.sharedinfrastructure.saga.service.SagaWatchdog
 import org.slf4j.LoggerFactory
 
-internal class IamSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity> {
+/**
+ * Domain-side compensation logic for IAM sagas.
+ *
+ * Reads the JSON snapshot persisted with each saga step
+ * (`saga_step.payload`, written by `SagaEngine.recordSagaStep`),
+ * assembles a strongly-typed [AuthCompensationCommand], and publishes it
+ * via the [SagaCompensationContext] (Transactional Outbox → Kafka).
+ *
+ * Steps that do not have a meaningful reverse operation (e.g. event
+ * publication steps) intentionally log and skip — they are not errors.
+ *
+ * Steps for which no compensation is defined throw — `SagaCompensationRunner`
+ * marks them `COMPENSATION_FAILED` so [SagaWatchdog]
+ * keeps retrying with cooldown until the situation is resolved.
+ */
+internal class IamSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity, AuthCompensationCommand> {
     private val logger = LoggerFactory.getLogger(IamSagaCompensator::class.java)
 
     override fun compensateStep(
         saga: SagaJpaEntity,
         step: SagaStepJpaEntity,
-        context: SagaCompensationContext,
+        context: SagaCompensationContext<AuthCompensationCommand>,
     ) {
-        when (step.stepName) {
-            SagaStepNames.CREATE_USER.value -> compensateCreateUser(saga.id, step, context)
-            SagaStepNames.CREATE_VERIFICATION_TOKEN.value -> compensateCreateVerificationToken(saga.id, step, context)
-            SagaStepNames.UPDATE_PASSWORD.value -> compensateUpdatePassword(saga.id, step, context)
-            SagaStepNames.UPDATE_EMAIL.value -> compensateUpdateEmail(saga.id, step, context)
-            SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT.value ->
-                logger.info("Mail event already published for saga '${saga.id}' — no compensation needed")
-            SagaStepNames.PUBLISH_USER_REGISTERED_EVENT.value ->
-                logger.info("User event step for saga '${saga.id}' — no compensation needed")
-            else -> logger.warn("No compensation defined for step '${step.stepName}'")
-        }
-    }
-
-    private fun compensateCreateUser(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-        context: SagaCompensationContext,
-    ) {
-        runCatching {
-            val payload = context.readStepPayload(step.payload)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-
-            context.publishCompensationEvent(
-                sagaId = sagaId,
-                stepId = step.id,
-                action = SagaCompensationActions.DELETE_USER.value,
-                extraPayload = mapOf("userId" to userId),
-            )
-        }.onFailure { e ->
-            logger.error("Failed to publish compensation event for step '${SagaStepNames.CREATE_USER.value}': ${e.message}", e)
-        }
-    }
-
-    private fun compensateCreateVerificationToken(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-        context: SagaCompensationContext,
-    ) {
-        runCatching {
-            val payload = context.readStepPayload(step.payload)
-            val tokenId = (payload["tokenId"] as Number).toLong()
-
-            context.publishCompensationEvent(
-                sagaId = sagaId,
-                stepId = step.id,
-                action = SagaCompensationActions.DELETE_VERIFICATION_TOKEN.value,
-                extraPayload = mapOf("tokenId" to tokenId),
-            )
-        }.onFailure { e ->
-            logger.error(
-                "Failed to publish compensation event for step '${SagaStepNames.CREATE_VERIFICATION_TOKEN.value}': ${e.message}",
-                e,
-            )
-        }
-    }
-
-    private fun compensateUpdatePassword(
-        sagaId: String,
-        step: SagaStepJpaEntity,
-        context: SagaCompensationContext,
-    ) {
-        runCatching {
-            val payload = context.readStepPayload(step.payload)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-            val originalPasswordHash = payload["originalPasswordHash"]?.toString()
-
-            if (originalPasswordHash != null) {
-                context.publishCompensationEvent(
-                    sagaId = sagaId,
-                    stepId = step.id,
-                    action = SagaCompensationActions.REVERT_PASSWORD_UPDATE.value,
-                    extraPayload =
-                        mapOf(
-                            "userId" to userId,
-                            "originalPasswordHash" to originalPasswordHash,
-                        ),
-                )
-            } else {
-                logger.warn("Cannot compensate '${SagaStepNames.UPDATE_PASSWORD.value}' — original password hash missing for user $userId")
+        val command =
+            when (step.stepName) {
+                SagaStepNames.CREATE_USER.value ->
+                    AuthCompensationCommand.DeleteUser(readUserId(context, step))
+                SagaStepNames.CREATE_VERIFICATION_TOKEN.value,
+                SagaStepNames.CREATE_RESET_TOKEN.value,
+                ->
+                    AuthCompensationCommand.DeleteVerificationToken(readTokenId(context, step))
+                SagaStepNames.UPDATE_PASSWORD.value ->
+                    AuthCompensationCommand.RevertPasswordUpdate(readUserId(context, step))
+                SagaStepNames.UPDATE_EMAIL.value -> {
+                    val p = context.readStepPayload(step.payload)
+                    AuthCompensationCommand.RevertEmailUpdate(
+                        userId = readUserId(p),
+                        originalEmail =
+                            requireNotNull(p["originalEmail"]?.toString()) {
+                                "Missing 'originalEmail' in step payload for UpdateEmail step ${step.id}"
+                            },
+                    )
+                }
+                SagaStepNames.PUBLISH_MAIL_REQUESTED_EVENT.value,
+                SagaStepNames.PUBLISH_USER_REGISTERED_EVENT.value,
+                SagaStepNames.VERIFY_CURRENT_PASSWORD.value,
+                -> {
+                    logger.info(
+                        "No compensation needed for step '{}' on saga '{}' (effect not externally observable)",
+                        step.stepName,
+                        saga.id,
+                    )
+                    return
+                }
+                else -> {
+                    logger.warn("No compensation defined for step '{}' on saga '{}'", step.stepName, saga.id)
+                    return
+                }
             }
-        }.onFailure { e ->
-            logger.error("Failed to publish compensation event for step '${SagaStepNames.UPDATE_PASSWORD.value}': ${e.message}", e)
-        }
+
+        context.publishCompensationEvent(
+            sagaId = saga.id,
+            stepId = step.id,
+            command = command,
+        )
     }
 
-    private fun compensateUpdateEmail(
-        sagaId: String,
+    private fun readUserId(
+        context: SagaCompensationContext<AuthCompensationCommand>,
         step: SagaStepJpaEntity,
-        context: SagaCompensationContext,
-    ) {
-        runCatching {
-            val payload = context.readStepPayload(step.payload)
-            val userId = (payload["userId"] as? Number ?: payload["authUserId"] as Number).toLong()
-            val originalEmail = payload["originalEmail"]?.toString()
+    ): Long = readUserId(context.readStepPayload(step.payload))
 
-            if (originalEmail != null) {
-                context.publishCompensationEvent(
-                    sagaId = sagaId,
-                    stepId = step.id,
-                    action = SagaCompensationActions.REVERT_EMAIL_UPDATE.value,
-                    extraPayload =
-                        mapOf(
-                            "userId" to userId,
-                            "originalEmail" to originalEmail,
-                        ),
-                )
-            } else {
-                logger.warn("Cannot compensate '${SagaStepNames.UPDATE_EMAIL.value}' — original email missing for user $userId")
-            }
-        }.onFailure { e ->
-            logger.error("Failed to publish compensation event for step '${SagaStepNames.UPDATE_EMAIL.value}': ${e.message}", e)
-        }
+    private fun readUserId(payload: Map<String, Any?>): Long {
+        val raw =
+            payload["userId"]
+                ?: error("Missing 'userId' in step payload (keys: ${payload.keys})")
+        return (raw as Number).toLong()
+    }
+
+    private fun readTokenId(
+        context: SagaCompensationContext<AuthCompensationCommand>,
+        step: SagaStepJpaEntity,
+    ): Long {
+        val payload = context.readStepPayload(step.payload)
+        val raw =
+            payload["tokenId"]
+                ?: error("Missing 'tokenId' in step payload for step ${step.id} (keys: ${payload.keys})")
+        return (raw as Number).toLong()
     }
 }

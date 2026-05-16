@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.saga
 
-import com.vertyll.veds.mail.application.saga.model.SagaCompensationActions
+import com.vertyll.veds.mail.application.saga.model.MailCompensationCommand
 import com.vertyll.veds.mail.application.saga.model.SagaStepNames
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaStepJpaEntity
@@ -8,51 +8,53 @@ import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationContex
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensator
 import org.slf4j.LoggerFactory
 
-internal class MailSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity> {
+/**
+ * Domain-side compensation logic for mail sagas — assembles typed
+ * [MailCompensationCommand]s from local saga-step snapshots and emits
+ * them via the [SagaCompensationContext] (Transactional Outbox → Kafka).
+ *
+ * See [MailCompensationCommand] for the note on the absence of an
+ * inbound consumer for the `saga-compensation-mail` topic.
+ */
+internal class MailSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity, MailCompensationCommand> {
     private val logger = LoggerFactory.getLogger(MailSagaCompensator::class.java)
 
     override fun compensateStep(
         saga: SagaJpaEntity,
         step: SagaStepJpaEntity,
-        context: SagaCompensationContext,
+        context: SagaCompensationContext<MailCompensationCommand>,
     ) {
-        try {
+        val command =
             when (step.stepName) {
                 SagaStepNames.SEND_EMAIL.value -> {
                     val p = context.readStepPayload(step.payload)
-                    context.publishCompensationEvent(
-                        saga.id,
-                        step.id ?: 0L,
-                        SagaCompensationActions.LOG_EMAIL_COMPENSATION.value,
-                        mapOf(
-                            "emailId" to p["emailId"],
-                            "to" to p["to"],
-                            "message" to "Email cannot be unsent",
-                        ),
+                    MailCompensationCommand.LogEmailCompensation(
+                        emailId = requireNotNull(p["emailId"]?.toString()) { "Missing 'emailId' in step ${step.id}" },
+                        to = requireNotNull(p["to"]?.toString()) { "Missing 'to' in step ${step.id}" },
                     )
                 }
                 SagaStepNames.RECORD_EMAIL_LOG.value -> {
                     val p = context.readStepPayload(step.payload)
-                    context.publishCompensationEvent(
-                        saga.id,
-                        step.id ?: 0L,
-                        SagaCompensationActions.DELETE_EMAIL_LOG.value,
-                        mapOf("logId" to p["logId"]),
+                    MailCompensationCommand.DeleteEmailLog(
+                        logId = (requireNotNull(p["logId"]) { "Missing 'logId' in step ${step.id}" } as Number).toLong(),
                     )
                 }
                 SagaStepNames.TEMPLATE_UPDATE.value -> {
                     val p = context.readStepPayload(step.payload)
-                    context.publishCompensationEvent(
-                        saga.id,
-                        step.id ?: 0L,
-                        SagaCompensationActions.LOG_TEMPLATE_COMPENSATION.value,
-                        mapOf("templateName" to p["templateName"]),
+                    MailCompensationCommand.LogTemplateCompensation(
+                        templateName = requireNotNull(p["templateName"]?.toString()) { "Missing 'templateName' in step ${step.id}" },
                     )
                 }
-                else -> logger.warn("No compensation defined for step '${step.stepName}'")
+                else -> {
+                    logger.warn("No compensation defined for step '{}' on saga '{}'", step.stepName, saga.id)
+                    return
+                }
             }
-        } catch (e: Exception) {
-            logger.error("Failed compensation for step ${step.stepName}", e)
-        }
+
+        context.publishCompensationEvent(
+            sagaId = saga.id,
+            stepId = step.id,
+            command = command,
+        )
     }
 }

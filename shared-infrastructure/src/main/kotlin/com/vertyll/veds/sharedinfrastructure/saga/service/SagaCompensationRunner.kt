@@ -22,12 +22,12 @@ import org.springframework.transaction.annotation.Transactional
  * Created per service (one bean per `SagaEngine`) to keep the type
  * parameters consistent with the owning engine.
  */
-open class SagaCompensationRunner<S : Saga<S>, T : SagaStep<T>>(
+open class SagaCompensationRunner<S : Saga<S>, T : SagaStep<T>, TCommand : Any>(
     private val sagaRepository: SagaRepositoryPort<S>,
     private val sagaStepRepository: SagaStepRepositoryPort<T>,
-    private val compensator: SagaCompensator<S, T>,
-    private val compensationContext: SagaCompensationContext,
-) {
+    private val compensator: SagaCompensator<S, T, TCommand>,
+    private val compensationContext: SagaCompensationContext<TCommand>,
+) : SagaCompensationTrigger {
     private val logger = LoggerFactory.getLogger(SagaCompensationRunner::class.java)
 
     /**
@@ -38,7 +38,7 @@ open class SagaCompensationRunner<S : Saga<S>, T : SagaStep<T>>(
      * this method to retry compensation for stuck sagas.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    open fun runCompensation(sagaId: String) {
+    override fun runCompensation(sagaId: String) {
         val saga = sagaRepository.findOneById(sagaId) ?: return
         if (saga.status == SagaStatus.COMPLETED ||
             saga.status == SagaStatus.COMPENSATED ||
