@@ -11,7 +11,7 @@ on:
       - 'contracts/mail-service/**'
       - 'contracts/iam-service/mail-requested/**'
       - '.github/workflows/mail-service.yml'
-      - '.github/workflows/quality.yml'
+      - '.github/workflows/code-quality.yml'
   pull_request:
     branches: [main]
     paths:

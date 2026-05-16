@@ -7,7 +7,7 @@ on:
       - 'api-gateway/**'
       - 'shared-infrastructure/**'
       - '.github/workflows/api-gateway.yml'
-      - '.github/workflows/quality.yml'
+      - '.github/workflows/code-quality.yml'
   pull_request:
     branches: [main]
     paths:

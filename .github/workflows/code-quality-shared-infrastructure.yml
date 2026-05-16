@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - 'shared-infrastructure/**'
-      - '.github/workflows/shared-infrastructure.yml'
-      - '.github/workflows/quality.yml'
+      - '.github/workflows/code-quality-shared-infrastructure.yml'
+      - '.github/workflows/code-quality.yml'
   pull_request:
     branches: [main]
     paths:
