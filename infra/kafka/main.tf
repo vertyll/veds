@@ -1,6 +1,10 @@
 terraform {
   required_version = ">= 1.6.0"
 
+  backend "local" {
+    path = "/state/terraform.tfstate"
+  }
+
   required_providers {
     kafka = {
       source  = "Mongey/kafka"
