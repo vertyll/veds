@@ -70,6 +70,8 @@ infra/**/terraform.tfstate.*
 infra/**/*.tfstate.backup
 
 ### Run configs (whitelist) ###
+!.run/
+!.run/**
 !.idea/runConfigurations/
 !.idea/runConfigurations/**
 

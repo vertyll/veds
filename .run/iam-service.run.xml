@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="iam-service" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="Services">
+    <option name="ACTIVE_PROFILES" value="local" />
+    <module name="iam-service.iam-infrastructure.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.vertyll.veds.iam.IAMServiceApplicationKt" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":iam-infrastructure:generateAvroJava" externalProjectPath="$PROJECT_DIR$/iam-service" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>
+

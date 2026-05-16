@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="All services" type="CompoundRunConfigurationType" folderName="Services">
+    <toRun name="api-gateway" type="SpringBootApplicationConfigurationType" />
+    <toRun name="iam-service" type="SpringBootApplicationConfigurationType" />
+    <toRun name="mail-service" type="SpringBootApplicationConfigurationType" />
+    <toRun name="template-service" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>
+

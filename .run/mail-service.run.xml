@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="mail-service" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="Services">
+    <option name="ACTIVE_PROFILES" value="local" />
+    <module name="mail-service.mail-infrastructure.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.vertyll.veds.mail.MailServiceApplicationKt" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":mail-infrastructure:generateAvroJava" externalProjectPath="$PROJECT_DIR$/mail-service" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>
+

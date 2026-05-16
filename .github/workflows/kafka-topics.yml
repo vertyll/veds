@@ -18,12 +18,17 @@ jobs:
         with:
           terraform_version: "1.7.5"
 
+      - name: Build TF_VAR_bootstrap_servers (JSON list)
+        run: |
+          # Convert "a:9092,b:9092" -> ["a:9092","b:9092"] for the list(string) variable.
+          python3 -c "import json,os,sys; \
+            items=[s.strip() for s in os.environ['KAFKA_BOOTSTRAP_SERVERS'].split(',') if s.strip()]; \
+            print('TF_VAR_bootstrap_servers='+json.dumps(items))" >> "$GITHUB_ENV"
+
       - name: Init
         working-directory: infra/kafka
-        run: |
-          terraform init
+        run: terraform init
 
       - name: Apply
         working-directory: infra/kafka
-        run: |
-          terraform apply -auto-approve -var="bootstrap_servers=$KAFKA_BOOTSTRAP_SERVERS"
+        run: terraform apply -auto-approve

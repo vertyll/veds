@@ -1,75 +1,38 @@
-SERVICES = api-gateway iam-service mail-service template-service
-SHARED = shared-infrastructure
+# =============================================================================
+# VEDS - Makefile
+# =============================================================================
+# All real logic lives in Gradle. This file is a convenience wrapper for CLI /
+# CI users who prefer `make X` over `./gradlew X`. In IntelliJ use the run
+# configurations under `.run/` instead.
+#
+# Common targets:
+#   make up                 # start infra (Kafka, Schema Registry, DBs, Keycloak)
+#   make down               # stop infra
+#   make bootstrap          # provision Kafka topics + register Avro schemas
+#   make build              # build everything (all included builds)
+#   make test               # run all tests
+#   make format             # ktlint format
+#   make check              # ktlint + detekt + tests
+#   make docs               # generate Dokka HTML for shared-infrastructure
+# =============================================================================
 
-.PHONY: build-all clean-build-all test-all clean-all format-all check-style-all \
-        up down logs bootstrap register-schemas provision-topics \
-        docs-shared docs-open-shared
+GRADLE := ./gradlew
 
-build-all:
-	@for dir in $(SERVICES) $(SHARED); do \
-		echo "Building $$dir..."; \
-		(cd $$dir && ./gradlew build) || exit 1; \
-	done
+.PHONY: build clean test format check up down logs bootstrap \
+        provision-topics register-schemas docs
 
-clean-build-all:
-	@for dir in $(SERVICES) $(SHARED); do \
-	    echo "Cleaning and building $$dir..."; \
-	    (cd $$dir && ./gradlew clean build) || exit 1; \
-	done
+# --- JVM ---------------------------------------------------------------------
+build:            ; $(GRADLE) build
+clean:            ; $(GRADLE) clean
+test:             ; $(GRADLE) test
+format:           ; $(GRADLE) ktlintFormat
+check:            ; $(GRADLE) check
+docs:             ; $(GRADLE) docs
 
-test-all:
-	@for dir in $(SERVICES) $(SHARED); do \
-		echo "Testing $$dir..."; \
-		(cd $$dir && ./gradlew test) || exit 1; \
-	done
-
-clean-all:
-	@for dir in $(SERVICES) $(SHARED); do \
-		echo "Cleaning $$dir..."; \
-		(cd $$dir && ./gradlew clean) || exit 1; \
-	done
-
-format-all:
-	@for dir in $(SERVICES) $(SHARED); do \
-		echo "Formatting $$dir..."; \
-		(cd $$dir && ./gradlew ktlintFormat) || exit 1; \
-	done
-
-check-style-all:
-	@for dir in $(SERVICES) $(SHARED); do \
-		echo "Checking style $$dir..."; \
-		(cd $$dir && ./gradlew ktlintCheck detekt) || exit 1; \
-	done
-
-# Generate Kotlin API docs (Dokka) for shared-infrastructure.
-# Output: shared-infrastructure/build/docs/dokka/index.html
-docs-shared:
-	@echo "Generating KDoc for $(SHARED)..."
-	@(cd $(SHARED) && ./gradlew dokkaGenerate)
-	@echo "Done: docs/dokka/index.html"
-	@echo "IDE URL: http://localhost:63342/veds/docs/dokka/index.html"
-
-# Generate + open the docs in the default browser.
-docs-open-shared: docs-shared
-	@open "docs/dokka/index.html"
-
-# --- Local infra (podman compose subcommand; works with both podman & docker) ---
-
-up:
-	podman compose up -d kafka schema-registry iam-db mail-db keycloak-db keycloak mail-dev kafka-ui
-	$(MAKE) bootstrap
-
-down:
-	podman compose down
-
-logs:
-	podman compose logs -f --tail=200
-
-# Provision topics (Terraform) + register Avro schemas (Python).
-bootstrap: provision-topics register-schemas
-
-provision-topics:
-	podman compose run --rm topics-init
-
-register-schemas:
-	podman compose run --rm schemas-init
+# --- Local infra (podman compose under the hood) -----------------------------
+up:               ; $(GRADLE) infraUp bootstrap
+down:             ; $(GRADLE) infraDown
+logs:             ; $(GRADLE) infraLogs --console=plain
+bootstrap:        ; $(GRADLE) bootstrap
+provision-topics: ; $(GRADLE) provisionTopics
+register-schemas: ; $(GRADLE) registerSchemas

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="api-gateway" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="Services">
+    <option name="ACTIVE_PROFILES" value="local" />
+    <module name="api-gateway.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.vertyll.veds.apigateway.ApiGatewayApplicationKt" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
+
