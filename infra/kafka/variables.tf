@@ -15,4 +15,3 @@ variable "replication_factor" {
   description = "Default replication factor for topics"
   default     = 1
 }
-

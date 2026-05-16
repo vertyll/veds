@@ -22,7 +22,6 @@ class GatewayConfig {
 
         override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE
 
-        @Suppress("kotlin:S6508")
         override fun filter(
             exchange: ServerWebExchange,
             chain: GatewayFilterChain,

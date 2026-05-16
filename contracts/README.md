@@ -43,7 +43,7 @@ in publishers and consumers via the typed `Builder` API. Do **not** hand-roll
 To regenerate locally:
 
 ```
-./gradlew :iam-service:generateAvroJava :mail-service:generateAvroJava :template-service:generateAvroJava
+./gradlew :iam-service:generateAvroJava :mail-service:generateAvroJava
 ```
 
 ## Compatibility mode

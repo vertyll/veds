@@ -9,4 +9,3 @@
     { "name": "extraPayload", "type": { "type": "map", "values": "string" }, "default": {} }
   ]
 }
-

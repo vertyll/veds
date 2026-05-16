@@ -12,4 +12,3 @@
     { "name": "sagaId", "type": ["null", "string"], "default": null }
   ]
 }
-
