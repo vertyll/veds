@@ -4,6 +4,8 @@
     <img alt="" src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white">
     <img alt="" src="https://img.shields.io/badge/Keycloak-00b8e3?style=for-the-badge&logo=keycloak&logoColor=4D4D4D">
     <img alt="" src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/Apache_Avro-30638E?style=for-the-badge&logo=apacheavro&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white">
 </p>
 
 ## Project Assumptions
@@ -18,8 +20,8 @@ The project is split into the following components:
 1. **API Gateway** – Entry point for all client requests, handles routing to appropriate services, JWT validation, and BFF (Backend-For-Frontend) auth proxy to Keycloak.
 2. **IAM Service** – Consolidates user management, roles, permissions, and account operations. Authentication is delegated to Keycloak.
 3. **Mail Service** – Handles email sending operations and templates.
-4. **Shared Infrastructure** – Shared infrastructure, contracts, and utilities used across all microservices.
-5. **`iam-contracts`, `mail-contracts`, `template-contracts`** – Per-bounded-context Avro Published Language modules. Each holds only Avro `*.avsc` schemas and the Java SpecificRecord classes generated from them.
+4. **Shared Infrastructure** – Engines, contracts, and utilities used across all microservices.
+5. **`iam-contracts`, `mail-contracts`, `template-contracts`** – Per-bounded-context Avro Published Language modules. Each holds only Avro `*.avsc` schemas and the Java `SpecificRecord` classes generated from them.
 6. **Template Service** – Baseline configuration for future microservices.
 
 Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
@@ -27,12 +29,14 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 ### Detailed Description of Components
 
 #### Kafka KRaft Mode
+
 - The system uses Kafka in KRaft mode (Kafka Raft), eliminating the need for Zookeeper.
 - Configuration is handled via `KAFKA_PROCESS_ROLES` (broker, controller) and `KAFKA_CONTROLLER_QUORUM_VOTERS`.
 - A static `CLUSTER_ID` is provided in `docker-compose.yml` for simplified setup.
 
 #### Shared Infrastructure
-- Provides shared code, DTOs, event definitions, and utilities for all microservices.
+
+- Provides shared engines, event definitions, and utilities for all microservices.
 - Implements **persistence-agnostic contracts** for the Transactional Outbox and Saga patterns (`OutboxRepositoryPort`, `ProcessedEventRepositoryPort`, `SagaRepositoryPort`, `SagaStepRepositoryPort`) — any database (PostgreSQL, MongoDB, …) can plug in by implementing the ports.
 - Reusable Kafka building blocks: `KafkaOutboxProcessor` + `OutboxDispatchTx` (two-phase claim/dispatch), `ProcessedEventGuard` (idempotent receiver), `AvroPayloadSerializer`/`AvroPayloadDeserializer`.
 - Shared **technical IdP adapter** for OAuth2/OIDC: `KeycloakJwtAuthenticationConverter` (servlet) and `ReactiveKeycloakJwtAuthenticationConverter` (WebFlux) — wired via `KeycloakSecurityAutoConfiguration`. They translate the configured roles claim (`veds.shared.keycloak.roles-claim-path`) into Spring Security `ROLE_*` authorities without knowing any concrete role names — so they are role-vocabulary-agnostic and remain in `shared-infrastructure` as a pure technical adapter (see *Where do role names live?* below).
@@ -41,20 +45,20 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Composable contracts for inter-service conventions: `SagaCompensationTopic.PREFIX` (each service composes its own `saga-compensation-<participant>` topic).
 - Integration event schemas defined as Avro (`contracts/<service>/<topic>/v<n>/*.avsc`) — binary wire format with Schema Registry.
 
-#### Avro Published Language modules (`iam-contracts`, `mail-contracts`, `template-contracts`)
+#### Avro Published Language modules
 
-- **Why a separate module per bounded context (DDD *Published Language*):**
+- **Why a separate module per bounded context:**
   Avro schemas owned by a service end up as generated `SpecificRecord` Java classes. Generating them inside the consuming service produced a classic Spring Boot DevTools pitfall: the generated classes were loaded by `RestartClassLoader` while collaborator code in `shared-infrastructure` used the application classloader, yielding `ClassCastException: X cannot be cast to X` at runtime.
-  Lifting the contracts into their own composite-build modules (`iam-contracts/`, `mail-contracts/`, `template-contracts/`) ships them as plain library JARs, so they always resolve via the application classloader — the issue cannot recur even when DevTools is added.
-- **What each module contains:** a single `java-library` Gradle build that runs `avro-tools` over the `*.avsc` files and produces a SpecificRecord JAR (`api("org.apache.avro:avro:...")` so consumers get the runtime transitively).
+  Lifting the contracts into their own composite-build modules ships them as plain library JARs, so they always resolve via the application classloader — the issue cannot recur even when DevTools is added.
+- **What each module contains:** a single `java-library` Gradle build that runs `avro-tools` over the `*.avsc` files and produces a `SpecificRecor` JAR (`api("org.apache.avro:avro:...")` so consumers get the runtime transitively).
 - **Where the schemas live:**
     - `iam-contracts` / `mail-contracts` read schemas from the repository-root `contracts/<service>/**` directory — single source of truth shared with the Terraform topic provisioner and the Schema Registry registration script.
     - `template-contracts` keeps its schemas **locally** (`template-contracts/avro/**`) — same rationale as before: the template service is intentionally excluded from production schema/topic provisioning. When cloning, move the schemas under `contracts/<new-service>/`.
-- **How services consume them:** `includeBuild("../iam-contracts")` + `implementation("com.vertyll.veds:iam-contracts")` in each service `settings.gradle.kts` / `infrastructure/build.gradle.kts`.
-- **Anti-Corruption Layer (ACL):** generated Avro types **never** leave the `infrastructure/saga/` package. A dedicated translator (`AvroAuthCompensationCommandTranslator`, `AvroTemplateCompensationCommandTranslator`) decodes raw bytes into a Kotlin `sealed interface` (`AuthCompensationCommand`, `TemplateCompensationCommand`) living in `application/saga/model/`. The application layer therefore stays Avro-, Jackson-, Kafka- and Spring-free, and compensation dispatch is an exhaustive `when` over a typed hierarchy (no `Map<String, Any?>`, no stringly-typed `action` discriminators, compile-time-checked).
-- **DevTools:** intentionally NOT declared in `iam-service/infrastructure`, `mail-service/infrastructure`, `template-service/infrastructure`.
+- **Anti-Corruption Layer (ACL):** generated Avro types **never** leave the `infrastructure/saga/` package. A dedicated translator (`AvroAuthCompensationCommandTranslator`, `AvroTemplateCompensationCommandTranslator`) decodes raw bytes into a Kotlin `sealed interface` (`AuthCompensationCommand`, `TemplateCompensationCommand`) living in `application/saga/model/`. The application layer therefore stays Avro, Jackson, Kafka and Spring free, and compensation dispatch is an exhaustive `when` over a typed hierarchy (no `Map<String, Any?>`, no stringly-typed `action` discriminators, compile-time-checked).
+- **DevTools:** intentionally not declared in `iam-service/infrastructure`, `mail-service/infrastructure`, `template-service/infrastructure`.
 
 #### IAM Service
+
 - Responsible for user profile management, authorization, and account operations.
 - Authentication is fully delegated to Keycloak (via the `IdentityProviderPort` outbound port, implemented by `KeycloakIdentityProviderAdapter`).
 - Uses Keycloak Admin API (via service account) for user provisioning and role sync.
@@ -69,6 +73,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Consumes feedback events from mail-service (`MailSentEvent` / `MailFailedEvent`) and runs compensation logic via a dedicated `saga-compensation-iam` Kafka topic + `AuthCompensationService` use case (rollback user in Keycloak, delete verification token, revert email/password change). The compensation envelope is an Avro **tagged union** (`DeleteUserAction | DeleteVerificationTokenAction | RevertPasswordUpdateAction | RevertEmailUpdateAction`) decoded by an ACL translator into the application-layer `sealed interface AuthCompensationCommand` — see *Avro Published Language modules* above.
 
 #### Mail Service
+
 - Responsible for sending emails based on Thymeleaf templates.
 - Database stores:
     - Email logs and delivery status (`email_log` table).
@@ -80,9 +85,9 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Uses hexagonal architecture to decouple email sending logic from the SMTP/mail provider.
 
 #### Template Service
-- A baseline skeleton for spinning up a new microservice — structurally 1:1 with `mail-service`.
-- **Excluded from the root composite build** (`settings.gradle.kts`), from CI/CD pipelines, and from the global `contracts/` directory. Its Avro schemas live locally in a paired Published Language module `template-contracts/avro/` so they are **not** picked up by the production provisioner image or Terraform topic provisioning.
-- Compile-only: `cd template-service && ./gradlew build` (the `includeBuild("../template-contracts")` line in `template-service/settings.gradle.kts` pulls in the contracts jar automatically).
+
+- A baseline skeleton for spinning up a new microservice.
+- **Excluded from the global `contracts/` directory. Its Avro schemas live locally in a paired Published Language module `template-contracts/avro/` so they are **not** picked up by the production provisioner image or Terraform topic provisioning.
 - Provides:
     - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/{inbound,out}`, `infrastructure/{persistence,kafka,saga,web,config,response,exception}`).
     - Placeholder domain (`Template`, `TemplateStatus`, `TemplateRepository`) with rich-domain methods (`markProcessed`, `markFailed`).
@@ -103,6 +108,11 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - **Containerization**: Docker/Podman containers.
 - **Authentication**: Keycloak JWT + refresh tokens (HttpOnly secure cookie via BFF pattern).
 - **Testing**: JUnit, Testcontainers.
+- **Static Analysis**: ktlint, Detekt.
+- **Documentation**: Dokka for code docs.
+- **Infrastructure as Code**: Terraform for Kafka topic provisioning.
+- **Build and Dependency Management**: Gradle with composite builds for modularization.
+- **Schema Management**: Apache Avro for schema definition, with Schema Registry for versioning and compatibility.
 
 ## Development Setup
 
@@ -144,8 +154,9 @@ cd <service-name>
 - `api-gateway`
 - `iam-service`
 - `mail-service`
-- `template-service` (reference template — excluded from root composite build; compile standalone only)
+- `template-service` (reference template service)
 - `shared-infrastructure` (library)
+- `iam-contracts`, `mail-contracts`, `template-contracts` (Apache Avro contracts)
 
 4. Access the services:
 - API Gateway: http://localhost:8080
@@ -194,34 +205,7 @@ Frontend ──► API Gateway ──► Microservices (Bearer token)
 
 ### Configuration in `shared-config.yml`
 
-All Keycloak-related config is centralized in `shared-infrastructure/src/main/resources/shared-config.yml`:
-
-```yaml
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9000/realms/veds}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:9000/realms/veds/protocol/openid-connect/certs}
-
-veds:
-  shared:
-    keycloak:
-      server-url: ${KEYCLOAK_SERVER_URL:http://localhost:9000}
-      realm: ${KEYCLOAK_REALM:veds}
-      admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:veds-service-account}
-      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:KEYCLOAK_ADMIN_CLIENT_SECRET_HERE}
-      gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID:veds-api-gateway}
-      gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:KEYCLOAK_GATEWAY_CLIENT_SECRET_HERE}
-      roles-claim-path: realm_access.roles
-      cookie:
-        refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
-        http-only: true
-        secure: ${COOKIE_SECURE:false}
-        same-site: Strict
-        path: "/"
-```
+All Keycloak-related config is centralized in `shared-infrastructure/src/main/resources/shared-config.yml` and injected into each service via `KeycloakProperties`.
 
 ### Where do role names live? (microservices anti–shared-kernel)
 
@@ -229,18 +213,10 @@ Role names (`USER`, `ADMIN`) are owned by **two places only**:
 1. **Keycloak realm** (`keycloak/realm-config/realm-export.json`) — the runtime source of truth issued in every access token's `realm_access.roles` claim.
 2. **iam-service** (`iam-service/.../domain/model/RoleType.kt`, `internal`) — a type-safe mirror used solely by the role *administrator* (`RoleInitializer` seeds the DB, `AuthService.register` assigns `USER` via the Keycloak Admin API). The enum is `internal` to the iam-service module and intentionally **not** exported.
 
-Other microservices (`api-gateway`, `mail-service`, `template-service`) **do not** depend on iam-service's enum. They check roles as plain strings:
-
-```kotlin
-// mail-service / template-service / api-gateway SecurityConfig
-.requestMatchers("/mail/**").hasRole("ADMIN")
-
-// IAM controllers
-@PreAuthorize("hasRole('ADMIN')")
-```
+Other microservices (`api-gateway`, `mail-service`, `template-service`) **do not** depend on iam-service's enum. They check roles as plain strings.
 
 Why no `shared-infrastructure.RoleType` enum:
-- It would be a **Shared Kernel** (DDD anti-pattern, Evans, *DDD* ch. 14) — every change to the role vocabulary would force a coordinated recompile/deploy across services.
+- It would be a **Shared Kernel** (DDD antipattern, Evans, *DDD* ch. 14) — every change to the role vocabulary would force a coordinated recompile/deploy across services.
 - It would conflict with the **Bounded Context** boundary: a role's *meaning* (what `ADMIN` is allowed to do) belongs to the service that owns the resource, not to a global enum.
 - The IdP is already the source of truth; an in-code mirror would inevitably drift from Keycloak.
 
@@ -270,23 +246,6 @@ curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token 
 
 An Insomnia collection is provided at `insomnia-collection.yaml` in the project root.
 
-## Global Management (Convenience)
-
-All cross-project actions are driven by **Gradle** at the repository root. The
-`.run/` folder contains shareable IntelliJ run configurations covering the same
-tasks for IDE users.
-
-| Goal                                      | Gradle                                                                                  | IDE run config                                                                          |
-|-------------------------------------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| Build everything                          | `./gradlew build`                                                                       | —                                                                                       |
-| Run all tests                             | `./gradlew test`                                                                        | —                                                                                       |
-| Format (ktlint)                           | `./gradlew ktlintFormat`                                                                | **Quality: ktlintFormat (all)**                                                         |
-| Lint only (ktlint)                        | `./gradlew ktlintCheck`                                                                 | **Quality: ktlintCheck (all)**                                                          |
-| Static analysis only (detekt)             | `./gradlew detekt`                                                                      | **Quality: detekt (all)**                                                               |
-| Static analysis (ktlint + detekt)         | `./gradlew check`                                                                       | **Quality: ktlintCheck + detekt (all)**                                                 |
-| Generate Dokka docs                       | `./gradlew docs`                                                                        | **Docs: Dokka (shared-infrastructure)**                                                 |
-| Run all services together                 | —                                                                                       | **All services** (Compound)                                                             |
-
 ## Architecture Design
 
 ### Hexagonal Architecture (Ports & Adapters)
@@ -307,22 +266,6 @@ Each microservice is designed around a specific business domain with:
 - A layered architecture within the hexagonal structure.
 - Domain-specific language.
 - Encapsulated business logic.
-
-The project structure follows DDD principles within hexagonal architecture:
-- `domain/`: Pure, framework-free core. Rich aggregate models (immutable `data class` with business methods like `User.withRole(...)`, `VerificationToken.markUsed()`, `EmailLog.markAsSent()`), domain enums (e.g. `EmailTemplate`, `TokenTypes`, `EmailStatus`), and **outbound port interfaces** for aggregate repositories (e.g. `UserRepository`, `EmailLogRepository`).
-- `application/`: Use cases — application services orchestrating the domain through ports (e.g. `AuthService`, `EmailSagaService`, `RoleService`, `UserService`, `AuthCompensationService`). Also contains:
-    - `application/port/out/` — outbound technology-facing ports (e.g. `AuthEventPublisherPort`, `IdentityProviderPort`).
-    - `application/saga/model/` — saga aggregates (`Saga`, `SagaStep`, enums `SagaTypes`, `SagaStepNames`, and the per-service `*CompensationCommand` sealed interface — e.g. `AuthCompensationCommand`, `TemplateCompensationCommand` — that mirrors the Avro tagged union).
-    - `application/saga/port/` — saga ports (`SagaProcessPort`, `SagaRepository`, `SagaStepRepository`).
-- `infrastructure/`: Adapters (both driving and driven).
-    - `infrastructure/web/{controller,dto}/` — REST inbound adapter.
-    - `infrastructure/persistence/{entity,repository,adapter}/` — JPA inbound and adapter implementations of repository ports (entities suffixed `*JpaEntity`, Spring Data interfaces suffixed `*JpaRepository`).
-    - `infrastructure/kafka/` — Kafka inbound consumers and outbound publisher adapters.
-    - `infrastructure/saga/` — saga manager and compensation adapters.
-    - `infrastructure/security/` — Spring Security and Keycloak adapters.
-    - `infrastructure/config/`, `infrastructure/exception/`, `infrastructure/response/` — wiring, error handling, response envelopes.
-
-Implementation details inside `infrastructure/persistence/{entity,repository,adapter}/` and `infrastructure/saga/*Adapter` are declared `internal` to hide adapter internals from the rest of the module.
 
 ### SOLID Principles and Separation of Concerns
 
@@ -360,12 +303,12 @@ The system uses **choreography-based sagas** — there is no central orchestrato
 **Polyglot Persistence via Shared Contracts.**
 Both the **Saga** and **Transactional Outbox** patterns are built on top of database-agnostic ports defined in `shared-infrastructure`:
 
-| Contract | Purpose |
-|---|---|
+| Contract                                         | Purpose                                                                                                                        |
+|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | `Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>` | Rich-aggregate ports with F-bounded generics — behavior methods return the concrete adapter type, eliminating unchecked casts. |
-| `SagaRepositoryPort`, `SagaStepRepositoryPort` | Persistence ports for sagas. |
-| `OutboxMessage`, `OutboxRepositoryPort` | Outbox aggregate + repository port (with `lockBatchForDispatch` for `SELECT … FOR UPDATE SKIP LOCKED`). |
-| `ProcessedEventRepositoryPort` | Idempotent-receiver ledger (UNIQUE `(eventId, consumerGroup)`). |
+| `SagaRepositoryPort`, `SagaStepRepositoryPort`   | Persistence ports for sagas.                                                                                                   |
+| `OutboxMessage`, `OutboxRepositoryPort`          | Outbox aggregate + repository port (with `lockBatchForDispatch` for `SELECT … FOR UPDATE SKIP LOCKED`).                        |
+| `ProcessedEventRepositoryPort`                   | Idempotent-receiver ledger (UNIQUE `(eventId, consumerGroup)`).                                                                |
 
 `shared-infrastructure` ships JPA flavors (`BaseSaga`, `BaseSagaStep`, `BaseSagaRepository`, `BaseSagaStepRepository`, `OutboxJpaEntity`) — to introduce a different storage (MongoDB, DynamoDB, …) you only implement the ports against the new technology; the engines do not change.
 
@@ -412,20 +355,24 @@ All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(
 This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimistic Locking (within services) to prevent lost updates and to ensure safe concurrency across microservices and asynchronous processing.
 
 ### Summary
+
 - API layer: ETag/If-Match for conditional updates from clients (front-end, API consumers).
 - Persistence layer: JPA `@Version` on entities and the load → mutate → save a pattern inside a single transaction.
 - Sagas and Outbox: Internal consistency ensured by JPA Optimistic Locking and idempotency safeguards — no HTTP ETags here.
 
 ### Error semantics at the API layer:
+
 - `428 Precondition Required` — missing `If-Match` on required endpoints.
 - `412 Precondition Failed` — ETag/If-Match does not match the current version.
 - `409 Conflict` — last-resort handler for JPA `ObjectOptimisticLockingFailureException` (race detected at commit time).
 
 ### Persistence: JPA Optimistic Locking
+
 - Entities use `@Version` to enable Optimistic Locking (e.g., `User`, `Role`, `OutboxJpaEntity`, `BaseSaga`, `BaseSagaStep`).
 - Services follow the pattern: load the entity → invoke a behavior method (e.g. `saga.markCompleted()`) → `save(...)` inside `@Transactional`. Hibernate includes `WHERE version = ?` and raises a conflict if data changed concurrently.
 
 ### Sagas (Internal, no ETag)
+
 - Sagas are backend-internal processes (event-driven), not HTTP resources — therefore **ETag/If-Match is not used in Sagas**.
 - Concurrency control:
     - `@Version` on `BaseSaga` and `BaseSagaStep` (load → behavior method → save), so Hibernate emits `WHERE version = ?` and raises a conflict if rows changed concurrently.
@@ -436,6 +383,7 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 - Compensation runs in a separate `REQUIRES_NEW` transaction inside `SagaCompensationRunner` and is scheduled with an *after-commit* hook, so a rolled-back business transaction never triggers a stray compensation. `SagaWatchdog` retries stuck `COMPENSATING` / `COMPENSATION_FAILED` sagas with a cooldown (`veds.saga.compensation-retry-cooldown`).
 
 ### Outbox Pattern
+
 - `OutboxJpaEntity` has `@Version` and a UNIQUE constraint on `event_id`.
 - The poller (`KafkaOutboxProcessor`) and the transactional helper (`OutboxDispatchTx`) implement a two-phase claim/dispatch:
     1. Claim batch: short tx, `SELECT … FOR UPDATE SKIP LOCKED` (so multiple instances never grab the same row) → flip `READY → PROCESSING`.
@@ -460,15 +408,11 @@ Each service provides its own Swagger UI for API documentation:
 ## Formatting and code style
 
 The project uses ktlint for code formatting and style checks. Go to the service directory and run:
-
 ```bash
 ./gradlew ktlintFormat
 ```
 
 To check the code style, run:
-
 ```bash
 ./gradlew ktlintCheck
 ```
-
-You can also use the **Quality: ktlintFormat (all)** / **Quality: ktlintCheck + detekt (all)** run configurations from IntelliJ.
