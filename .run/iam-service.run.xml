@@ -5,7 +5,7 @@
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.vertyll.veds.iam.IAMServiceApplicationKt" />
     <method v="2">
       <option name="Make" enabled="true" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":iam-infrastructure:generateAvroJava" externalProjectPath="$PROJECT_DIR$/iam-service" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":iam-infrastructure:classes" externalProjectPath="$PROJECT_DIR$/iam-service" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

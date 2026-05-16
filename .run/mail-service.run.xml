@@ -5,7 +5,7 @@
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.vertyll.veds.mail.MailServiceApplicationKt" />
     <method v="2">
       <option name="Make" enabled="true" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":mail-infrastructure:generateAvroJava" externalProjectPath="$PROJECT_DIR$/mail-service" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":mail-infrastructure:classes" externalProjectPath="$PROJECT_DIR$/mail-service" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>
