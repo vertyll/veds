@@ -25,7 +25,7 @@ internal class SagaStepJpaEntity(
     completedAt: Instant? = null,
     compensationStepId: Long? = null,
     version: Long? = null,
-) : BaseSagaStep(
+) : BaseSagaStep<SagaStepJpaEntity>(
         id = id,
         sagaId = sagaId,
         stepName = stepName,
@@ -36,4 +36,6 @@ internal class SagaStepJpaEntity(
         completedAt = completedAt,
         compensationStepId = compensationStepId,
         version = version,
-    )
+    ) {
+    override fun self(): SagaStepJpaEntity = this
+}

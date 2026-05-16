@@ -11,7 +11,7 @@ import org.springframework.data.repository.NoRepositoryBean
  * port/adapter rationale.
  */
 @NoRepositoryBean
-interface BaseSagaStepRepository<T : BaseSagaStep> :
+interface BaseSagaStepRepository<T : BaseSagaStep<T>> :
     JpaRepository<T, Long>,
     SagaStepRepositoryPort<T> {
     override fun findBySagaId(sagaId: String): List<T>

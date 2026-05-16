@@ -18,7 +18,7 @@ internal class SagaJpaEntity(
     completedAt: Instant? = null,
     updatedAt: Instant = Instant.now(),
     version: Long? = null,
-) : BaseSaga(
+) : BaseSaga<SagaJpaEntity>(
         id = id,
         type = type,
         status = status,
@@ -28,4 +28,6 @@ internal class SagaJpaEntity(
         completedAt = completedAt,
         updatedAt = updatedAt,
         version = version,
-    )
+    ) {
+    override fun self(): SagaJpaEntity = this
+}

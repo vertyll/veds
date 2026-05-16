@@ -1,6 +1,5 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
-import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.saga.contract.Saga
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
@@ -11,6 +10,8 @@ import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 import java.util.UUID
@@ -37,39 +38,19 @@ import java.util.UUID
  * When a step is recorded with [SagaStepStatus.FAILED], compensation is still
  * triggered automatically because a local step failure is an immediate signal.
  */
-open class SagaEngine<S : Saga, T : SagaStep>(
+open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
     private val sagaRepository: SagaRepositoryPort<S>,
     private val sagaStepRepository: SagaStepRepositoryPort<T>,
-    private val kafkaOutboxProcessor: KafkaOutboxProcessor,
     private val objectMapper: ObjectMapper,
     private val entityFactory: SagaEntityFactory<S, T>,
-    private val compensator: SagaCompensator<S, T>,
-    private val compensationEventSerializer: CompensationEventSerializer,
     /**
-     * Kafka topic to which compensation events for the owning service are
-     * published (e.g. `saga-compensation-iam`).
+     * Separate Spring bean that runs the compensation sequence in its own
+     * `REQUIRES_NEW` transaction. Extracted out of [SagaEngine] so the call
+     * goes through Spring's AOP proxy (self-invocation would bypass it).
      */
-    private val compensationTopic: String,
+    private val compensationRunner: SagaCompensationRunner<S, T>,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(SagaEngine::class.java)
-
-    private val compensationContext: SagaCompensationContext =
-        object : SagaCompensationContext {
-            override fun publishCompensationEvent(
-                sagaId: String,
-                stepId: Long?,
-                action: String,
-                extraPayload: Map<String, Any?>,
-            ) {
-                publishCompensation(sagaId, stepId, action, extraPayload)
-            }
-
-            override fun readStepPayload(payload: String?): Map<String, Any?> {
-                if (payload.isNullOrBlank()) return emptyMap()
-                @Suppress("UNCHECKED_CAST")
-                return objectMapper.readValue(payload, Map::class.java) as Map<String, Any?>
-            }
-        }
 
     // ── Enum-typed convenience overloads ────────────────────────────────
 
@@ -186,9 +167,8 @@ open class SagaEngine<S : Saga, T : SagaStep>(
 
         if (saga.status.isTerminal()) return
 
-        val compensating = asS(saga.startCompensating("Step '$stepName' failed"))
-        sagaRepository.save(compensating)
-        triggerCompensation(compensating)
+        sagaRepository.save(saga.startCompensating("Step '$stepName' failed"))
+        scheduleCompensationAfterCommit(sagaId)
     }
 
     // ── Explicit saga state transitions ─────────────────────────────────
@@ -203,7 +183,7 @@ open class SagaEngine<S : Saga, T : SagaStep>(
             return saga
         }
         logger.info("Saga '$sagaId' explicitly marked COMPLETED")
-        return sagaRepository.save(asS(saga.markCompleted()))
+        return sagaRepository.save(saga.markCompleted())
     }
 
     open fun findSagaById(sagaId: String): S? = sagaRepository.findOneById(sagaId)
@@ -218,7 +198,7 @@ open class SagaEngine<S : Saga, T : SagaStep>(
             return saga
         }
         logger.info("Saga '$sagaId' marked AWAITING_RESPONSE")
-        return sagaRepository.save(asS(saga.markAwaitingResponse()))
+        return sagaRepository.save(saga.markAwaitingResponse())
     }
 
     @Transactional
@@ -233,64 +213,43 @@ open class SagaEngine<S : Saga, T : SagaStep>(
             logger.warn("Ignoring failSaga for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
         }
-        val compensating = asS(saga.startCompensating(error))
-        val savedSaga = sagaRepository.save(compensating)
-        triggerCompensation(savedSaga)
+        val savedSaga = sagaRepository.save(saga.startCompensating(error))
+        scheduleCompensationAfterCommit(sagaId)
         return savedSaga
     }
 
     // ── Compensation ────────────────────────────────────────────────────
 
-    private fun publishCompensation(
-        sagaId: String,
-        stepId: Long?,
-        action: String,
-        extraPayload: Map<String, Any?>,
-    ) {
-        val payload =
-            compensationEventSerializer.serializeCompensationEvent(
-                sagaId = sagaId,
-                stepId = stepId,
-                action = action,
-                extraPayload = extraPayload,
+    /**
+     * Registers an after-commit hook that delegates to the proxied
+     * [SagaCompensationRunner.runCompensation] (which opens a fresh
+     * `REQUIRES_NEW` transaction). Decouples broker IO and step-compensation
+     * work from the caller's business transaction; if the caller's
+     * transaction rolls back, the hook is never executed.
+     */
+    private fun scheduleCompensationAfterCommit(sagaId: String) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                object : TransactionSynchronization {
+                    override fun afterCommit() {
+                        compensationRunner.runCompensation(sagaId)
+                    }
+                },
             )
-        kafkaOutboxProcessor.saveOutboxMessage(
-            topic = compensationTopic,
-            key = sagaId,
-            payload = payload,
-            sagaId = sagaId,
-        )
+        } else {
+            // No active transaction (defensive) — run immediately through the
+            // proxy so a real transaction is opened.
+            compensationRunner.runCompensation(sagaId)
+        }
     }
 
-    private fun triggerCompensation(saga: S) {
-        val completedSteps =
-            sagaStepRepository
-                .findBySagaIdAndStatus(saga.id, SagaStepStatus.COMPLETED)
-                .sortedByDescending { it.createdAt }
-
-        logger.info("Triggering compensation for saga '${saga.id}' — ${completedSteps.size} step(s) to compensate")
-
-        var allCompensated = true
-
-        completedSteps.forEach { step ->
-            try {
-                logger.info("Compensating step '${step.stepName}' (id: ${step.id}) for saga '${saga.id}'")
-                compensator.compensateStep(saga, step, compensationContext)
-                sagaStepRepository.save(asT(step.markCompensated()))
-            } catch (e: Exception) {
-                logger.error("Failed to compensate step '${step.stepName}' for saga '${saga.id}': ${e.message}", e)
-                sagaStepRepository.save(asT(step.markCompensationFailed(e.message)))
-                allCompensated = false
-            }
-        }
-
-        if (allCompensated) {
-            logger.info("All steps compensated for saga '${saga.id}' — marking COMPENSATED")
-            sagaRepository.save(asS(saga.markCompensated()))
-        } else {
-            logger.error("Some steps failed compensation for saga '${saga.id}' — marking COMPENSATION_FAILED")
-            sagaRepository.save(asS(saga.markCompensationFailed()))
-        }
+    /**
+     * Public entry point used by [SagaWatchdog] to retry compensation for
+     * sagas stuck in COMPENSATING or that ended in COMPENSATION_FAILED.
+     * Idempotent — safe to call multiple times.
+     */
+    open fun runCompensation(sagaId: String) {
+        compensationRunner.runCompensation(sagaId)
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────
@@ -307,23 +266,11 @@ open class SagaEngine<S : Saga, T : SagaStep>(
     ): T =
         when (target) {
             SagaStepStatus.STARTED, SagaStepStatus.PARTIALLY_COMPLETED -> step
-            SagaStepStatus.COMPLETED -> asT(step.markCompleted())
-            SagaStepStatus.FAILED -> asT(step.markFailed(step.errorMessage ?: defaultErrorReason))
-            SagaStepStatus.COMPENSATED -> asT(step.markCompensated())
-            SagaStepStatus.COMPENSATION_FAILED -> asT(step.markCompensationFailed(step.errorMessage ?: defaultErrorReason))
+            SagaStepStatus.COMPLETED -> step.markCompleted()
+            SagaStepStatus.FAILED -> step.markFailed(step.errorMessage ?: defaultErrorReason)
+            SagaStepStatus.COMPENSATED -> step.markCompensated()
+            SagaStepStatus.COMPENSATION_FAILED -> step.markCompensationFailed(step.errorMessage ?: defaultErrorReason)
         }
-
-    /**
-     * Casts a port-typed [Saga] back to the concrete adapter type [S]. Safe
-     * because the port's behavior methods are contractually defined to return
-     * the same runtime type as the receiver (JPA: `this`; immutable: a copy
-     * of the same class). This is the only cast in the engine.
-     */
-    @Suppress("UNCHECKED_CAST")
-    private fun asS(saga: Saga): S = saga as S
-
-    @Suppress("UNCHECKED_CAST")
-    private fun asT(step: SagaStep): T = step as T
 
     private companion object {
         val TERMINAL_STEP_STATUSES =

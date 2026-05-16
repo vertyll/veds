@@ -15,10 +15,15 @@ import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.sharedinfrastructure.saga.SagaCompensationTopic
+import com.vertyll.veds.sharedinfrastructure.saga.SagaProperties
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventDeserializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSerializer
+import com.vertyll.veds.sharedinfrastructure.saga.service.DefaultSagaCompensationContext
+import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationContext
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationEngine
+import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationRunner
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine
+import com.vertyll.veds.sharedinfrastructure.saga.service.SagaWatchdog
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -32,22 +37,44 @@ internal class SagaConfig {
     }
 
     @Bean
-    fun iamSagaEngine(
-        sagaRepository: SagaJpaRepository,
-        sagaStepRepository: SagaStepJpaRepository,
+    fun iamSagaCompensationContext(
         kafkaOutboxProcessor: KafkaOutboxProcessor,
         compensationEventSerializer: CompensationEventSerializer,
         objectMapper: ObjectMapper,
+    ): SagaCompensationContext =
+        DefaultSagaCompensationContext(
+            kafkaOutboxProcessor = kafkaOutboxProcessor,
+            compensationEventSerializer = compensationEventSerializer,
+            compensationTopic = SAGA_COMPENSATION_TOPIC,
+            objectMapper = objectMapper,
+        )
+
+    @Bean
+    fun iamSagaCompensationRunner(
+        sagaRepository: SagaJpaRepository,
+        sagaStepRepository: SagaStepJpaRepository,
+        compensationContext: SagaCompensationContext,
+    ): SagaCompensationRunner<SagaJpaEntity, SagaStepJpaEntity> =
+        SagaCompensationRunner(
+            sagaRepository = sagaRepository,
+            sagaStepRepository = sagaStepRepository,
+            compensator = IamSagaCompensator(),
+            compensationContext = compensationContext,
+        )
+
+    @Bean
+    fun iamSagaEngine(
+        sagaRepository: SagaJpaRepository,
+        sagaStepRepository: SagaStepJpaRepository,
+        objectMapper: ObjectMapper,
+        compensationRunner: SagaCompensationRunner<SagaJpaEntity, SagaStepJpaEntity>,
     ): SagaEngine<SagaJpaEntity, SagaStepJpaEntity> =
         SagaEngine(
             sagaRepository = sagaRepository,
             sagaStepRepository = sagaStepRepository,
-            kafkaOutboxProcessor = kafkaOutboxProcessor,
             objectMapper = objectMapper,
             entityFactory = IamSagaEntityFactory(),
-            compensator = IamSagaCompensator(),
-            compensationEventSerializer = compensationEventSerializer,
-            compensationTopic = SAGA_COMPENSATION_TOPIC,
+            compensationRunner = compensationRunner,
         )
 
     @Bean
@@ -75,5 +102,17 @@ internal class SagaConfig {
         AvroCompensationEventDeserializer(
             avroPayloadDeserializer = avroPayloadDeserializer,
             topic = SAGA_COMPENSATION_TOPIC,
+        )
+
+    @Bean
+    fun iamSagaWatchdog(
+        sagaRepository: SagaJpaRepository,
+        sagaEngine: SagaEngine<SagaJpaEntity, SagaStepJpaEntity>,
+        sagaProperties: SagaProperties,
+    ): SagaWatchdog<SagaJpaEntity, SagaStepJpaEntity> =
+        SagaWatchdog(
+            sagaRepository = sagaRepository,
+            sagaEngine = sagaEngine,
+            properties = sagaProperties,
         )
 }

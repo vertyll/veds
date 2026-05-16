@@ -19,7 +19,7 @@ import java.time.Instant
  * `this` so Hibernate can dirty-track the update.
  */
 @MappedSuperclass
-abstract class BaseSagaStep(
+abstract class BaseSagaStep<T : BaseSagaStep<T>>(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     override var id: Long? = null,
@@ -37,7 +37,7 @@ abstract class BaseSagaStep(
     compensationStepId: Long? = null,
     @Version
     override var version: Long? = null,
-) : SagaStep {
+) : SagaStep<T> {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     final override var status: SagaStepStatus = status
@@ -55,31 +55,34 @@ abstract class BaseSagaStep(
     final override var compensationStepId: Long? = compensationStepId
         private set
 
-    override fun markCompleted(): SagaStep {
+    /** See [BaseSaga.self] — CRTP hook returning the concrete subtype. */
+    protected abstract fun self(): T
+
+    override fun markCompleted(): T {
         status = SagaStepStatus.COMPLETED
         completedAt = Instant.now()
-        return this
+        return self()
     }
 
-    override fun markFailed(error: String): SagaStep {
+    override fun markFailed(error: String): T {
         status = SagaStepStatus.FAILED
         errorMessage = error
-        return this
+        return self()
     }
 
-    override fun markCompensated(): SagaStep {
+    override fun markCompensated(): T {
         status = SagaStepStatus.COMPENSATED
-        return this
+        return self()
     }
 
-    override fun markCompensationFailed(error: String?): SagaStep {
+    override fun markCompensationFailed(error: String?): T {
         status = SagaStepStatus.COMPENSATION_FAILED
         if (error != null) errorMessage = error
-        return this
+        return self()
     }
 
-    override fun linkToCompensationStep(compensationStepId: Long): SagaStep {
+    override fun linkToCompensationStep(compensationStepId: Long): T {
         this.compensationStepId = compensationStepId
-        return this
+        return self()
     }
 }

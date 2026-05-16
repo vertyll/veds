@@ -3,7 +3,6 @@ package com.vertyll.veds.sharedinfrastructure.kafka
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessage
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessageFactory
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxRepositoryPort
-import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxStatus
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
@@ -14,68 +13,100 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 /**
- * Reusable Kafka outbox processor.
+ * Reusable Kafka outbox processor implementing the **transactional outbox**
+ * pattern (Richardson, *Microservices Patterns*, ch. 3).
  *
- * Depends only on persistence-agnostic ports ([OutboxRepositoryPort] for
- * storage and [OutboxMessageFactory] for instantiating new messages) so the
- * outbox can be backed by any storage technology (JPA today, MongoDB or
- * others by providing alternative port implementations).
+ * Dispatch is a **two-phase** flow that decouples broker IO from the
+ * caller's business transaction and prevents the same row from being
+ * published twice by concurrent poller instances:
+ *  1. **Claim** ([OutboxDispatchTx.claimBatch]) — `SELECT … FOR UPDATE SKIP
+ *     LOCKED` + transition rows to `PROCESSING` in a short transaction.
+ *  2. **Publish** ([dispatch]) — broker network IO outside any DB
+ *     transaction. Status transitions on success/failure happen in fresh
+ *     `REQUIRES_NEW` transactions via [OutboxDispatchTx] so the broker call
+ *     never holds a DB connection.
+ *
+ * The transactional helpers live in a separate bean ([OutboxDispatchTx]) so
+ * the calls go through Spring's AOP proxy and actually open the requested
+ * transaction (self-invocation on `this` would bypass the proxy).
+ *
+ * Depends only on persistence-agnostic ports ([OutboxRepositoryPort] and
+ * [OutboxMessageFactory]) so the outbox can be backed by any storage
+ * technology.
  */
 @Service
 class KafkaOutboxProcessor(
     private val outboxRepository: OutboxRepositoryPort,
     private val outboxMessageFactory: OutboxMessageFactory,
     private val kafkaTemplate: KafkaTemplate<String, ByteArray>,
+    private val properties: KafkaOutboxProperties,
+    private val dispatchTx: OutboxDispatchTx,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
-        private const val MAX_RETRIES = 3
         private const val UNKNOWN_ERROR = "Unknown error"
-        private const val RETRY_DELAY_MINUTES = 5L
-        private const val SECONDS_PER_MINUTE = 60L
+        private const val EVENT_ID_HEADER = "eventId"
     }
 
-    /**
-     * Scheduled job that processes pending messages from the outbox.
-     */
-    @Scheduled(fixedRate = 5000)
-    @Transactional
-    fun processOutboxMessages() {
-        val minRetryTime = Instant.now().minusSeconds(RETRY_DELAY_MINUTES * SECONDS_PER_MINUTE)
-        val pendingMessages =
-            outboxRepository.findMessagesToProcess(
-                OutboxStatus.PENDING,
-                MAX_RETRIES,
-                minRetryTime,
+    @Scheduled(fixedDelayString = $$"${veds.outbox.poll-interval-ms:5000}")
+    fun pollAndDispatch() {
+        val now = Instant.now()
+        val claimed =
+            dispatchTx.claimBatch(
+                maxRetries = properties.maxRetries,
+                retriableBefore = now.minus(properties.retryCooldown),
+                stuckBefore = now.minus(properties.stuckThreshold),
+                batchSize = properties.batchSize,
             )
+        if (claimed.isEmpty()) return
 
-        logger.info("Found ${pendingMessages.size} pending messages to process")
+        logger.debug("Claimed {} outbox message(s) for dispatch", claimed.size)
+        claimed.forEach(::dispatch)
+    }
 
-        pendingMessages.forEach { message ->
-            try {
-                val processing = outboxRepository.save(message.markProcessing())
+    private fun dispatch(message: OutboxMessage) {
+        try {
+            val kafkaMessage =
+                MessageBuilder
+                    .withPayload(message.payload)
+                    .setHeader(KafkaHeaders.TOPIC, message.topic)
+                    .setHeader(KafkaHeaders.KEY, message.key)
+                    .setHeader(EVENT_ID_HEADER, message.eventId)
+                    .build()
 
-                val kafkaMessage =
-                    MessageBuilder
-                        .withPayload(processing.payload)
-                        .setHeader(KafkaHeaders.TOPIC, processing.topic)
-                        .setHeader(KafkaHeaders.KEY, processing.key)
-                        .setHeader("eventId", processing.eventId)
-                        .build()
+            val result = kafkaTemplate.send(kafkaMessage).get()
 
-                val result = kafkaTemplate.send(kafkaMessage).get()
-
-                logger.info(
-                    "Successfully sent message to Kafka: topic=${processing.topic}, " +
-                        "partition=${result.recordMetadata.partition()}, " +
-                        "offset=${result.recordMetadata.offset()}",
+            logger.info(
+                "Published outbox message: eventId={}, topic={}, partition={}, offset={}",
+                message.eventId,
+                message.topic,
+                result.recordMetadata.partition(),
+                result.recordMetadata.offset(),
+            )
+            dispatchTx.markCompleted(message)
+        } catch (e: Exception) {
+            logger.error(
+                "Failed to publish outbox message: eventId={}, topic={}, attempt={}/{} — {}",
+                message.eventId,
+                message.topic,
+                message.retryCount + 1,
+                properties.maxRetries,
+                e.message,
+                e,
+            )
+            dispatchTx.rescheduleOrDeadLetter(
+                message = message,
+                error = e.message ?: UNKNOWN_ERROR,
+                maxRetries = properties.maxRetries,
+            )
+            if (message.retryCount + 1 >= properties.maxRetries) {
+                logger.error(
+                    "Dead-lettered outbox message after {} attempts: eventId={}, topic={}",
+                    properties.maxRetries,
+                    message.eventId,
+                    message.topic,
                 )
-
-                outboxRepository.save(processing.markCompleted())
-            } catch (e: Exception) {
-                logger.error("Failed to process outbox message id=${message.id}: ${e.message}", e)
-                outboxRepository.save(message.markFailed(e.message ?: UNKNOWN_ERROR))
             }
         }
     }

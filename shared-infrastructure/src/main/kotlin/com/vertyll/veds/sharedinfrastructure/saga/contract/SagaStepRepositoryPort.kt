@@ -7,7 +7,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
  *
  * Concrete adapters (JPA, MongoDB, …) implement this interface.
  */
-interface SagaStepRepositoryPort<T : SagaStep> {
+interface SagaStepRepositoryPort<T : SagaStep<T>> {
     fun save(step: T): T
 
     fun findOneById(id: Long): T?

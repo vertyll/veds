@@ -6,13 +6,11 @@ import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxStatus
 import com.vertyll.veds.template.infrastructure.persistence.entity.OutboxJpaEntity
 import com.vertyll.veds.template.infrastructure.persistence.repository.OutboxJpaRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
 
-/**
- * JPA-backed implementation of the outbox ports for the template-service.
- */
 @Component
 internal class OutboxJpaAdapter(
     private val repository: OutboxJpaRepository,
@@ -27,11 +25,20 @@ internal class OutboxJpaAdapter(
 
     override fun findBySagaId(sagaId: String): List<OutboxMessage> = repository.findBySagaId(sagaId)
 
-    override fun findMessagesToProcess(
-        status: OutboxStatus,
+    override fun findByEventId(eventId: String): OutboxMessage? = repository.findByEventId(eventId)
+
+    override fun lockBatchForDispatch(
         maxRetries: Int,
-        minRetryTime: Instant,
-    ): List<OutboxMessage> = repository.findMessagesToProcess(status, maxRetries, minRetryTime)
+        retriableBefore: Instant,
+        stuckBefore: Instant,
+        batchSize: Int,
+    ): List<OutboxMessage> =
+        repository.lockBatchForDispatch(
+            maxRetries = maxRetries,
+            retriableBefore = retriableBefore,
+            stuckBefore = stuckBefore,
+            pageable = PageRequest.of(0, batchSize),
+        )
 
     override fun create(
         topic: String,

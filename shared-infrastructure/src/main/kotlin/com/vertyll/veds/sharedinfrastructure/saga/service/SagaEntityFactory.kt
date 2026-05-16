@@ -15,7 +15,7 @@ import java.time.Instant
  * concrete persistence type (JPA entity, Mongo document, …); the engine itself
  * stays storage-agnostic.
  */
-interface SagaEntityFactory<S : Saga, T : SagaStep> {
+interface SagaEntityFactory<S : Saga<S>, T : SagaStep<T>> {
     fun createSaga(
         id: String,
         type: String,

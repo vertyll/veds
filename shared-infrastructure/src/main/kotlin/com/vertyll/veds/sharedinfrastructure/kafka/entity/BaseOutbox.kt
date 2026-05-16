@@ -53,7 +53,7 @@ abstract class BaseOutbox(
     @Version
     override var version: Long? = null,
 ) : OutboxMessage {
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     final override var eventId: String = eventId
         private set
 
@@ -90,10 +90,17 @@ abstract class BaseOutbox(
         return this
     }
 
-    override fun markFailed(error: String): OutboxMessage {
-        status = OutboxStatus.FAILED
+    override fun markRetryScheduled(error: String): OutboxMessage {
+        status = OutboxStatus.PENDING
         errorMessage = error
         retryCount += 1
+        lastRetryAt = Instant.now()
+        return this
+    }
+
+    override fun markDeadLettered(error: String): OutboxMessage {
+        status = OutboxStatus.DEAD_LETTERED
+        errorMessage = error
         lastRetryAt = Instant.now()
         return this
     }

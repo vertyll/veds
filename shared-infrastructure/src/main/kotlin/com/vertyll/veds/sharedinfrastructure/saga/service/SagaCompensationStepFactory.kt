@@ -10,7 +10,7 @@ import java.time.Instant
  * contract.
  */
 @Suppress("kotlin:S6517")
-interface SagaCompensationStepFactory<T : SagaStep> {
+interface SagaCompensationStepFactory<T : SagaStep<T>> {
     fun createCompensationStep(
         sagaId: String,
         stepName: String,

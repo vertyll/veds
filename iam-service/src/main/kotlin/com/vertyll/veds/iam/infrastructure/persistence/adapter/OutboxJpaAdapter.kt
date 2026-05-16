@@ -6,17 +6,13 @@ import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessage
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxMessageFactory
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.OutboxStatus
-import com.vertyll.veds.sharedinfrastructure.kafka.entity.BaseOutbox
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
 
 /**
- * JPA-backed implementation of the outbox ports for the iam-service.
- *
- * The shared-infrastructure module provides only the [BaseOutbox]
- * `@MappedSuperclass` and the persistence-agnostic ports; this adapter
- * owns the concrete `@Entity` and Spring Data repository.
+ * JPA-backed adapter implementing the outbox ports for iam-service.
  */
 @Component
 internal class OutboxJpaAdapter(
@@ -32,11 +28,20 @@ internal class OutboxJpaAdapter(
 
     override fun findBySagaId(sagaId: String): List<OutboxMessage> = repository.findBySagaId(sagaId)
 
-    override fun findMessagesToProcess(
-        status: OutboxStatus,
+    override fun findByEventId(eventId: String): OutboxMessage? = repository.findByEventId(eventId)
+
+    override fun lockBatchForDispatch(
         maxRetries: Int,
-        minRetryTime: Instant,
-    ): List<OutboxMessage> = repository.findMessagesToProcess(status, maxRetries, minRetryTime)
+        retriableBefore: Instant,
+        stuckBefore: Instant,
+        batchSize: Int,
+    ): List<OutboxMessage> =
+        repository.lockBatchForDispatch(
+            maxRetries = maxRetries,
+            retriableBefore = retriableBefore,
+            stuckBefore = stuckBefore,
+            pageable = PageRequest.of(0, batchSize),
+        )
 
     override fun create(
         topic: String,

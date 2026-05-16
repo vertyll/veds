@@ -17,7 +17,7 @@ import java.time.Instant
  * is unchanged.
  */
 @NoRepositoryBean
-interface BaseSagaRepository<T : BaseSaga> :
+interface BaseSagaRepository<T : BaseSaga<T>> :
     JpaRepository<T, String>,
     SagaRepositoryPort<T> {
     // Spring Data JPA derives implementations for these query methods.
@@ -35,6 +35,11 @@ interface BaseSagaRepository<T : BaseSaga> :
     override fun findByStatusInAndStartedAtBefore(
         statuses: List<SagaStatus>,
         startedAt: Instant,
+    ): List<T>
+
+    override fun findByStatusInAndUpdatedAtBefore(
+        statuses: List<SagaStatus>,
+        updatedAt: Instant,
     ): List<T>
 
     // Bridges between the port (T?) and JpaRepository (Optional<T>).

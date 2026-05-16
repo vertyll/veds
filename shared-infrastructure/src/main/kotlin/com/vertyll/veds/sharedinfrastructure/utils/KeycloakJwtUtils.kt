@@ -15,7 +15,6 @@ object KeycloakJwtUtils {
             current = (current as? Map<*, *>)?.get(part)
         }
 
-        @Suppress("UNCHECKED_CAST")
-        return (current as? List<String>) ?: emptyList()
+        return (current as? List<*>)?.filterIsInstance<String>() ?: emptyList()
     }
 }

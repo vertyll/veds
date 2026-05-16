@@ -24,7 +24,7 @@ import java.time.Instant
  * copy of the document instead. The engine never observes this difference.
  */
 @MappedSuperclass
-abstract class BaseSaga(
+abstract class BaseSaga<S : BaseSaga<S>>(
     @Id
     override var id: String,
     @Column(nullable = false)
@@ -39,7 +39,7 @@ abstract class BaseSaga(
     updatedAt: Instant = Instant.now(),
     @Version
     override var version: Long? = null,
-) : Saga {
+) : Saga<S> {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     final override var status: SagaStatus = status
@@ -57,49 +57,57 @@ abstract class BaseSaga(
     final override var updatedAt: Instant = updatedAt
         private set
 
-    override fun markCompleted(): Saga {
+    /**
+     * Concrete subclasses return `this` as the F-bounded self type [S].
+     * Implementing as `override fun self() = this` is the canonical CRTP
+     * (Curiously Recurring Template Pattern) hook that lets the base class
+     * return the concrete subtype without any unchecked casts.
+     */
+    protected abstract fun self(): S
+
+    override fun markCompleted(): S {
         val now = Instant.now()
         status = SagaStatus.COMPLETED
         completedAt = now
         updatedAt = now
-        return this
+        return self()
     }
 
-    override fun markAwaitingResponse(): Saga {
+    override fun markAwaitingResponse(): S {
         status = SagaStatus.AWAITING_RESPONSE
         updatedAt = Instant.now()
-        return this
+        return self()
     }
 
-    override fun markFailed(error: String): Saga {
+    override fun markFailed(error: String): S {
         val now = Instant.now()
         status = SagaStatus.FAILED
         lastError = error
         completedAt = now
         updatedAt = now
-        return this
+        return self()
     }
 
-    override fun startCompensating(error: String): Saga {
+    override fun startCompensating(error: String): S {
         status = SagaStatus.COMPENSATING
         lastError = error
         updatedAt = Instant.now()
-        return this
+        return self()
     }
 
-    override fun markCompensated(): Saga {
+    override fun markCompensated(): S {
         val now = Instant.now()
         status = SagaStatus.COMPENSATED
         completedAt = now
         updatedAt = now
-        return this
+        return self()
     }
 
-    override fun markCompensationFailed(): Saga {
+    override fun markCompensationFailed(): S {
         val now = Instant.now()
         status = SagaStatus.COMPENSATION_FAILED
         completedAt = now
         updatedAt = now
-        return this
+        return self()
     }
 }

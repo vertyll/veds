@@ -15,7 +15,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
  * is independent of the underlying storage technology.
  */
 @Suppress("kotlin:S6517")
-interface SagaCompensator<S : Saga, T : SagaStep> {
+interface SagaCompensator<S : Saga<S>, T : SagaStep<T>> {
     fun compensateStep(
         saga: S,
         step: T,

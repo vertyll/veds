@@ -30,4 +30,3 @@ object SagaCompensationTopic {
         return "$PREFIX$participant"
     }
 }
-

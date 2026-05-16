@@ -15,7 +15,7 @@ import java.time.Instant
  * [SagaCompensationHandler]) so it is decoupled from the underlying storage
  * technology (JPA today, others possible).
  */
-open class SagaCompensationEngine<T : SagaStep>(
+open class SagaCompensationEngine<T : SagaStep<T>>(
     private val sagaStepRepository: SagaStepRepositoryPort<T>,
     private val compensationEventDeserializer: CompensationEventDeserializer,
     private val stepFactory: SagaCompensationStepFactory<T>,

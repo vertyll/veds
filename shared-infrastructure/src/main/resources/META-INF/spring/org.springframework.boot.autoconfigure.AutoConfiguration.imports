@@ -1,3 +1,4 @@
 com.vertyll.veds.sharedinfrastructure.config.SharedConfigAutoConfiguration
+com.vertyll.veds.sharedinfrastructure.config.OutboxAndSagaAutoConfiguration
 com.vertyll.veds.sharedinfrastructure.security.KeycloakSecurityAutoConfiguration
 com.vertyll.veds.sharedinfrastructure.avro.AvroSerDeAutoConfiguration

@@ -20,8 +20,12 @@ import java.time.Instant
  *  - Immutable documents (Mongo, in-memory) may return a fresh instance via
  *    `copy(...)`.
  * The engine never observes this difference.
+d *
+ * The interface is **F-bounded** (`Saga<S : Saga<S>>`) so behavior methods
+ * return the concrete adapter type [S]. This eliminates unchecked casts in
+ * the engine while preserving the rich-aggregate contract.
  */
-interface Saga {
+interface Saga<S : Saga<S>> {
     val id: String
     val type: String
     val status: SagaStatus
@@ -33,27 +37,27 @@ interface Saga {
     val version: Long?
 
     /** Transitions to [SagaStatus.COMPLETED] and stamps `completedAt`/`updatedAt`. */
-    fun markCompleted(): Saga
+    fun markCompleted(): S
 
     /** Transitions to [SagaStatus.AWAITING_RESPONSE] and stamps `updatedAt`. */
-    fun markAwaitingResponse(): Saga
+    fun markAwaitingResponse(): S
 
     /**
      * Transitions to [SagaStatus.FAILED], stores [error] as `lastError`, and
      * stamps `completedAt`/`updatedAt`.
      */
-    fun markFailed(error: String): Saga
+    fun markFailed(error: String): S
 
     /**
      * Transitions to [SagaStatus.COMPENSATING], stores [error] as `lastError`,
      * and stamps `updatedAt`. Used when a step failure triggers compensation
      * but the saga has not yet completed compensation.
      */
-    fun startCompensating(error: String): Saga
+    fun startCompensating(error: String): S
 
     /** Transitions to [SagaStatus.COMPENSATED] and stamps `completedAt`/`updatedAt`. */
-    fun markCompensated(): Saga
+    fun markCompensated(): S
 
     /** Transitions to [SagaStatus.COMPENSATION_FAILED] and stamps `completedAt`/`updatedAt`. */
-    fun markCompensationFailed(): Saga
+    fun markCompensationFailed(): S
 }
