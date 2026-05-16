@@ -1,4 +1,4 @@
-package com.vertyll.veds.template.application.port.out
+package com.vertyll.veds.template.application.port.outbound
 
 /**
  * Outbound port for publishing template-related domain events.

@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.persistence.adapter
 
-import com.vertyll.veds.mail.application.port.out.SagaRepository
+import com.vertyll.veds.mail.application.port.outbound.SagaRepository
 import com.vertyll.veds.mail.application.saga.model.Saga
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.mail.infrastructure.persistence.repository.SagaJpaRepository

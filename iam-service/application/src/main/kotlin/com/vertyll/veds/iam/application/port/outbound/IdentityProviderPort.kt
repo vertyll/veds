@@ -1,4 +1,4 @@
-package com.vertyll.veds.iam.application.port.out
+package com.vertyll.veds.iam.application.port.outbound
 
 import com.vertyll.veds.iam.domain.model.RoleType
 import java.util.UUID

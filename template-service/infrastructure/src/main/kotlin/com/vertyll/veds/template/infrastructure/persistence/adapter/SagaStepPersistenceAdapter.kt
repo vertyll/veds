@@ -1,7 +1,7 @@
 package com.vertyll.veds.template.infrastructure.persistence.adapter
 
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
-import com.vertyll.veds.template.application.port.out.SagaStepRepository
+import com.vertyll.veds.template.application.port.outbound.SagaStepRepository
 import com.vertyll.veds.template.application.saga.model.SagaStep
 import com.vertyll.veds.template.infrastructure.persistence.entity.SagaStepJpaEntity
 import com.vertyll.veds.template.infrastructure.persistence.repository.SagaStepJpaRepository

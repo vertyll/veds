@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.persistence.adapter
 
-import com.vertyll.veds.iam.application.port.out.SagaRepository
+import com.vertyll.veds.iam.application.port.outbound.SagaRepository
 import com.vertyll.veds.iam.application.saga.model.Saga
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaJpaRepository

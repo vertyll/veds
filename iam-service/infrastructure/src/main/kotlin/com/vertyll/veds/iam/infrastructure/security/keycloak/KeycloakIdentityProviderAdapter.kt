@@ -1,7 +1,7 @@
 package com.vertyll.veds.iam.infrastructure.security.keycloak
 
 import com.vertyll.veds.iam.application.exception.ApiException
-import com.vertyll.veds.iam.application.port.out.IdentityProviderPort
+import com.vertyll.veds.iam.application.port.outbound.IdentityProviderPort
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
 import jakarta.ws.rs.core.Response
 import org.keycloak.admin.client.KeycloakBuilder

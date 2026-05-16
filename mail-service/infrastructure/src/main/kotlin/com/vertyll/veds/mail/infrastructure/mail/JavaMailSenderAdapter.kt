@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.mail
 
-import com.vertyll.veds.mail.application.port.out.MailSenderPort
+import com.vertyll.veds.mail.application.port.outbound.MailSenderPort
 import jakarta.mail.internet.MimeMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper

@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.mail
 
-import com.vertyll.veds.mail.application.port.out.TemplateRendererPort
+import com.vertyll.veds.mail.application.port.outbound.TemplateRendererPort
 import org.springframework.stereotype.Component
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context

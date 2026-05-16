@@ -5,7 +5,7 @@ import com.vertyll.veds.sharedinfrastructure.event.Events
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
 import com.vertyll.veds.template.TemplateFailedEvent
 import com.vertyll.veds.template.TemplateProcessedEvent
-import com.vertyll.veds.template.application.port.out.TemplateEventPublisherPort
+import com.vertyll.veds.template.application.port.outbound.TemplateEventPublisherPort
 import com.vertyll.veds.template.infrastructure.kafka.TemplateKafkaTopics
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

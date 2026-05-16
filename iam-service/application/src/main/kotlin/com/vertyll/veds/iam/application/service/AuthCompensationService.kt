@@ -1,7 +1,7 @@
 package com.vertyll.veds.iam.application.service
 
 import com.vertyll.veds.iam.application.port.inbound.AuthCompensationUseCase
-import com.vertyll.veds.iam.application.port.out.IdentityProviderPort
+import com.vertyll.veds.iam.application.port.outbound.IdentityProviderPort
 import com.vertyll.veds.iam.application.saga.model.SagaCompensationActions
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.domain.repository.VerificationTokenRepository

@@ -1,4 +1,4 @@
-package com.vertyll.veds.iam.application.port.out
+package com.vertyll.veds.iam.application.port.outbound
 
 @Suppress("kotlin:S6517")
 interface AuthEventPublisherPort {

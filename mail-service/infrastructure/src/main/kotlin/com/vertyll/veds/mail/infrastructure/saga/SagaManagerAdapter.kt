@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.saga
 
-import com.vertyll.veds.mail.application.port.out.SagaProcessPort
+import com.vertyll.veds.mail.application.port.outbound.SagaProcessPort
 import com.vertyll.veds.mail.application.saga.model.Saga
 import com.vertyll.veds.mail.application.saga.model.SagaStepNames
 import com.vertyll.veds.mail.application.saga.model.SagaTypes

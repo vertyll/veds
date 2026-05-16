@@ -1,4 +1,4 @@
-package com.vertyll.veds.mail.application.port.out
+package com.vertyll.veds.mail.application.port.outbound
 
 import com.vertyll.veds.mail.application.saga.model.SagaStep
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus

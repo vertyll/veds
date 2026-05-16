@@ -1,4 +1,4 @@
-package com.vertyll.veds.mail.application.port.out
+package com.vertyll.veds.mail.application.port.outbound
 
 /**
  * Outbound port for publishing mail-delivery feedback events back to the rest of the system.

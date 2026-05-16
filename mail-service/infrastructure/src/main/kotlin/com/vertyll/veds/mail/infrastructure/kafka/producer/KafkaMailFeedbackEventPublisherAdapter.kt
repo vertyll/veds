@@ -1,6 +1,6 @@
 package com.vertyll.veds.mail.infrastructure.kafka.producer
 
-import com.vertyll.veds.mail.application.port.out.MailFeedbackEventPublisherPort
+import com.vertyll.veds.mail.application.port.outbound.MailFeedbackEventPublisherPort
 import com.vertyll.veds.mail.infrastructure.kafka.MailKafkaTopics
 import com.vertyll.veds.mail.mail.MailFailedEvent
 import com.vertyll.veds.mail.mail.MailSentEvent

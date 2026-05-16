@@ -3,8 +3,8 @@ package com.vertyll.veds.mail.application.service
 import com.vertyll.veds.mail.application.config.MailProperties
 import com.vertyll.veds.mail.application.dto.EmailLogResponse
 import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
-import com.vertyll.veds.mail.application.port.out.MailSenderPort
-import com.vertyll.veds.mail.application.port.out.TemplateRendererPort
+import com.vertyll.veds.mail.application.port.outbound.MailSenderPort
+import com.vertyll.veds.mail.application.port.outbound.TemplateRendererPort
 import com.vertyll.veds.mail.domain.model.EmailLog
 import com.vertyll.veds.mail.domain.model.EmailStatus
 import com.vertyll.veds.mail.domain.model.EmailTemplate
