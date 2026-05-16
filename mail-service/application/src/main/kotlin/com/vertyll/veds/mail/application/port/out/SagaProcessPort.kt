@@ -1,4 +1,4 @@
-package com.vertyll.veds.mail.application.saga.port
+package com.vertyll.veds.mail.application.port.out
 
 import com.vertyll.veds.mail.application.saga.model.Saga
 import com.vertyll.veds.mail.application.saga.model.SagaStepNames

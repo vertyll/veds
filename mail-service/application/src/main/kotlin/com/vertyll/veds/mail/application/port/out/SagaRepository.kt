@@ -1,7 +1,7 @@
-package com.vertyll.veds.template.application.saga.port
+package com.vertyll.veds.mail.application.port.out
 
+import com.vertyll.veds.mail.application.saga.model.Saga
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStatus
-import com.vertyll.veds.template.application.saga.model.Saga
 import java.time.Instant
 
 interface SagaRepository {

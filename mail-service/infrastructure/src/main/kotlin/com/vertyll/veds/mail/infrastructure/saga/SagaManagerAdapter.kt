@@ -1,9 +1,9 @@
 package com.vertyll.veds.mail.infrastructure.saga
 
+import com.vertyll.veds.mail.application.port.out.SagaProcessPort
 import com.vertyll.veds.mail.application.saga.model.Saga
 import com.vertyll.veds.mail.application.saga.model.SagaStepNames
 import com.vertyll.veds.mail.application.saga.model.SagaTypes
-import com.vertyll.veds.mail.application.saga.port.SagaProcessPort
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine

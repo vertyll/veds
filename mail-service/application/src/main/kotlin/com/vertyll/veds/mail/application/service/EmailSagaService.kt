@@ -3,9 +3,9 @@ package com.vertyll.veds.mail.application.service
 import com.vertyll.veds.mail.application.port.inbound.EmailSagaUseCase
 import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.application.port.out.MailFeedbackEventPublisherPort
+import com.vertyll.veds.mail.application.port.out.SagaProcessPort
 import com.vertyll.veds.mail.application.saga.model.SagaStepNames
 import com.vertyll.veds.mail.application.saga.model.SagaTypes
-import com.vertyll.veds.mail.application.saga.port.SagaProcessPort
 import com.vertyll.veds.mail.domain.model.EmailTemplate
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.LoggerFactory

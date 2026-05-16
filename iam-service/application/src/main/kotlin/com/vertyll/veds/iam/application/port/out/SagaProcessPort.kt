@@ -1,4 +1,4 @@
-package com.vertyll.veds.iam.application.saga.port
+package com.vertyll.veds.iam.application.port.out
 
 import com.vertyll.veds.iam.application.saga.model.Saga
 import com.vertyll.veds.iam.application.saga.model.SagaStepNames

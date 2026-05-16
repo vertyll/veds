@@ -2,9 +2,9 @@ package com.vertyll.veds.template.application.service
 
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.template.application.port.inbound.TemplateSagaUseCase
+import com.vertyll.veds.template.application.port.out.SagaProcessPort
 import com.vertyll.veds.template.application.saga.model.SagaStepNames
 import com.vertyll.veds.template.application.saga.model.SagaTypes
-import com.vertyll.veds.template.application.saga.port.SagaProcessPort
 import com.vertyll.veds.template.domain.model.Template
 import com.vertyll.veds.template.domain.repository.TemplateRepository
 import org.slf4j.LoggerFactory

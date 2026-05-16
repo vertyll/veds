@@ -1,7 +1,7 @@
 package com.vertyll.veds.mail.infrastructure.persistence.adapter
 
+import com.vertyll.veds.mail.application.port.out.SagaStepRepository
 import com.vertyll.veds.mail.application.saga.model.SagaStep
-import com.vertyll.veds.mail.application.saga.port.SagaStepRepository
 import com.vertyll.veds.mail.infrastructure.persistence.entity.SagaStepJpaEntity
 import com.vertyll.veds.mail.infrastructure.persistence.repository.SagaStepJpaRepository
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus

@@ -1,4 +1,4 @@
-package com.vertyll.veds.template.application.saga.port
+package com.vertyll.veds.template.application.port.out
 
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.template.application.saga.model.SagaStep

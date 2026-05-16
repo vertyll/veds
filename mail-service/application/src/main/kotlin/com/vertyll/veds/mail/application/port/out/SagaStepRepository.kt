@@ -1,6 +1,6 @@
-package com.vertyll.veds.iam.application.saga.port
+package com.vertyll.veds.mail.application.port.out
 
-import com.vertyll.veds.iam.application.saga.model.SagaStep
+import com.vertyll.veds.mail.application.saga.model.SagaStep
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 
 interface SagaStepRepository {
