@@ -1,10 +1,9 @@
-r
 <p align="center">
-<img alt="" src="https://img.shields.io/badge/Kotlin-B125EA?style=for-the-badge&logo=kotlin&logoColor=white">
-<img alt="" src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
-<img alt="" src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white">
-<img alt="" src="https://img.shields.io/badge/Keycloak-00b8e3?style=for-the-badge&logo=keycloak&logoColor=4D4D4D">
-<img alt="" src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/Kotlin-B125EA?style=for-the-badge&logo=kotlin&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/Keycloak-00b8e3?style=for-the-badge&logo=keycloak&logoColor=4D4D4D">
+    <img alt="" src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white">
 </p>
 
 ## Project Assumptions
@@ -17,10 +16,10 @@ A microservices-based architecture, following Domain-Driven Design principles, H
 
 The project is split into the following components:
 1. **API Gateway** – Entry point for all client requests, handles routing to appropriate services, JWT validation, and BFF (Backend-For-Frontend) auth proxy to Keycloak.
-2. **IAM Service** – Consolidates user management, roles/permissions, and account operations. Authentication is delegated to Keycloak.
+2. **IAM Service** – Consolidates user management, roles, permissions, and account operations. Authentication is delegated to Keycloak.
 3. **Mail Service** – Handles email sending operations and templates.
 4. **Shared Infrastructure** – Shared infrastructure, contracts, and utilities used across all microservices.
-5. **`iam-contracts` / `mail-contracts` / `template-contracts`** – Per-bounded-context Avro Published Language modules (DDD). Each holds only Avro `*.avsc` schemas and the Java SpecificRecord classes generated from them; consumed as a regular library JAR by the producing/consuming services. See *Avro Published Language modules* below.
+5. **`iam-contracts`, `mail-contracts`, `template-contracts`** – Per-bounded-context Avro Published Language modules. Each holds only Avro `*.avsc` schemas and the Java SpecificRecord classes generated from them.
 6. **Template Service** – Baseline configuration for future microservices.
 
 Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
@@ -40,7 +39,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Saga engine: generic `SagaEngine`, `SagaCompensationRunner`, `SagaWatchdog` operating on F-bounded contracts (`Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>`) — zero unchecked casts in the engine.
 - Externalized configuration: `KafkaOutboxProperties` (`veds.outbox.*`) and `SagaProperties` (`veds.saga.*`) auto-registered by `OutboxAndSagaAutoConfiguration`.
 - Composable contracts for inter-service conventions: `SagaCompensationTopic.PREFIX` (each service composes its own `saga-compensation-<participant>` topic).
-- Integration event schemas defined as Avro (`contracts/<service>/<topic>/v<n>/*.avsc`) — binary wire format with Schema Registry; Jackson is no longer used on the wire (kept only for saga payload JSON in DB and API Gateway HTTP).
+- Integration event schemas defined as Avro (`contracts/<service>/<topic>/v<n>/*.avsc`) — binary wire format with Schema Registry.
 
 #### Avro Published Language modules (`iam-contracts`, `mail-contracts`, `template-contracts`)
 
@@ -53,7 +52,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
     - `template-contracts` keeps its schemas **locally** (`template-contracts/avro/**`) — same rationale as before: the template service is intentionally excluded from production schema/topic provisioning. When cloning, move the schemas under `contracts/<new-service>/`.
 - **How services consume them:** `includeBuild("../iam-contracts")` + `implementation("com.vertyll.veds:iam-contracts")` in each service `settings.gradle.kts` / `infrastructure/build.gradle.kts`.
 - **Anti-Corruption Layer (ACL):** generated Avro types **never** leave the `infrastructure/saga/` package. A dedicated translator (`AvroAuthCompensationCommandTranslator`, `AvroTemplateCompensationCommandTranslator`) decodes raw bytes into a Kotlin `sealed interface` (`AuthCompensationCommand`, `TemplateCompensationCommand`) living in `application/saga/model/`. The application layer therefore stays Avro-, Jackson-, Kafka- and Spring-free, and compensation dispatch is an exhaustive `when` over a typed hierarchy (no `Map<String, Any?>`, no stringly-typed `action` discriminators, compile-time-checked).
-- **DevTools:** intentionally NOT declared in `iam-service/infrastructure`, `mail-service/infrastructure`, `template-service/infrastructure` — see the comments in their `build.gradle.kts`.
+- **DevTools:** intentionally NOT declared in `iam-service/infrastructure`, `mail-service/infrastructure`, `template-service/infrastructure`.
 
 #### IAM Service
 - Responsible for user profile management, authorization, and account operations.
@@ -152,7 +151,6 @@ cd <service-name>
 - API Gateway: http://localhost:8080
 - IAM Service: http://localhost:8082
 - Mail Service: http://localhost:8083
-- Template Service: http://localhost:8084 (when started; baseline skeleton)
 - Keycloak: http://localhost:9000
 - Kafka UI: http://localhost:8090
 - MailDev: http://localhost:1080
@@ -248,7 +246,7 @@ Why no `shared-infrastructure.RoleType` enum:
 
 What stays in `shared-infrastructure/security/` is **only** the technical JWT → `Authentication` adapter (`KeycloakJwtAuthenticationConverter` / `ReactiveKeycloakJwtAuthenticationConverter`). It is role-name-agnostic — it maps *whatever* strings sit in the configured claim path onto `ROLE_*` authorities. Each service then decides which of those it cares about, in its own `SecurityConfig`.
 
-### Useful Keycloak URLs (local dev)| URL                                                                | Description                             |
+| ### Useful Keycloak URLs (local dev)                               | URL  Description                        |
 |--------------------------------------------------------------------|-----------------------------------------|
 | http://localhost:9000                                              | Keycloak admin console                  |
 | http://localhost:9000/realms/veds/.well-known/openid-configuration | OpenID Connect discovery                |
@@ -287,12 +285,6 @@ tasks for IDE users.
 | Static analysis only (detekt)             | `./gradlew detekt`                                                                      | **Quality: detekt (all)**                                                               |
 | Static analysis (ktlint + detekt)         | `./gradlew check`                                                                       | **Quality: ktlintCheck + detekt (all)**                                                 |
 | Generate Dokka docs                       | `./gradlew docs`                                                                        | **Docs: Dokka (shared-infrastructure)**                                                 |
-| Start local infra                         | `./gradlew infraUp bootstrap`                                                           | **Infra: Up** *(Gradle)* / **Infra: Up (compose)** *(native Docker, IDEA Ultimate)*     |
-| Stop local infra                          | `./gradlew infraDown`                                                                   | **Infra: Down** *(Gradle)* / **Infra: Down (compose)** *(native Docker, IDEA Ultimate)* |
-| Tail container logs                       | `./gradlew infraLogs`                                                                   | —                                                                                       |
-| Provision Kafka topics (Terraform, local) | `./gradlew provisionTopics`                                                             | **Infra: Provision topics**                                                             |
-| Register Avro schemas (local)             | `./gradlew registerSchemas`                                                             | **Infra: Register schemas**                                                             |
-| Provision **prod** topics + schemas       | `podman-compose --profile provision run --rm veds-provisioner` *(on server, see below)* | —                                                                                       |
 | Run all services together                 | —                                                                                       | **All services** (Compound)                                                             |
 
 ## Architecture Design
