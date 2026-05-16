@@ -1,29 +1,23 @@
-resource "kafka_topic" "mail_requested" {
-  name               = "mail-requested"
+locals {
+  business_topics = [
+    "mail-requested",
+    "mail-sent",
+    "mail-failed",
+    "saga-compensation-iam",
+    "saga-compensation-mail",
+  ]
+}
+
+resource "kafka_topic" "business" {
+  for_each           = toset(local.business_topics)
+  name               = each.value
   partitions         = var.partitions
   replication_factor = var.replication_factor
 }
 
-resource "kafka_topic" "mail_sent" {
-  name               = "mail-sent"
-  partitions         = var.partitions
-  replication_factor = var.replication_factor
-}
-
-resource "kafka_topic" "mail_failed" {
-  name               = "mail-failed"
-  partitions         = var.partitions
-  replication_factor = var.replication_factor
-}
-
-resource "kafka_topic" "saga_compensation_iam" {
-  name               = "saga-compensation-iam"
-  partitions         = var.partitions
-  replication_factor = var.replication_factor
-}
-
-resource "kafka_topic" "saga_compensation_mail" {
-  name               = "saga-compensation-mail"
+resource "kafka_topic" "dlt" {
+  for_each           = toset(local.business_topics)
+  name               = "${each.value}-dlt"
   partitions         = var.partitions
   replication_factor = var.replication_factor
 }

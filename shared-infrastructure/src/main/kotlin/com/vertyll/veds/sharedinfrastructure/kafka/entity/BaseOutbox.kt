@@ -20,7 +20,7 @@ import java.util.UUID
  * Concrete per-service entities (e.g. `OutboxJpaEntity` in iam/mail/template)
  * extend this class with their own `@Entity` + `@Table(name = "kafka_outbox")`
  * annotations. The base class implements the persistence-agnostic
- * [OutboxMessage] contract: mutable fields use `var` with `private set` so
+ * [OutboxMessage] contract: mutable fields use `var` with `protected set` so
  * that Hibernate dirty-tracking can emit partial `UPDATE` statements while
  * still exposing an effectively-immutable API to callers via behavior
  * methods (DDD rich aggregate).
@@ -54,29 +54,29 @@ abstract class BaseOutbox(
     override var version: Long? = null,
 ) : OutboxMessage {
     @Column(nullable = false, unique = true)
-    final override var eventId: String = eventId
-        private set
+    override var eventId: String = eventId
+        protected set
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    final override var status: OutboxStatus = status
-        private set
+    override var status: OutboxStatus = status
+        protected set
 
     @Column(nullable = true)
-    final override var errorMessage: String? = errorMessage
-        private set
+    override var errorMessage: String? = errorMessage
+        protected set
 
     @Column(nullable = true)
-    final override var processedAt: Instant? = processedAt
-        private set
+    override var processedAt: Instant? = processedAt
+        protected set
 
     @Column(nullable = false)
-    final override var retryCount: Int = retryCount
-        private set
+    override var retryCount: Int = retryCount
+        protected set
 
     @Column(nullable = true)
-    final override var lastRetryAt: Instant? = lastRetryAt
-        private set
+    override var lastRetryAt: Instant? = lastRetryAt
+        protected set
 
     override fun markProcessing(): OutboxMessage {
         status = OutboxStatus.PROCESSING

@@ -42,20 +42,20 @@ abstract class BaseSaga<S : BaseSaga<S>>(
 ) : Saga<S> {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    final override var status: SagaStatus = status
-        private set
+    override var status: SagaStatus = status
+        protected set
 
     @Column(nullable = true)
-    final override var lastError: String? = lastError
-        private set
+    override var lastError: String? = lastError
+        protected set
 
     @Column(nullable = true)
-    final override var completedAt: Instant? = completedAt
-        private set
+    override var completedAt: Instant? = completedAt
+        protected set
 
     @Column(nullable = false)
-    final override var updatedAt: Instant = updatedAt
-        private set
+    override var updatedAt: Instant = updatedAt
+        protected set
 
     /**
      * Concrete subclasses return `this` as the F-bounded self type [S].

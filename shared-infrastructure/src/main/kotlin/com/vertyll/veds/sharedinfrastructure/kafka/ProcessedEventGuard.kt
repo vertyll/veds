@@ -5,8 +5,9 @@ import com.vertyll.veds.sharedinfrastructure.kafka.contract.ProcessedEventReposi
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.support.TransactionTemplate
 
 /**
  * Guard implementing the **idempotent receiver** pattern for Kafka
@@ -34,8 +35,14 @@ import org.springframework.transaction.annotation.Transactional
 class ProcessedEventGuard(
     private val repository: ProcessedEventRepositoryPort,
     private val factory: ProcessedEventFactory,
+    transactionManager: PlatformTransactionManager,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    private val newTxTemplate =
+        TransactionTemplate(transactionManager).apply {
+            propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+        }
 
     /**
      * Atomically claims [eventId] for [consumerGroup].
@@ -44,13 +51,14 @@ class ProcessedEventGuard(
      * caller should proceed with processing; `false` if it was already
      * processed (duplicate) and the caller should skip.
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun claim(
         eventId: String,
         consumerGroup: String,
     ): Boolean =
         try {
-            repository.insert(factory.create(eventId = eventId, consumerGroup = consumerGroup))
+            newTxTemplate.execute {
+                repository.insert(factory.create(eventId = eventId, consumerGroup = consumerGroup))
+            }
             true
         } catch (_: DataIntegrityViolationException) {
             logger.debug("Duplicate event detected: eventId={}, consumerGroup={}", eventId, consumerGroup)

@@ -40,20 +40,20 @@ abstract class BaseSagaStep<T : BaseSagaStep<T>>(
 ) : SagaStep<T> {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    final override var status: SagaStepStatus = status
-        private set
+    override var status: SagaStepStatus = status
+        protected set
 
     @Column(nullable = true)
-    final override var errorMessage: String? = errorMessage
-        private set
+    override var errorMessage: String? = errorMessage
+        protected set
 
     @Column(nullable = true)
-    final override var completedAt: Instant? = completedAt
-        private set
+    override var completedAt: Instant? = completedAt
+        protected set
 
     @Column(nullable = true)
-    final override var compensationStepId: Long? = compensationStepId
-        private set
+    override var compensationStepId: Long? = compensationStepId
+        protected set
 
     /** See [BaseSaga.self] — CRTP hook returning the concrete subtype. */
     protected abstract fun self(): T
