@@ -13,4 +13,3 @@ contracts/{service}/{topic}/v{version}/{schema}.avsc
 ```
 
 Subject: `{topic}-value`
-

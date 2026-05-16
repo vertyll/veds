@@ -74,8 +74,6 @@ def main() -> int:
             raise SystemExit(f"Unexpected schema path layout: {schema_path}")
 
         subject = f"{topic}-value"
-        # Set compatibility BEFORE registering so the very first version
-        # is also validated against the chosen rules going forward.
         _put_subject_compatibility(args.registry_url, subject, args.compatibility)
         _register_schema(args.registry_url, subject, schema_path)
 
