@@ -260,22 +260,24 @@ An Insomnia collection is provided at `insomnia-collection.yaml` in the project 
 ## Global Management (Convenience)
 
 All cross-project actions are driven by **Gradle** at the repository root. The
-`Makefile` is a thin alias layer for CLI/CI users; the `.run/` folder contains
-shareable IntelliJ run configurations covering the same tasks.
+`.run/` folder contains shareable IntelliJ run configurations covering the same
+tasks for IDE users.
 
-| Goal                               | Gradle                        | Make alias              | IDE run config                          |
-|------------------------------------|-------------------------------|-------------------------|-----------------------------------------|
-| Build everything                   | `./gradlew build`             | `make build`            | —                                       |
-| Run all tests                      | `./gradlew test`              | `make test`             | —                                       |
-| Format (ktlint)                    | `./gradlew ktlintFormat`      | `make format`           | **Quality: ktlintFormat (all)**         |
-| Static analysis (ktlint + detekt)  | `./gradlew check`             | `make check`            | **Quality: ktlintCheck + detekt (all)** |
-| Generate Dokka docs                | `./gradlew docs`              | `make docs`             | **Docs: Dokka (shared-infrastructure)** |
-| Start local infra                  | `./gradlew infraUp bootstrap` | `make up`               | **Infra: Up** + **Infra: Bootstrap**    |
-| Stop local infra                   | `./gradlew infraDown`         | `make down`             | **Infra: Down**                         |
-| Tail container logs                | `./gradlew infraLogs`         | `make logs`             | —                                       |
-| Provision Kafka topics (Terraform) | `./gradlew provisionTopics`   | `make provision-topics` | **Infra: Provision topics**             |
-| Register Avro schemas              | `./gradlew registerSchemas`   | `make register-schemas` | **Infra: Register schemas**             |
-| Run all services together          | —                             | —                       | **All services** (Compound)             |
+| Goal                               | Gradle                        | IDE run config                                                                          |
+|------------------------------------|-------------------------------|-----------------------------------------------------------------------------------------|
+| Build everything                   | `./gradlew build`             | —                                                                                       |
+| Run all tests                      | `./gradlew test`              | —                                                                                       |
+| Format (ktlint)                    | `./gradlew ktlintFormat`      | **Quality: ktlintFormat (all)**                                                         |
+| Lint only (ktlint)                 | `./gradlew ktlintCheck`       | **Quality: ktlintCheck (all)**                                                          |
+| Static analysis only (detekt)      | `./gradlew detekt`            | **Quality: detekt (all)**                                                               |
+| Static analysis (ktlint + detekt)  | `./gradlew check`             | **Quality: ktlintCheck + detekt (all)**                                                 |
+| Generate Dokka docs                | `./gradlew docs`              | **Docs: Dokka (shared-infrastructure)**                                                 |
+| Start local infra                  | `./gradlew infraUp bootstrap` | **Infra: Up** *(Gradle)* / **Infra: Up (compose)** *(native Docker, IDEA Ultimate)*     |
+| Stop local infra                   | `./gradlew infraDown`         | **Infra: Down** *(Gradle)* / **Infra: Down (compose)** *(native Docker, IDEA Ultimate)* |
+| Tail container logs                | `./gradlew infraLogs`         | —                                                                                       |
+| Provision Kafka topics (Terraform) | `./gradlew provisionTopics`   | **Infra: Provision topics**                                                             |
+| Register Avro schemas              | `./gradlew registerSchemas`   | **Infra: Register schemas**                                                             |
+| Run all services together          | —                             | **All services** (Compound)                                                             |
 
 ## Architecture Design
 
@@ -461,4 +463,4 @@ To check the code style, run:
 ./gradlew ktlintCheck
 ```
 
-You can also use `make format` and `make check` from the root directory.
+You can also use the **Quality: ktlintFormat (all)** / **Quality: ktlintCheck + detekt (all)** run configurations from IntelliJ.
