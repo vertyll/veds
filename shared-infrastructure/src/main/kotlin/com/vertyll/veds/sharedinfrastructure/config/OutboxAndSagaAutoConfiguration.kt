@@ -15,4 +15,4 @@ import org.springframework.scheduling.annotation.EnableScheduling
     KafkaOutboxProperties::class,
     SagaProperties::class,
 )
-class OutboxAndSagaAutoConfiguration
+internal class OutboxAndSagaAutoConfiguration

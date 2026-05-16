@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnProperty(
     name = ["spring.kafka.schema-registry-url"],
 )
-class AvroSerDeAutoConfiguration {
+internal class AvroSerDeAutoConfiguration {
     /** Confluent Avro serializer wired to the configured Schema Registry. */
     @Bean
     fun avroPayloadSerializer(properties: KafkaInfraProperties) = AvroPayloadSerializer(properties)

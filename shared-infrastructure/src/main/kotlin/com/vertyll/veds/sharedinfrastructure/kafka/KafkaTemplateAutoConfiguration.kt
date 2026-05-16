@@ -36,7 +36,7 @@ import org.springframework.util.backoff.FixedBackOff
     matchIfMissing = true,
 )
 @EnableConfigurationProperties(KafkaInfraProperties::class)
-class KafkaTemplateAutoConfiguration {
+internal class KafkaTemplateAutoConfiguration {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {

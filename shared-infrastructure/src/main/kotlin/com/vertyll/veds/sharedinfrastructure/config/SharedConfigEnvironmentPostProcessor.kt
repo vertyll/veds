@@ -10,7 +10,7 @@ import org.springframework.core.io.ClassPathResource
  * EnvironmentPostProcessor that automatically loads shared-config.yml from the classpath.
  * This eliminates the need for each microservice to manually import it in application.yml.
  */
-class SharedConfigEnvironmentPostProcessor : EnvironmentPostProcessor {
+internal class SharedConfigEnvironmentPostProcessor : EnvironmentPostProcessor {
     private val loader = YamlPropertySourceLoader()
 
     override fun postProcessEnvironment(

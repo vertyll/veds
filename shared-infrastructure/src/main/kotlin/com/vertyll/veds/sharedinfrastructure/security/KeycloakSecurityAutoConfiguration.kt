@@ -14,7 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt
  */
 @Configuration
 @ConditionalOnClass(Jwt::class)
-class KeycloakSecurityAutoConfiguration {
+internal class KeycloakSecurityAutoConfiguration {
     /** Servlet-stack JWT → `AbstractAuthenticationToken` converter bean. */
     @Bean
     @ConditionalOnMissingBean
