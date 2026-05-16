@@ -66,3 +66,34 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Run provisioner one-shot on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            cd ~/podman/compose
+
+            echo "Logging into GitHub Container Registry..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin > /dev/null 2>&1
+
+            echo "Pulling latest provisioner image..."
+            podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest > /dev/null 2>&1
+
+            echo "Ensuring Terraform state dir exists..."
+            mkdir -p ./data/veds-provisioner-state
+
+            echo "=== Running provisioner (topics + schemas) ==="
+            # --rm cleans up the container, --force-recreate ensures latest image is used.
+            podman compose -f veds.yml --profile provision run --rm veds-provisioner
+
+            echo "✓ Provisioning finished"

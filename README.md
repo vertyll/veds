@@ -68,7 +68,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 #### Template Service
 - A baseline skeleton for spinning up a new microservice — structurally 1:1 with `mail-service`.
-- **Excluded from the root composite build** (`settings.gradle.kts`), from CI/CD pipelines, and from the global `contracts/` directory. Its Avro schemas live locally under `template-service/infrastructure/src/main/avro/` so they are **not** picked up by `schema-registry.yml` or Terraform topic provisioning.
+- **Excluded from the root composite build** (`settings.gradle.kts`), from CI/CD pipelines, and from the global `contracts/` directory. Its Avro schemas live locally under `template-service/infrastructure/src/main/avro/` so they are **not** picked up by the production provisioner image or Terraform topic provisioning.
 - Compile-only: `cd template-service && ./gradlew build`.
 - Provides:
     - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/{inbound,out}`, `infrastructure/{persistence,kafka,saga,web,config,response,exception}`).
@@ -263,21 +263,22 @@ All cross-project actions are driven by **Gradle** at the repository root. The
 `.run/` folder contains shareable IntelliJ run configurations covering the same
 tasks for IDE users.
 
-| Goal                               | Gradle                        | IDE run config                                                                          |
-|------------------------------------|-------------------------------|-----------------------------------------------------------------------------------------|
-| Build everything                   | `./gradlew build`             | —                                                                                       |
-| Run all tests                      | `./gradlew test`              | —                                                                                       |
-| Format (ktlint)                    | `./gradlew ktlintFormat`      | **Quality: ktlintFormat (all)**                                                         |
-| Lint only (ktlint)                 | `./gradlew ktlintCheck`       | **Quality: ktlintCheck (all)**                                                          |
-| Static analysis only (detekt)      | `./gradlew detekt`            | **Quality: detekt (all)**                                                               |
-| Static analysis (ktlint + detekt)  | `./gradlew check`             | **Quality: ktlintCheck + detekt (all)**                                                 |
-| Generate Dokka docs                | `./gradlew docs`              | **Docs: Dokka (shared-infrastructure)**                                                 |
-| Start local infra                  | `./gradlew infraUp bootstrap` | **Infra: Up** *(Gradle)* / **Infra: Up (compose)** *(native Docker, IDEA Ultimate)*     |
-| Stop local infra                   | `./gradlew infraDown`         | **Infra: Down** *(Gradle)* / **Infra: Down (compose)** *(native Docker, IDEA Ultimate)* |
-| Tail container logs                | `./gradlew infraLogs`         | —                                                                                       |
-| Provision Kafka topics (Terraform) | `./gradlew provisionTopics`   | **Infra: Provision topics**                                                             |
-| Register Avro schemas              | `./gradlew registerSchemas`   | **Infra: Register schemas**                                                             |
-| Run all services together          | —                             | **All services** (Compound)                                                             |
+| Goal                                      | Gradle                                                                                  | IDE run config                                                                          |
+|-------------------------------------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| Build everything                          | `./gradlew build`                                                                       | —                                                                                       |
+| Run all tests                             | `./gradlew test`                                                                        | —                                                                                       |
+| Format (ktlint)                           | `./gradlew ktlintFormat`                                                                | **Quality: ktlintFormat (all)**                                                         |
+| Lint only (ktlint)                        | `./gradlew ktlintCheck`                                                                 | **Quality: ktlintCheck (all)**                                                          |
+| Static analysis only (detekt)             | `./gradlew detekt`                                                                      | **Quality: detekt (all)**                                                               |
+| Static analysis (ktlint + detekt)         | `./gradlew check`                                                                       | **Quality: ktlintCheck + detekt (all)**                                                 |
+| Generate Dokka docs                       | `./gradlew docs`                                                                        | **Docs: Dokka (shared-infrastructure)**                                                 |
+| Start local infra                         | `./gradlew infraUp bootstrap`                                                           | **Infra: Up** *(Gradle)* / **Infra: Up (compose)** *(native Docker, IDEA Ultimate)*     |
+| Stop local infra                          | `./gradlew infraDown`                                                                   | **Infra: Down** *(Gradle)* / **Infra: Down (compose)** *(native Docker, IDEA Ultimate)* |
+| Tail container logs                       | `./gradlew infraLogs`                                                                   | —                                                                                       |
+| Provision Kafka topics (Terraform, local) | `./gradlew provisionTopics`                                                             | **Infra: Provision topics**                                                             |
+| Register Avro schemas (local)             | `./gradlew registerSchemas`                                                             | **Infra: Register schemas**                                                             |
+| Provision **prod** topics + schemas       | `podman compose --profile provision run --rm veds-provisioner` *(on server, see below)* | —                                                                                       |
+| Run all services together                 | —                                                                                       | **All services** (Compound)                                                             |
 
 ## Architecture Design
 
