@@ -13,7 +13,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "email_log")
-class EmailLogJpaEntity(
+internal class EmailLogJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,

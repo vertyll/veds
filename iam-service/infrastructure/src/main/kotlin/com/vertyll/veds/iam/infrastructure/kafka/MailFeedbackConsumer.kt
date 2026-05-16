@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component
  * processing.
  */
 @Component
-class MailFeedbackConsumer(
+internal class MailFeedbackConsumer(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val mailFeedbackService: MailFeedbackService,
     private val processedEventGuard: ProcessedEventGuard,

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-class UserPersistenceAdapter(
+internal class UserPersistenceAdapter(
     private val repository: UserJpaRepository,
     private val roleJpaRepository: RoleJpaRepository,
     private val permissionJpaRepository: PermissionJpaRepository,

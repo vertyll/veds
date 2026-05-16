@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class RoleInitializer(
+internal class RoleInitializer(
     private val roleRepository: RoleRepository,
 ) : ApplicationRunner {
     private companion object {

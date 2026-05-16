@@ -4,8 +4,6 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
-extra["kotlin.version"] = "2.3.21"
-
 dependencyManagement {
     imports {
         mavenBom(
@@ -17,7 +15,7 @@ dependencyManagement {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    implementation(project(":iam-domain"))
     implementation("com.vertyll.veds:shared-infrastructure")
     implementation(libs.bundles.spring.boot.common)
 }

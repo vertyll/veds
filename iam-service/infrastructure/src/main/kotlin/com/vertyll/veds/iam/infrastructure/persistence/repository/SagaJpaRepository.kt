@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import java.time.Instant
 
 @Repository
-interface SagaJpaRepository :
+internal interface SagaJpaRepository :
     JpaRepository<SagaJpaEntity, String>,
     BaseSagaRepository<SagaJpaEntity> {
     override fun findByTypeAndStatus(

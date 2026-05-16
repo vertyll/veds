@@ -9,7 +9,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "kafka_outbox")
-class OutboxJpaEntity(
+internal class OutboxJpaEntity(
     id: Long? = null,
     eventId: String = UUID.randomUUID().toString(),
     topic: String,

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/users")
 @Tag(name = "Users", description = "User management API")
-class UserController(
+internal class UserController(
     private val userService: UserService,
 ) {
     private companion object {

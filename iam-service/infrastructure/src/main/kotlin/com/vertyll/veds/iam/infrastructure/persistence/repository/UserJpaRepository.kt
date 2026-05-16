@@ -10,7 +10,7 @@ import java.util.Optional
 import java.util.UUID
 
 @Repository
-interface UserJpaRepository : JpaRepository<UserJpaEntity, Long> {
+internal interface UserJpaRepository : JpaRepository<UserJpaEntity, Long> {
     @EntityGraph(attributePaths = ["roles", "permissions"])
     fun findByEmail(email: String): Optional<UserJpaEntity>
 

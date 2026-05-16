@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-class SecurityConfig(
+internal class SecurityConfig(
     private val keycloakJwtAuthenticationConverter: KeycloakJwtAuthenticationConverter,
 ) {
     companion object {

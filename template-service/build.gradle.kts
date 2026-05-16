@@ -18,9 +18,13 @@ description = "Template Microservice"
 extra["author"] = "Mikołaj Gawron"
 extra["email"] = "gawrmiko@gmail.com"
 
+val kotlinVersion = libs.versions.kotlin.asProvider().get()
+
 allprojects {
     group = rootProject.group
     version = rootProject.version
+
+    extra["kotlin.version"] = kotlinVersion
 
     repositories {
         mavenCentral()
@@ -29,8 +33,8 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin = rootProject.libs.plugins.ktlint.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
+    pluginManager.apply(rootProject.libs.plugins.ktlint.get().pluginId)
+    pluginManager.apply(rootProject.libs.plugins.detekt.get().pluginId)
 
     plugins.withId(rootProject.libs.plugins.kotlin.jvm.get().pluginId) {
         configure<JavaPluginExtension> {
@@ -78,5 +82,13 @@ subprojects {
 
     tasks.matching { it.name == "check" }.configureEach {
         dependsOn("detekt")
+    }
+}
+
+listOf("test", "detekt", "ktlintCheck", "ktlintFormat").forEach { taskName ->
+    tasks.register(taskName) {
+        group = if (taskName == "ktlintFormat") "formatting" else "verification"
+        description = "Aggregates :$taskName across all subprojects"
+        dependsOn(subprojects.map { "${it.path}:$taskName" })
     }
 }

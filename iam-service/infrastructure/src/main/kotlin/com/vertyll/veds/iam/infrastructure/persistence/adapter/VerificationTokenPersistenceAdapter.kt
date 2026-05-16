@@ -8,7 +8,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class VerificationTokenPersistenceAdapter(
+internal class VerificationTokenPersistenceAdapter(
     private val repository: VerificationTokenJpaRepository,
 ) : VerificationTokenRepository {
     override fun save(verificationToken: VerificationToken): VerificationToken = repository.save(verificationToken.toJpaEntity()).toDomain()

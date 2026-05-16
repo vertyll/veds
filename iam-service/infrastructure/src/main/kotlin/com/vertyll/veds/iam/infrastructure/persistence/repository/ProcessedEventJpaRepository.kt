@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProcessedEventJpaRepository : JpaRepository<ProcessedEventJpaEntity, Long> {
+internal interface ProcessedEventJpaRepository : JpaRepository<ProcessedEventJpaEntity, Long> {
     fun existsByEventIdAndConsumerGroup(
         eventId: String,
         consumerGroup: String,

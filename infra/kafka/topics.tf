@@ -51,4 +51,3 @@ resource "kafka_topic" "saga_compensation_template" {
   partitions         = var.partitions
   replication_factor = var.replication_factor
 }
-

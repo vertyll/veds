@@ -31,7 +31,7 @@ import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @EnableScheduling
-class SagaConfig {
+internal class SagaConfig {
     companion object {
         const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "iam"
     }

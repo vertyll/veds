@@ -16,7 +16,7 @@ import java.time.Instant
         ),
     ],
 )
-class ProcessedEventJpaEntity(
+internal class ProcessedEventJpaEntity(
     id: Long? = null,
     eventId: String,
     consumerGroup: String,

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/template")
-class TemplateController(
+internal class TemplateController(
     private val templateSagaService: TemplateSagaService,
 ) {
     @PostMapping

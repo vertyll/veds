@@ -5,7 +5,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationStepFactory
 import java.time.Instant
 
-class IamSagaCompensationStepFactory : SagaCompensationStepFactory<SagaStepJpaEntity> {
+internal class IamSagaCompensationStepFactory : SagaCompensationStepFactory<SagaStepJpaEntity> {
     override fun createCompensationStep(
         sagaId: String,
         stepName: String,

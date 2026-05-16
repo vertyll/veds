@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
  * [ProcessedEventGuard] (idempotent receiver pattern).
  */
 @Component
-class TemplateEventConsumer(
+internal class TemplateEventConsumer(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val templateSagaService: TemplateSagaService,
     private val processedEventGuard: ProcessedEventGuard,

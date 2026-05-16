@@ -120,7 +120,7 @@ cd <service-name>
 **Local Running:**
 ```bash
 cd <service-name>
-./gradlew bootRun --args='--spring.profiles.active=dev'
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
 **Available Services:**

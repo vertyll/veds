@@ -11,7 +11,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "role")
-class RoleJpaEntity(
+internal class RoleJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,

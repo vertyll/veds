@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
  * `SpecificRecord` classes, Schema Registry framing and topic names.
  */
 @Component
-class KafkaMailFeedbackEventPublisherAdapter(
+internal class KafkaMailFeedbackEventPublisherAdapter(
     private val avroPayloadSerializer: AvroPayloadSerializer,
     private val kafkaOutboxProcessor: KafkaOutboxProcessor,
 ) : MailFeedbackEventPublisherPort {

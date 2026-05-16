@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import java.time.Instant
 
 @Repository
-interface EmailLogJpaRepository : JpaRepository<EmailLogJpaEntity, Long> {
+internal interface EmailLogJpaRepository : JpaRepository<EmailLogJpaEntity, Long> {
     fun findByRecipient(recipient: String): List<EmailLogJpaEntity>
 
     fun findByTemplateName(templateName: String): List<EmailLogJpaEntity>

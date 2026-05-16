@@ -8,7 +8,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationContex
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensator
 import org.slf4j.LoggerFactory
 
-class MailSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity> {
+internal class MailSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity> {
     private val logger = LoggerFactory.getLogger(MailSagaCompensator::class.java)
 
     override fun compensateStep(

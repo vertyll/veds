@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/roles")
 @Tag(name = "Roles", description = "Role management APIs")
-class RoleController(
+internal class RoleController(
     private val roleService: RoleService,
 ) {
     private companion object {

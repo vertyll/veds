@@ -5,26 +5,27 @@ plugins {
 extra["author"] = "Mikołaj Gawron"
 extra["email"] = "gawrmiko@gmail.com"
 
-val ktlintCheck by tasks.registering {
-    group = "verification"
-    description = "Runs ktlintCheck on all included builds"
-    gradle.includedBuilds.forEach { build ->
-        dependsOn(build.task(":ktlintCheck"))
+fun aggregator(name: String, taskGroup: String, desc: String, dependsOnTask: String = name) {
+    tasks.register(name) {
+        group = taskGroup
+        description = desc
+        gradle.includedBuilds.forEach { dependsOn(it.task(":$dependsOnTask")) }
     }
 }
 
-val ktlintFormat by tasks.registering {
-    group = "formatting"
-    description = "Runs ktlintFormat on all included builds"
-    gradle.includedBuilds.forEach { build ->
-        dependsOn(build.task(":ktlintFormat"))
-    }
+aggregator("ktlintCheck",  "verification", "Runs ktlintCheck on all included builds")
+aggregator("ktlintFormat", "formatting",   "Runs ktlintFormat on all included builds")
+aggregator("detekt",       "verification", "Runs detekt on all included builds")
+aggregator("test",         "verification", "Runs all tests across all included builds")
+
+tasks.named("build") {
+    gradle.includedBuilds.forEach { dependsOn(it.task(":build")) }
+}
+
+tasks.named("clean") {
+    gradle.includedBuilds.forEach { dependsOn(it.task(":clean")) }
 }
 
 tasks.named("check") {
-    dependsOn(ktlintCheck)
-    gradle.includedBuilds.forEach { build ->
-        dependsOn(build.task(":detekt"))
-        dependsOn(build.task(":test"))
-    }
+    dependsOn("ktlintCheck", "detekt", "test")
 }

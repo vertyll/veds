@@ -4,7 +4,7 @@ import com.vertyll.veds.mail.saga.SagaCompensationEvent
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSerializer
 
-class MailCompensationEventSerializer(
+internal class MailCompensationEventSerializer(
     private val avroPayloadSerializer: AvroPayloadSerializer,
     private val topic: String,
 ) : CompensationEventSerializer {

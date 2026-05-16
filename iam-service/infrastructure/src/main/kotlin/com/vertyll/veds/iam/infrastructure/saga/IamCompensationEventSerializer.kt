@@ -10,7 +10,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSeria
  * Builds a generated [SagaCompensationEvent] SpecificRecord and delegates to
  * the Confluent Avro serializer (which registers the schema in the Schema Registry).
  */
-class IamCompensationEventSerializer(
+internal class IamCompensationEventSerializer(
     private val avroPayloadSerializer: AvroPayloadSerializer,
     private val topic: String,
 ) : CompensationEventSerializer {

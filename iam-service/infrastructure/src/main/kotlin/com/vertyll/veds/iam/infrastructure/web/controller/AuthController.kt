@@ -27,7 +27,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Authentication management APIs")
-class AuthController(
+internal class AuthController(
     private val authService: AuthService,
     private val sharedConfigProperties: SharedConfigProperties,
 ) {

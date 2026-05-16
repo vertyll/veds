@@ -10,7 +10,7 @@ import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine
 import org.springframework.stereotype.Service
 
 @Service
-class SagaManagerAdapter(
+internal class SagaManagerAdapter(
     private val sagaEngine: SagaEngine<SagaJpaEntity, *>,
 ) : SagaProcessPort {
     override fun startSaga(

@@ -14,7 +14,7 @@ import java.time.Instant
         UniqueConstraint(columnNames = ["sagaId", "stepName"]),
     ],
 )
-class SagaStepJpaEntity(
+internal class SagaStepJpaEntity(
     id: Long? = null,
     sagaId: String,
     stepName: String,

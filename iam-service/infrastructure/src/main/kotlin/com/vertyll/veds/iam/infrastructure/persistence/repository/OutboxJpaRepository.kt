@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
 import java.time.Instant
 
 @Repository
-interface OutboxJpaRepository : JpaRepository<OutboxJpaEntity, Long> {
+internal interface OutboxJpaRepository : JpaRepository<OutboxJpaEntity, Long> {
     fun findByStatus(status: OutboxStatus): List<OutboxJpaEntity>
 
     fun findBySagaId(sagaId: String): List<OutboxJpaEntity>

@@ -6,8 +6,6 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
-extra["kotlin.version"] = "2.3.21"
-
 dependencyManagement {
     imports {
         mavenBom(
@@ -29,48 +27,46 @@ dependencyManagement {
 }
 
 // --- Avro code generation (SpecificRecord) ---
-sourceSets {
-    main {
-        java.srcDir(layout.buildDirectory.dir("generated/sources/avro/main/java"))
-    }
-}
-
 val avroTools: Configuration by configurations.creating
 val avroContractsDir = file("$rootDir/../contracts")
 val avroGeneratedDir = layout.buildDirectory.dir("generated/sources/avro/main/java")
+val avroSchemas = fileTree(avroContractsDir) { include("**/*.avsc") }
 
 val generateAvroJava by tasks.registering(JavaExec::class) {
     group = "build"
     description = "Generate Java SpecificRecord classes from all Avro schemas in contracts/."
-    inputs.dir(avroContractsDir)
-    outputs.dir(avroGeneratedDir)
+    inputs.files(avroSchemas)
+        .withPropertyName("avroSchemas")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(avroGeneratedDir).withPropertyName("avroGeneratedDir")
     classpath = avroTools
-    mainClass.set("org.apache.avro.tool.Main")
+    mainClass = "org.apache.avro.tool.Main"
+
     doFirst {
         val outDir = avroGeneratedDir.get().asFile
         outDir.deleteRecursively()
         outDir.mkdirs()
-        val schemas =
-            avroContractsDir
-                .walkTopDown()
-                .filter { it.isFile && it.extension == "avsc" }
-                .map { it.absolutePath }
-                .toList()
-        args = listOf("compile", "schema", "-string") + schemas + listOf(outDir.absolutePath)
     }
+    argumentProviders.add(
+        CommandLineArgumentProvider {
+            listOf("compile", "schema", "-string") +
+                avroSchemas.files.map { it.absolutePath } +
+                listOf(avroGeneratedDir.get().asFile.absolutePath)
+        },
+    )
 }
 
-tasks.named("compileKotlin") { dependsOn(generateAvroJava) }
-tasks.named("compileJava") { dependsOn(generateAvroJava) }
-tasks
-    .matching { it.name.contains("Ktlint", ignoreCase = true) }
-    .configureEach { dependsOn(generateAvroJava) }
+sourceSets {
+    main {
+        java.srcDir(generateAvroJava)
+    }
+}
 
 dependencies {
     avroTools(libs.apache.avro.tools)
 
-    implementation(project(":application"))
-    implementation(project(":domain"))
+    implementation(project(":iam-application"))
+    implementation(project(":iam-domain"))
     implementation("com.vertyll.veds:shared-infrastructure")
 
     implementation(libs.bundles.spring.boot.common)

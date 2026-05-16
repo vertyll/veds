@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
  * JPA-backed adapter implementing the processed-event ports for iam-service.
  */
 @Component
-class ProcessedEventJpaAdapter(
+internal class ProcessedEventJpaAdapter(
     private val repository: ProcessedEventJpaRepository,
 ) : ProcessedEventRepositoryPort,
     ProcessedEventFactory {

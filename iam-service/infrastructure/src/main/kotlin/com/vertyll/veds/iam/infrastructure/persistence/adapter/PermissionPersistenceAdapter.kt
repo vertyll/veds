@@ -8,7 +8,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class PermissionPersistenceAdapter(
+internal class PermissionPersistenceAdapter(
     private val repository: PermissionJpaRepository,
 ) : PermissionRepository {
     override fun save(permission: Permission): Permission = repository.save(permission.toJpaEntity()).toDomain()

@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.spring.dependency.management)
 }
-extra["kotlin.version"] = "2.3.21"
 
 dependencyManagement {
     imports {
@@ -15,7 +14,7 @@ dependencyManagement {
     }
 }
 dependencies {
-    implementation(project(":domain"))
+    implementation(project(":template-domain"))
     implementation("com.vertyll.veds:shared-infrastructure")
     implementation(libs.bundles.spring.boot.common)
 }

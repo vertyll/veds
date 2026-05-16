@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class KafkaAuthEventPublisherAdapter(
+internal class KafkaAuthEventPublisherAdapter(
     private val kafkaOutboxProcessor: KafkaOutboxProcessor,
     private val avroPayloadSerializer: AvroPayloadSerializer,
 ) : AuthEventPublisherPort {

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface VerificationTokenJpaRepository : JpaRepository<VerificationTokenJpaEntity, Long> {
+internal interface VerificationTokenJpaRepository : JpaRepository<VerificationTokenJpaEntity, Long> {
     fun findByToken(token: String): Optional<VerificationTokenJpaEntity>
 
     fun findByUsernameAndTokenType(

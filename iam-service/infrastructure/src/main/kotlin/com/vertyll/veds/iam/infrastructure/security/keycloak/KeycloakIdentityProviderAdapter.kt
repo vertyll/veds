@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-class KeycloakIdentityProviderAdapter(
+internal class KeycloakIdentityProviderAdapter(
     private val sharedConfig: SharedConfigProperties,
 ) : IdentityProviderPort {
     private val logger = LoggerFactory.getLogger(javaClass)

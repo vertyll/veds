@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
-class EmailLogPersistenceAdapter(
+internal class EmailLogPersistenceAdapter(
     private val repository: EmailLogJpaRepository,
 ) : EmailLogRepository {
     override fun save(emailLog: EmailLog): EmailLog = repository.save(emailLog.toJpaEntity()).toDomain()

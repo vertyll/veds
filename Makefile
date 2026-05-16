@@ -53,24 +53,23 @@ docs-shared:
 docs-open-shared: docs-shared
 	@open "docs/dokka/index.html"
 
-# --- Local infra (podman-compose) ---
+# --- Local infra (podman compose subcommand; works with both podman & docker) ---
 
 up:
-	podman-compose up -d kafka schema-registry iam-db mail-db keycloak-db keycloak mail-dev kafka-ui
+	podman compose up -d kafka schema-registry iam-db mail-db keycloak-db keycloak mail-dev kafka-ui
 	$(MAKE) bootstrap
 
 down:
-	podman-compose down
+	podman compose down
 
 logs:
-	podman-compose logs -f --tail=200
+	podman compose logs -f --tail=200
 
 # Provision topics (Terraform) + register Avro schemas (Python).
-# Both are idempotent: re-running on a populated cluster is a no-op.
 bootstrap: provision-topics register-schemas
 
 provision-topics:
-	podman-compose run --rm topics-init
+	podman compose run --rm topics-init
 
 register-schemas:
-	podman-compose run --rm schemas-init
+	podman compose run --rm schemas-init

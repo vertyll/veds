@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl
 
 @Configuration
 @EnableConfigurationProperties(MailProperties::class)
-class MailConfig {
+internal class MailConfig {
     @Bean
     fun javaMailSender(mailProperties: MailProperties): JavaMailSender =
         JavaMailSenderImpl().apply {

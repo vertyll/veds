@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
  * the use case to the application layer ([EmailSagaService]).
  */
 @Component
-class MailEventConsumer(
+internal class MailEventConsumer(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val emailSagaService: EmailSagaService,
     private val processedEventGuard: ProcessedEventGuard,

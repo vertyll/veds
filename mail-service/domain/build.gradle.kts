@@ -3,8 +3,6 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
-extra["kotlin.version"] = "2.3.21"
-
 dependencyManagement {
     imports {
         mavenBom(

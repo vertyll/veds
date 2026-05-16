@@ -1,7 +1,7 @@
 variable "bootstrap_servers" {
-  type        = string
-  description = "Kafka bootstrap servers, e.g., localhost:29092"
-  default     = "localhost:29092"
+  type        = list(string)
+  description = "Kafka bootstrap servers, e.g., [\"localhost:29092\"]"
+  default     = ["localhost:29092"]
 }
 
 variable "partitions" {

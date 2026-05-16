@@ -9,7 +9,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class SagaStepPersistenceAdapter(
+internal class SagaStepPersistenceAdapter(
     private val repository: SagaStepJpaRepository,
 ) : SagaStepRepository {
     override fun save(sagaStep: SagaStep): SagaStep = repository.save(sagaStep.toJpaEntity()).toDomain()

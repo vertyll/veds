@@ -19,7 +19,7 @@ import java.time.LocalDateTime
         Index(name = "idx_verification_token_username", columnList = "username"),
     ],
 )
-class VerificationTokenJpaEntity(
+internal class VerificationTokenJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,

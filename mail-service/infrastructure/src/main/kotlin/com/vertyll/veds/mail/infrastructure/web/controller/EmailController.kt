@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/mail")
-class EmailController(
+internal class EmailController(
     private val emailService: EmailService,
     private val emailBatchService: EmailBatchService,
 ) {

@@ -103,7 +103,6 @@ services:
       start_period: 30s
 
   # One-shot bootstrap: provisions Kafka topics from the same Terraform module
-  # used in production. Re-runs are idempotent (terraform refresh + apply).
   topics-init:
     image: docker.io/hashicorp/terraform:1.7.5
     container_name: topics-init
@@ -116,7 +115,7 @@ services:
       - >
         terraform init -input=false -no-color &&
         terraform apply -auto-approve -input=false -no-color
-        -var=bootstrap_servers=kafka:9092
+        -var='bootstrap_servers=["kafka:9092"]'
         -var=replication_factor=1
         -var=partitions=1
     volumes:
@@ -125,8 +124,7 @@ services:
       - microservices-network
     restart: "no"
 
-  # One-shot bootstrap: registers every Avro schema under contracts/ to the
-  # Schema Registry with BACKWARD compatibility (same script CI uses).
+  # One-shot bootstrap: registers every Avro schema under contracts to the Schema Registry with BACKWARD compatibility
   schemas-init:
     image: docker.io/library/python:3.11-alpine
     container_name: schemas-init
@@ -148,7 +146,7 @@ services:
       - microservices-network
     restart: "no"
 
-
+  # Keycloak for identity and access management, configured to use a Postgres database and import a realm on startup
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:26.5.5

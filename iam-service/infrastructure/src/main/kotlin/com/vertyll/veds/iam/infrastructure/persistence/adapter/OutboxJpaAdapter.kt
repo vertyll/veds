@@ -15,7 +15,7 @@ import java.util.UUID
  * JPA-backed adapter implementing the outbox ports for iam-service.
  */
 @Component
-class OutboxJpaAdapter(
+internal class OutboxJpaAdapter(
     private val repository: OutboxJpaRepository,
 ) : OutboxRepositoryPort,
     OutboxMessageFactory {

@@ -8,7 +8,7 @@ import com.vertyll.veds.sharedinfrastructure.kafka.contract.ProcessedEventReposi
 import org.springframework.stereotype.Component
 
 @Component
-class ProcessedEventJpaAdapter(
+internal class ProcessedEventJpaAdapter(
     private val repository: ProcessedEventJpaRepository,
 ) : ProcessedEventRepositoryPort,
     ProcessedEventFactory {

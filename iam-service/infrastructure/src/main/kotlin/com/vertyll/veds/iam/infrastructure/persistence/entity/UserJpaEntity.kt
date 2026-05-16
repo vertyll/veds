@@ -23,7 +23,7 @@ import java.util.UUID
         Index(name = "idx_user_keycloak_id", columnList = "keycloak_id"),
     ],
 )
-class UserJpaEntity(
+internal class UserJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,

@@ -12,7 +12,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Component
-class OutboxJpaAdapter(
+internal class OutboxJpaAdapter(
     private val repository: OutboxJpaRepository,
 ) : OutboxRepositoryPort,
     OutboxMessageFactory {

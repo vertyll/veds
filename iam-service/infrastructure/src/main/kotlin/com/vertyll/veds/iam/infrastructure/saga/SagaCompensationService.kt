@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
  * from duplicate events via [ProcessedEventGuard].
  */
 @Service
-class SagaCompensationService(
+internal class SagaCompensationService(
     private val sagaCompensationEngine: SagaCompensationEngine<SagaStepJpaEntity>,
     private val processedEventGuard: ProcessedEventGuard,
 ) {

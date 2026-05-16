@@ -8,7 +8,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "saga")
-class SagaJpaEntity(
+internal class SagaJpaEntity(
     id: String,
     type: String,
     status: SagaStatus = SagaStatus.STARTED,

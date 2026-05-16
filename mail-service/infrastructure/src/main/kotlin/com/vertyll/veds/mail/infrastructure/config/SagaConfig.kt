@@ -24,7 +24,7 @@ import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @EnableScheduling // Enable scheduling for outbox processing
-class SagaConfig {
+internal class SagaConfig {
     companion object {
         const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "mail"
     }
