@@ -7,9 +7,9 @@ package com.vertyll.veds.sharedinfrastructure.saga.enums
  * ```
  *   STARTED ──► AWAITING_RESPONSE ──► COMPLETED                       (happy path)
  *      │                  │
- *      │                  └──► COMPENSATING ──► COMPENSATED            (rollback OK)
+ *      │                  └──► COMPENSATING ──► COMPENSATED           (rollback OK)
  *      │                                │
- *      │                                └──► COMPENSATION_FAILED       (manual intervention)
+ *      │                                └──► COMPENSATION_FAILED      (manual intervention)
  *      │
  *      └──► FAILED                                                    (no compensation needed)
  * ```
