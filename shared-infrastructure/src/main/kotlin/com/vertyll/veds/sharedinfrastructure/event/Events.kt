@@ -11,7 +11,9 @@ import java.util.UUID
  * everything we need, a custom `DomainEvent` interface would be dead code).
  */
 object Events {
+    /** Returns a fresh UUID v4 string suitable for use as an `eventId`. */
     fun newId(): String = UUID.randomUUID().toString()
 
+    /** Returns the current instant. Indirection kept for test stubbing convenience. */
     fun now(): Instant = Instant.now()
 }

@@ -15,18 +15,43 @@ import java.time.Instant
  * works with the returned reference.
  */
 interface OutboxMessage {
+    /** Storage-assigned surrogate id; `null` until the row is first persisted. */
     val id: Long?
+
+    /** Stable business identifier propagated as the `eventId` Kafka header (idempotency key on the consumer side). */
     val eventId: String
+
+    /** Target Kafka topic name. */
     val topic: String
+
+    /** Kafka record key used for partitioning (typically the aggregate id or saga id). */
     val key: String
+
+    /** Serialized record value; encoding (Avro, JSON, …) is the caller's responsibility. */
     val payload: ByteArray
+
+    /** Current lifecycle [OutboxStatus]. See the enum's KDoc for the state machine. */
     val status: OutboxStatus
+
+    /** Latest publishing error message, or `null` if the message has never failed. */
     val errorMessage: String?
+
+    /** Instant the row was first written by the producing transaction. */
     val createdAt: Instant
+
+    /** Instant of the most recent dispatch attempt (success or failure). */
     val processedAt: Instant?
+
+    /** Number of publishing attempts already made. Compared against `veds.outbox.max-retries`. */
     val retryCount: Int
+
+    /** Instant of the most recent retry; used together with `veds.outbox.retry-cooldown` to throttle redelivery. */
     val lastRetryAt: Instant?
+
+    /** Optional saga correlation id (`Saga.id`) so saga-related outbox rows can be located quickly. */
     val sagaId: String?
+
+    /** JPA optimistic-locking version, or `null` for storage backends that do not provide one. */
     val version: Long?
 
     /**

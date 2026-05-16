@@ -11,6 +11,14 @@ package com.vertyll.veds.sharedinfrastructure.saga.service
  */
 @Suppress("kotlin:S6517")
 interface SagaCompensationHandler {
+    /**
+     * Performs the domain-specific compensation for a single event.
+     *
+     * @param sagaId saga correlation id from the inbound event envelope.
+     * @param action compensation action discriminator (e.g. `"DELETE_USER"`).
+     * @param event raw event payload as a property map for dispatch-time
+     *   destructuring.
+     */
     fun handle(
         sagaId: String,
         action: String,

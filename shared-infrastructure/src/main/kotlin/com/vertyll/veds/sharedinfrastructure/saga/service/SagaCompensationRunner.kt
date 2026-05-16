@@ -30,6 +30,13 @@ open class SagaCompensationRunner<S : Saga<S>, T : SagaStep<T>>(
 ) {
     private val logger = LoggerFactory.getLogger(SagaCompensationRunner::class.java)
 
+    /**
+     * Runs the compensation pipeline for [sagaId] in a fresh
+     * `REQUIRES_NEW` transaction. No-op if the saga is in a terminal
+     * status ([SagaStatus.COMPLETED], [SagaStatus.COMPENSATED] or
+     * [SagaStatus.FAILED]). Safe to call repeatedly — the watchdog uses
+     * this method to retry compensation for stuck sagas.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     open fun runCompensation(sagaId: String) {
         val saga = sagaRepository.findOneById(sagaId) ?: return

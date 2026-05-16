@@ -9,12 +9,16 @@ import java.time.Instant
  * the outbox processor is decoupled from the underlying storage technology.
  */
 interface OutboxRepositoryPort {
+    /** Persists [message] (insert or update) and returns the stored instance. */
     fun save(message: OutboxMessage): OutboxMessage
 
+    /** Returns every outbox message currently in the given [status]. */
     fun findByStatus(status: OutboxStatus): List<OutboxMessage>
 
+    /** Returns every outbox message correlated to the given saga ([OutboxMessage.sagaId]). */
     fun findBySagaId(sagaId: String): List<OutboxMessage>
 
+    /** Looks up an outbox message by its unique [OutboxMessage.eventId]; `null` if absent. */
     fun findByEventId(eventId: String): OutboxMessage?
 
     /**

@@ -30,6 +30,13 @@ open class SagaWatchdog<S : Saga<S>, T : SagaStep<T>>(
 ) {
     private val logger = LoggerFactory.getLogger(SagaWatchdog::class.java)
 
+    /**
+     * Scheduled tick fired every
+     * `veds.saga.watchdog-interval` (default `PT1M`). Times out stuck
+     * `AWAITING_RESPONSE` sagas and retries failed compensations. Designed
+     * to be idempotent and safe to run on every node — each operation goes
+     * through [SagaEngine] which guards against re-entry on terminal sagas.
+     */
     @Scheduled(fixedDelayString = $$"${veds.saga.watchdog-interval:PT1M}")
     fun tick() {
         timeoutAwaitingResponseSagas()

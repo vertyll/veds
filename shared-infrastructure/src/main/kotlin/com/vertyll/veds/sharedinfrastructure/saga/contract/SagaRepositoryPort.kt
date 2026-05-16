@@ -10,21 +10,28 @@ import java.time.Instant
  * engine has no awareness of the underlying storage technology.
  */
 interface SagaRepositoryPort<S : Saga<S>> {
+    /** Persists [saga] (insert or update) and returns the stored instance. */
     fun save(saga: S): S
 
+    /** Looks up a saga by its [Saga.id]; `null` if absent. */
     fun findOneById(id: String): S?
 
+    /** Returns all sagas of the given [Saga.type]. */
     fun findByType(type: String): List<S>
 
+    /** Returns all sagas currently in the given [SagaStatus]. */
     fun findByStatus(status: SagaStatus): List<S>
 
+    /** Returns sagas matching both [type] and [status]. */
     fun findByTypeAndStatus(
         type: String,
         status: SagaStatus,
     ): List<S>
 
+    /** Returns sagas whose [Saga.startedAt] is strictly before [startedAt]. */
     fun findByStartedAtBefore(startedAt: Instant): List<S>
 
+    /** Returns sagas in any of [statuses] whose [Saga.startedAt] is strictly before [startedAt]. */
     fun findByStatusInAndStartedAtBefore(
         statuses: List<SagaStatus>,
         startedAt: Instant,

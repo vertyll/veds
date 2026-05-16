@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.dokka)
 }
 
 group = "com.vertyll.veds"
@@ -126,4 +127,23 @@ tasks.withType<KotlinCompile>().configureEach {
 tasks.withType<Test> {
     useJUnitPlatform()
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+}
+
+// --- Dokka (KDoc -> HTML API docs) ---
+dokka {
+    moduleName.set("shared-infrastructure")
+    dokkaPublications.named("html") {
+        outputDirectory.set(rootProject.layout.projectDirectory.dir("../docs/dokka"))
+    }
+    dokkaSourceSets.named("main") {
+        jdkVersion.set(25)
+        reportUndocumented.set(false)
+        skipDeprecated.set(false)
+        suppressGeneratedFiles.set(true)
+        sourceLink {
+            localDirectory.set(file("src/main/kotlin"))
+            remoteUrl("https://github.com/vertyll/veds/tree/main/shared-infrastructure/src/main/kotlin")
+            remoteLineSuffix.set("#L")
+        }
+    }
 }

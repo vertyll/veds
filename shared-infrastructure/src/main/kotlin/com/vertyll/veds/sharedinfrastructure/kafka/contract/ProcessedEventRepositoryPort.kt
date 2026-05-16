@@ -18,6 +18,13 @@ interface ProcessedEventRepositoryPort {
      */
     fun insert(processedEvent: ProcessedEvent): ProcessedEvent
 
+    /**
+     * Returns `true` when a row already exists for the
+     * `(eventId, consumerGroup)` pair. Primarily useful for diagnostics —
+     * the [ProcessedEventGuard]
+     * relies on the UNIQUE-constraint violation from [insert] for the
+     * race-free idempotency check.
+     */
     fun exists(
         eventId: String,
         consumerGroup: String,

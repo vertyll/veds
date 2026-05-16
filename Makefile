@@ -2,7 +2,8 @@ SERVICES = api-gateway iam-service mail-service template-service
 SHARED = shared-infrastructure
 
 .PHONY: build-all clean-build-all test-all clean-all format-all check-style-all \
-        up down logs bootstrap register-schemas provision-topics
+        up down logs bootstrap register-schemas provision-topics \
+        docs-shared docs-open-shared
 
 build-all:
 	@for dir in $(SERVICES) $(SHARED); do \
@@ -39,6 +40,18 @@ check-style-all:
 		echo "Checking style $$dir..."; \
 		(cd $$dir && ./gradlew ktlintCheck detekt) || exit 1; \
 	done
+
+# Generate Kotlin API docs (Dokka) for shared-infrastructure.
+# Output: shared-infrastructure/build/docs/dokka/index.html
+docs-shared:
+	@echo "Generating KDoc for $(SHARED)..."
+	@(cd $(SHARED) && ./gradlew dokkaGenerate)
+	@echo "Done: docs/dokka/index.html"
+	@echo "IDE URL: http://localhost:63342/veds/docs/dokka/index.html"
+
+# Generate + open the docs in the default browser.
+docs-open-shared: docs-shared
+	@open "docs/dokka/index.html"
 
 # --- Local infra (podman-compose) ---
 

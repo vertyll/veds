@@ -16,6 +16,7 @@ import java.time.Instant
  * stays storage-agnostic.
  */
 interface SagaEntityFactory<S : Saga<S>, T : SagaStep<T>> {
+    /** Builds a fresh saga aggregate ready to be persisted. */
     fun createSaga(
         id: String,
         type: String,
@@ -24,6 +25,7 @@ interface SagaEntityFactory<S : Saga<S>, T : SagaStep<T>> {
         startedAt: Instant,
     ): S
 
+    /** Builds a fresh saga step ready to be persisted. */
     fun createSagaStep(
         sagaId: String,
         stepName: String,

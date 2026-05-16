@@ -49,6 +49,14 @@ class KafkaOutboxProcessor(
         private const val EVENT_ID_HEADER = "eventId"
     }
 
+    /**
+     * Scheduled poll fired every `veds.outbox.poll-interval-ms`
+     * (default `5000`). Claims a batch of messages via
+     * [OutboxDispatchTx.claimBatch] and dispatches each one to Kafka
+     * outside any DB transaction. Safe to run on multiple instances —
+     * `FOR UPDATE SKIP LOCKED` guarantees each row is claimed by exactly
+     * one poller.
+     */
     @Scheduled(fixedDelayString = $$"${veds.outbox.poll-interval-ms:5000}")
     fun pollAndDispatch() {
         val now = Instant.now()

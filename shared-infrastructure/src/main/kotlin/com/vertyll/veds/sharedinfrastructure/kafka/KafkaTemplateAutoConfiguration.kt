@@ -47,6 +47,10 @@ class KafkaTemplateAutoConfiguration {
         private const val MAX_RETRIES = 3L
     }
 
+    /**
+     * Byte-array producer factory used by the outbox: keys are strings,
+     * values are pre-serialized bytes (Avro/JSON encoded by the caller).
+     */
     @Bean
     fun producerFactory(properties: KafkaInfraProperties): ProducerFactory<String, ByteArray> {
         val configProps =
@@ -58,9 +62,14 @@ class KafkaTemplateAutoConfiguration {
         return DefaultKafkaProducerFactory(configProps)
     }
 
+    /** Shared [KafkaTemplate] used by [KafkaOutboxProcessor]. */
     @Bean
     fun kafkaTemplate(producerFactory: ProducerFactory<String, ByteArray>) = KafkaTemplate(producerFactory)
 
+    /**
+     * Byte-array consumer factory. Decoding (Avro/JSON) is performed by
+     * the application-level listener, not by Kafka.
+     */
     @Bean
     fun consumerFactory(properties: KafkaInfraProperties): ConsumerFactory<String, ByteArray> {
         val configProps =
@@ -92,6 +101,11 @@ class KafkaTemplateAutoConfiguration {
         return errorHandler
     }
 
+    /**
+     * Listener container factory wired with the byte-array
+     * [consumerFactory] and the shared [kafkaErrorHandler]
+     * (retry → DLT). Used by every `@KafkaListener` in the system.
+     */
     @Bean
     fun kafkaListenerContainerFactory(
         consumerFactory: ConsumerFactory<String, ByteArray>,

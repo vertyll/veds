@@ -1,5 +1,6 @@
 package com.vertyll.veds.sharedinfrastructure.saga.service
 
+import com.vertyll.veds.sharedinfrastructure.saga.SagaProperties
 import com.vertyll.veds.sharedinfrastructure.saga.contract.Saga
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaRepositoryPort
 import com.vertyll.veds.sharedinfrastructure.saga.contract.SagaStep
@@ -54,12 +55,20 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
 
     // ── Enum-typed convenience overloads ────────────────────────────────
 
+    /**
+     * Type-safe overload of [startSaga] that accepts the saga type as a
+     * [SagaTypeValue] so callers cannot pass an arbitrary string.
+     */
     @Transactional
     open fun startSaga(
         sagaType: SagaTypeValue,
         payload: Any,
     ): S = startSaga(sagaType.value, payload)
 
+    /**
+     * Type-safe overload of [recordSagaStep] that accepts the step name as
+     * a [SagaTypeValue].
+     */
     @Transactional
     open fun recordSagaStep(
         sagaId: String,
@@ -70,6 +79,12 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
 
     // ── Core saga operations ────────────────────────────────────────────
 
+    /**
+     * Persists a new saga aggregate in [SagaStatus.STARTED] with a freshly
+     * generated UUID and a JSON-serialized [payload]. The saga's id is the
+     * correlation handle returned to the caller for subsequent
+     * [recordSagaStep] / [completeSaga] / [failSaga] calls.
+     */
     @Transactional
     open fun startSaga(
         sagaType: String,
@@ -88,6 +103,23 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         return sagaRepository.save(saga)
     }
 
+    /**
+     * Records (or transitions) a saga step.
+     *
+     * Idempotent semantics:
+     *  - If a step with the same [stepName] already exists in [status] —
+     *    no-op.
+     *  - If the existing step is in a terminal status — no-op.
+     *  - Otherwise the existing step is transitioned via the port's
+     *    behavior methods.
+     *
+     * Transitioning a step to [SagaStepStatus.FAILED] additionally moves
+     * the owning saga to [SagaStatus.COMPENSATING] and schedules
+     * compensation after the current transaction commits (see
+     * [scheduleCompensationAfterCommit]).
+     *
+     * @throws IllegalArgumentException if no saga with [sagaId] exists.
+     */
     @Transactional
     open fun recordSagaStep(
         sagaId: String,
@@ -173,6 +205,13 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
 
     // ── Explicit saga state transitions ─────────────────────────────────
 
+    /**
+     * Explicitly marks the saga as [SagaStatus.COMPLETED]. No-op (and
+     * returns the existing aggregate) if the saga is already in a terminal
+     * status.
+     *
+     * @throws IllegalArgumentException if no saga with [sagaId] exists.
+     */
     @Transactional
     open fun completeSaga(sagaId: String): S {
         val saga =
@@ -186,8 +225,15 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         return sagaRepository.save(saga.markCompleted())
     }
 
+    /** Looks up the saga by id, returning `null` if absent. */
     open fun findSagaById(sagaId: String): S? = sagaRepository.findOneById(sagaId)
 
+    /**
+     * Marks the saga as [SagaStatus.AWAITING_RESPONSE] — the request was
+     * dispatched and the orchestrator/participant is waiting for a reply.
+     * The [SagaWatchdog] will fail the saga if it stays in this status
+     * past [SagaProperties.awaitResponseTimeout]. No-op on terminal sagas.
+     */
     @Transactional
     open fun awaitResponse(sagaId: String): S {
         val saga =
@@ -201,6 +247,13 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         return sagaRepository.save(saga.markAwaitingResponse())
     }
 
+    /**
+     * Transitions the saga to [SagaStatus.COMPENSATING] with the supplied
+     * [error] as the reason and schedules compensation after the current
+     * transaction commits. No-op on terminal sagas.
+     *
+     * @throws IllegalArgumentException if no saga with [sagaId] exists.
+     */
     @Transactional
     open fun failSaga(
         sagaId: String,

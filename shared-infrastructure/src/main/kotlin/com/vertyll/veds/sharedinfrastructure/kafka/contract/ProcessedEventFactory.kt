@@ -6,6 +6,10 @@ package com.vertyll.veds.sharedinfrastructure.kafka.contract
  */
 @Suppress("kotlin:S6517")
 interface ProcessedEventFactory {
+    /**
+     * Builds a fresh [ProcessedEvent] for the given [eventId] / [consumerGroup]
+     * pair. Implementations stamp `processedAt` with the current instant.
+     */
     fun create(
         eventId: String,
         consumerGroup: String,

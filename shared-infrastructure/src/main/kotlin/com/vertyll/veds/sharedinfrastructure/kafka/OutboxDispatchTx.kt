@@ -39,11 +39,22 @@ class OutboxDispatchTx(
                 batchSize = batchSize,
             ).map { outboxRepository.save(it.markProcessing()) }
 
+    /**
+     * Fresh `REQUIRES_NEW` transaction that marks [message] as
+     * successfully published. Called after the Kafka broker has
+     * acknowledged to send.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun markCompleted(message: OutboxMessage) {
         outboxRepository.save(message.markCompleted())
     }
 
+    /**
+     * Fresh `REQUIRES_NEW` transaction that either:
+     *  - schedules [message] for a retry (status `RETRY_SCHEDULED`,
+     *    `retryCount` incremented), or
+     *  - dead-letters it if it has exhausted [maxRetries].
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun rescheduleOrDeadLetter(
         message: OutboxMessage,

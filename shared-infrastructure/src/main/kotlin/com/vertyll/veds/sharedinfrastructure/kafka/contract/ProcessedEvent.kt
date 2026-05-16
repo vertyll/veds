@@ -12,8 +12,15 @@ import java.time.Instant
  * but never twice within the same group.
  */
 interface ProcessedEvent {
+    /** Storage-assigned surrogate id; `null` until the row is first persisted. */
     val id: Long?
+
+    /** Inbound `eventId` Kafka header value being marked as processed. */
     val eventId: String
+
+    /** Kafka consumer group that processed the event (one row per `(eventId, consumerGroup)`). */
     val consumerGroup: String
+
+    /** Instant the row was inserted, i.e. when processing completed. */
     val processedAt: Instant
 }

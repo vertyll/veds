@@ -15,15 +15,34 @@ import java.time.Instant
  * aggregate's invariants. See [Saga] for the rationale behind this design.
  */
 interface SagaStep<T : SagaStep<T>> {
+    /** Storage-assigned surrogate id; `null` until the row is first persisted. */
     val id: Long?
+
+    /** Owning saga's id ([Saga.id]). */
     val sagaId: String
+
+    /** Step name; conventionally a [SagaTypeValue.value]. Compensation rows are prefixed with `Compensate`. */
     val stepName: String
+
+    /** Current lifecycle [SagaStepStatus]; see the enum's KDoc for terminal/transient semantics. */
     val status: SagaStepStatus
+
+    /** Step-local payload as a JSON string; `null` when the step carries no data. */
     val payload: String?
+
+    /** Latest failure reason if the step failed or its compensation failed; `null` otherwise. */
     val errorMessage: String?
+
+    /** Instant the step row was created. */
     val createdAt: Instant
+
+    /** Instant the step reached a terminal status; `null` while it is still in progress. */
     val completedAt: Instant?
+
+    /** When this step compensates another, the id of the originally-completed step it reverts. */
     val compensationStepId: Long?
+
+    /** JPA optimistic-locking version, or `null` for storage backends that do not provide one. */
     val version: Long?
 
     /** Transitions to [SagaStepStatus.COMPLETED] and stamps `completedAt`. */

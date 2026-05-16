@@ -25,6 +25,13 @@ package com.vertyll.veds.sharedinfrastructure.saga
 object SagaCompensationTopic {
     const val PREFIX: String = "saga-compensation-"
 
+    /**
+     * Builds the saga-compensation topic name for [participant].
+     *
+     * @param participant short, non-blank service identifier (e.g. `"iam"`, `"mail"`).
+     * @return topic name of the form `saga-compensation-<participant>`.
+     * @throws IllegalArgumentException if [participant] is blank.
+     */
     fun forParticipant(participant: String): String {
         require(participant.isNotBlank()) { "Saga participant name must not be blank" }
         return "$PREFIX$participant"

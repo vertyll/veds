@@ -23,6 +23,16 @@ open class SagaCompensationEngine<T : SagaStep<T>>(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    /**
+     * Entry point for inbound compensation events.
+     *
+     * Deserializes [payload] via [CompensationEventDeserializer], delegates
+     * the domain action to [SagaCompensationHandler], and records a
+     * `Compensate<originalStep>` audit row through
+     * [SagaCompensationStepFactory]. Exceptions are logged and swallowed —
+     * by the time we reach this method the originating saga is already in
+     * a compensation flow; the watchdog will retry later if needed.
+     */
     @Transactional
     open fun handleCompensationEvent(payload: ByteArray) {
         try {

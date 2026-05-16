@@ -72,3 +72,6 @@ infra/**/*.tfstate.backup
 ### Run configs (whitelist) ###
 !.idea/runConfigurations/
 !.idea/runConfigurations/**
+
+### Generated docs ###
+docs/
