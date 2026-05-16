@@ -64,7 +64,10 @@ sourceSets {
 }
 
 dependencies {
-    avroTools("org.apache.avro:avro-tools:$avroVersion")
+    avroTools("org.apache.avro:avro-tools:$avroVersion") {
+        exclude(group = "org.apache.avro", module = "trevni-avro")
+        exclude(group = "org.apache.avro", module = "trevni-core")
+    }
 
     api("org.apache.avro:avro:$avroVersion")
 }
