@@ -1,5 +1,6 @@
 package com.vertyll.veds.iam.application.service
 
+import com.vertyll.veds.iam.application.port.inbound.MailFeedbackUseCase
 import com.vertyll.veds.iam.application.saga.model.SagaTypes
 import com.vertyll.veds.iam.application.saga.port.SagaProcessPort
 import org.slf4j.LoggerFactory
@@ -15,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional
  * Driven by an inbound Kafka adapter; technology-agnostic by contract.
  */
 @Service
-class MailFeedbackService(
+internal class MailFeedbackService(
     private val sagaProcessPort: SagaProcessPort,
-) {
+) : MailFeedbackUseCase {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
@@ -33,7 +34,7 @@ class MailFeedbackService(
     }
 
     @Transactional
-    fun handleMailSent(
+    override fun handleMailSent(
         sagaId: String?,
         to: String,
     ) {
@@ -60,7 +61,7 @@ class MailFeedbackService(
     }
 
     @Transactional
-    fun handleMailFailed(
+    override fun handleMailFailed(
         sagaId: String?,
         to: String,
         error: String,

@@ -1,5 +1,6 @@
 package com.vertyll.veds.iam.application.service
 
+import com.vertyll.veds.iam.application.port.inbound.AuthCompensationUseCase
 import com.vertyll.veds.iam.application.port.out.IdentityProviderPort
 import com.vertyll.veds.iam.application.saga.model.SagaCompensationActions
 import com.vertyll.veds.iam.domain.repository.UserRepository
@@ -8,14 +9,14 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class AuthCompensationService(
+internal class AuthCompensationService(
     private val userRepository: UserRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
     private val identityProvider: IdentityProviderPort,
-) {
+) : AuthCompensationUseCase {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun compensate(
+    override fun compensate(
         action: String,
         event: Map<String, Any?>,
     ) {

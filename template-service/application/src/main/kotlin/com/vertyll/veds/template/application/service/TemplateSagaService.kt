@@ -1,6 +1,7 @@
 package com.vertyll.veds.template.application.service
 
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
+import com.vertyll.veds.template.application.port.inbound.TemplateSagaUseCase
 import com.vertyll.veds.template.application.saga.model.SagaStepNames
 import com.vertyll.veds.template.application.saga.model.SagaTypes
 import com.vertyll.veds.template.application.saga.port.SagaProcessPort
@@ -17,14 +18,14 @@ import org.springframework.transaction.annotation.Transactional
  * domain calls with your real business logic when cloning this service.
  */
 @Service
-class TemplateSagaService(
+internal class TemplateSagaService(
     private val sagaProcess: SagaProcessPort,
     private val templateRepository: TemplateRepository,
-) {
+) : TemplateSagaUseCase {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    fun processTemplateWithSaga(
+    override fun processTemplateWithSaga(
         name: String,
         payload: String,
     ): Template {

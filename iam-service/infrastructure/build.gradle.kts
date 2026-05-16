@@ -35,7 +35,8 @@ val avroSchemas = fileTree(avroContractsDir) { include("**/*.avsc") }
 val generateAvroJava by tasks.registering(JavaExec::class) {
     group = "build"
     description = "Generate Java SpecificRecord classes from all Avro schemas in contracts/."
-    inputs.files(avroSchemas)
+    inputs
+        .files(avroSchemas)
         .withPropertyName("avroSchemas")
         .withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir(avroGeneratedDir).withPropertyName("avroGeneratedDir")

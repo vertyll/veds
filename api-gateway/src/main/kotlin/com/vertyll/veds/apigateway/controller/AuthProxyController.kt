@@ -29,7 +29,7 @@ import java.time.Duration
  */
 @RestController
 @RequestMapping("/auth")
-class AuthProxyController(
+internal class AuthProxyController(
     private val sharedConfig: SharedConfigProperties,
 ) {
     private companion object {

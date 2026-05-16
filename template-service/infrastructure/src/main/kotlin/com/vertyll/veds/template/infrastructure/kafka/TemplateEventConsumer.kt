@@ -3,7 +3,7 @@ package com.vertyll.veds.template.infrastructure.kafka
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import com.vertyll.veds.sharedinfrastructure.kafka.ProcessedEventGuard
 import com.vertyll.veds.template.TemplateRequestedEvent
-import com.vertyll.veds.template.application.service.TemplateSagaService
+import com.vertyll.veds.template.application.port.inbound.TemplateSagaUseCase
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 @Component
 internal class TemplateEventConsumer(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
-    private val templateSagaService: TemplateSagaService,
+    private val templateSagaService: TemplateSagaUseCase,
     private val processedEventGuard: ProcessedEventGuard,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

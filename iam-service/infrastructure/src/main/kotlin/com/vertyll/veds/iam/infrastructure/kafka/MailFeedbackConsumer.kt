@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.kafka
 
-import com.vertyll.veds.iam.application.service.MailFeedbackService
+import com.vertyll.veds.iam.application.port.inbound.MailFeedbackUseCase
 import com.vertyll.veds.mail.mail.MailFailedEvent
 import com.vertyll.veds.mail.mail.MailSentEvent
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component
 @Component
 internal class MailFeedbackConsumer(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
-    private val mailFeedbackService: MailFeedbackService,
+    private val mailFeedbackService: MailFeedbackUseCase,
     private val processedEventGuard: ProcessedEventGuard,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

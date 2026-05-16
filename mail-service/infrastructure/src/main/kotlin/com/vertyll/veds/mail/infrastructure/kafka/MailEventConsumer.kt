@@ -1,7 +1,7 @@
 package com.vertyll.veds.mail.infrastructure.kafka
 
 import com.vertyll.veds.iam.mail.MailRequestedEvent
-import com.vertyll.veds.mail.application.service.EmailSagaService
+import com.vertyll.veds.mail.application.port.inbound.EmailSagaUseCase
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import com.vertyll.veds.sharedinfrastructure.kafka.ProcessedEventGuard
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component
  * Inbound Kafka adapter for the `mail-requested` topic.
  *
  * Decodes the Avro payload, dedupes via [ProcessedEventGuard] and delegates
- * the use case to the application layer ([EmailSagaService]).
+ * the use case to the application layer ([EmailSagaUseCase]).
  */
 @Component
 internal class MailEventConsumer(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
-    private val emailSagaService: EmailSagaService,
+    private val emailSagaService: EmailSagaUseCase,
     private val processedEventGuard: ProcessedEventGuard,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

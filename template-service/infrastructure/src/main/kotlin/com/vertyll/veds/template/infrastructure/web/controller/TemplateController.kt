@@ -2,7 +2,7 @@ package com.vertyll.veds.template.infrastructure.web.controller
 
 import com.vertyll.veds.template.application.dto.CreateTemplateRequest
 import com.vertyll.veds.template.application.dto.TemplateResponse
-import com.vertyll.veds.template.application.service.TemplateSagaService
+import com.vertyll.veds.template.application.port.inbound.TemplateSagaUseCase
 import com.vertyll.veds.template.infrastructure.response.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/template")
 internal class TemplateController(
-    private val templateSagaService: TemplateSagaService,
+    private val templateSagaService: TemplateSagaUseCase,
 ) {
     @PostMapping
     fun create(

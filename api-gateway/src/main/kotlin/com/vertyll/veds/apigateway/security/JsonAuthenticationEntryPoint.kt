@@ -11,7 +11,7 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @Component
-class JsonAuthenticationEntryPoint(
+internal class JsonAuthenticationEntryPoint(
     private val objectMapper: ObjectMapper,
 ) : ServerAuthenticationEntryPoint {
     @Suppress("kotlin:S6508")

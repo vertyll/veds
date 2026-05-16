@@ -1,5 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.persistence.adapter
 
+import com.vertyll.veds.iam.domain.model.PageResult
 import com.vertyll.veds.iam.domain.model.User
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.persistence.entity.PermissionJpaEntity
@@ -8,10 +9,10 @@ import com.vertyll.veds.iam.infrastructure.persistence.entity.UserJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.repository.PermissionJpaRepository
 import com.vertyll.veds.iam.infrastructure.persistence.repository.RoleJpaRepository
 import com.vertyll.veds.iam.infrastructure.persistence.repository.UserJpaRepository
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import java.util.UUID
+import com.vertyll.veds.iam.domain.model.PageRequest as DomainPageRequest
+import org.springframework.data.domain.PageRequest as SpringPageRequest
 
 @Component
 internal class UserPersistenceAdapter(
@@ -56,7 +57,16 @@ internal class UserPersistenceAdapter(
 
     override fun existsByEmail(email: String): Boolean = repository.existsByEmail(email)
 
-    override fun findAll(pageable: Pageable): Page<User> = repository.findAll(pageable).map { it.toDomain() }
+    override fun findAll(pageRequest: DomainPageRequest): PageResult<User> {
+        val springPage =
+            repository.findAll(SpringPageRequest.of(pageRequest.page, pageRequest.size))
+        return PageResult(
+            content = springPage.content.map { it.toDomain() },
+            page = pageRequest.page,
+            size = pageRequest.size,
+            totalElements = springPage.totalElements,
+        )
+    }
 
     override fun deleteById(id: Long) {
         repository.deleteById(id)

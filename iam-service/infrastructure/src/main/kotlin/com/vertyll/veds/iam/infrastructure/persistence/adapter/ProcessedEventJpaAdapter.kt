@@ -7,9 +7,6 @@ import com.vertyll.veds.sharedinfrastructure.kafka.contract.ProcessedEventFactor
 import com.vertyll.veds.sharedinfrastructure.kafka.contract.ProcessedEventRepositoryPort
 import org.springframework.stereotype.Component
 
-/**
- * JPA-backed adapter implementing the processed-event ports for iam-service.
- */
 @Component
 internal class ProcessedEventJpaAdapter(
     private val repository: ProcessedEventJpaRepository,

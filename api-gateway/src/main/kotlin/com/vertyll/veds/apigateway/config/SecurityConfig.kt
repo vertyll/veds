@@ -13,7 +13,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebFluxSecurity
-class SecurityConfig(
+internal class SecurityConfig(
     private val jsonAuthenticationEntryPoint: JsonAuthenticationEntryPoint,
     private val reactiveKeycloakJwtConverter: ReactiveKeycloakJwtAuthenticationConverter,
 ) {

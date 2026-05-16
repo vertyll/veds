@@ -2,6 +2,7 @@ package com.vertyll.veds.mail.application.service
 
 import com.vertyll.veds.mail.application.config.MailProperties
 import com.vertyll.veds.mail.application.dto.EmailLogResponse
+import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.application.port.out.MailSenderPort
 import com.vertyll.veds.mail.application.port.out.TemplateRendererPort
 import com.vertyll.veds.mail.domain.model.EmailLog
@@ -15,12 +16,12 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Service
-class EmailService(
+internal class EmailService(
     private val mailSender: MailSenderPort,
     private val templateRenderer: TemplateRendererPort,
     private val emailLogRepository: EmailLogRepository,
     private val mailProperties: MailProperties,
-) {
+) : EmailUseCase {
     private val logger = LoggerFactory.getLogger(EmailService::class.java)
 
     private companion object {
@@ -33,12 +34,12 @@ class EmailService(
     /**
      * Sends an email using a template specified by the EmailTemplate enum and variables.
      */
-    fun sendEmail(
+    override fun sendEmail(
         to: String,
         subject: String,
         template: EmailTemplate,
         variables: Map<String, String>,
-        replyTo: String? = null,
+        replyTo: String?,
     ): Boolean {
         try {
             logger.info(LOG_SENDING_EMAIL, to, subject)
@@ -98,7 +99,7 @@ class EmailService(
         subject: String,
         templateName: String,
         variables: String? = null,
-        replyTo: String? = null,
+        replyTo: String?,
         success: Boolean,
         errorMessage: String? = null,
     ) {
@@ -118,5 +119,5 @@ class EmailService(
     }
 
     @Transactional(readOnly = true)
-    fun getEmailLogs(): Page<EmailLogResponse> = Page.empty()
+    override fun getEmailLogs(): Page<EmailLogResponse> = Page.empty()
 }

@@ -5,6 +5,7 @@ import com.vertyll.veds.iam.application.dto.ChangePasswordRequest
 import com.vertyll.veds.iam.application.dto.RegisterRequest
 import com.vertyll.veds.iam.application.dto.ResetPasswordRequest
 import com.vertyll.veds.iam.application.exception.ApiException
+import com.vertyll.veds.iam.application.port.inbound.AuthUseCase
 import com.vertyll.veds.iam.application.port.out.AuthEventPublisherPort
 import com.vertyll.veds.iam.application.port.out.IdentityProviderPort
 import com.vertyll.veds.iam.application.saga.model.SagaStepNames
@@ -28,14 +29,14 @@ import java.util.UUID
 import com.vertyll.veds.iam.domain.model.User as DomainUser
 
 @Service
-class AuthService(
+internal class AuthService(
     private val verificationTokenRepository: VerificationTokenRepository,
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
     private val identityProvider: IdentityProviderPort,
     private val authEventPublisher: AuthEventPublisherPort,
     private val sagaProcessPort: SagaProcessPort,
-) {
+) : AuthUseCase {
     private val logger: Logger = LoggerFactory.getLogger(AuthService::class.java)
 
     private companion object {
@@ -58,7 +59,7 @@ class AuthService(
     }
 
     @Transactional
-    fun register(request: RegisterRequest) {
+    override fun register(request: RegisterRequest) {
         if (userRepository.existsByEmail(request.email)) {
             logger.warn("Registration attempted with existing email: {}", request.email)
             throw ApiException(REGISTRATION_FAILED, HttpStatus.BAD_REQUEST)
@@ -160,7 +161,7 @@ class AuthService(
     }
 
     @Transactional
-    fun activateAccount(token: String) {
+    override fun activateAccount(token: String) {
         val verificationToken =
             verificationTokenRepository.findByToken(token)
                 ?: throw ApiException(INVALID_TOKEN, HttpStatus.BAD_REQUEST)
@@ -177,7 +178,7 @@ class AuthService(
     }
 
     @Transactional
-    fun resendActivationEmail(email: String) {
+    override fun resendActivationEmail(email: String) {
         val user = userRepository.findByEmail(email)
         if (user == null) {
             logger.info("Activation email resend requested for non-existent email: {}", email)
@@ -235,7 +236,7 @@ class AuthService(
     }
 
     @Transactional
-    fun sendPasswordResetRequest(email: String) {
+    override fun sendPasswordResetRequest(email: String) {
         val user = userRepository.findByEmail(email)
         if (user == null) {
             logger.info("Password reset requested for non-existent email: {}", email)
@@ -293,7 +294,7 @@ class AuthService(
     }
 
     @Transactional
-    fun resetPassword(
+    override fun resetPassword(
         token: String,
         request: ResetPasswordRequest,
     ) {
@@ -316,7 +317,7 @@ class AuthService(
     }
 
     @Transactional
-    fun requestEmailChange(
+    override fun requestEmailChange(
         email: String,
         request: ChangeEmailRequest,
     ) {
@@ -386,7 +387,7 @@ class AuthService(
     }
 
     @Transactional
-    fun confirmEmailChange(token: String) {
+    override fun confirmEmailChange(token: String) {
         val verificationToken =
             verificationTokenRepository.findByToken(token)
                 ?: throw ApiException(INVALID_TOKEN, HttpStatus.BAD_REQUEST)
@@ -428,7 +429,7 @@ class AuthService(
     }
 
     @Transactional
-    fun changePassword(
+    override fun changePassword(
         email: String,
         request: ChangePasswordRequest,
     ) {
@@ -498,7 +499,7 @@ class AuthService(
     }
 
     @Transactional
-    fun confirmPasswordChange(
+    override fun confirmPasswordChange(
         token: String,
         newPassword: String,
     ) {
@@ -534,7 +535,7 @@ class AuthService(
     }
 
     @Transactional
-    fun setNewPassword(
+    override fun setNewPassword(
         tokenId: Long,
         request: ResetPasswordRequest,
     ) {
@@ -558,7 +559,7 @@ class AuthService(
     }
 
     @Transactional(readOnly = true)
-    fun getUserPermissions(keycloakId: UUID): List<String> {
+    override fun getUserPermissions(keycloakId: UUID): List<String> {
         val user =
             userRepository.findByKeycloakId(keycloakId)
                 ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)

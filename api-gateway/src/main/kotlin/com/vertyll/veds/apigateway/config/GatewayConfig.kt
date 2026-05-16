@@ -11,7 +11,7 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @Configuration
-class GatewayConfig {
+internal class GatewayConfig {
     @Bean
     fun customGlobalFilter(): GlobalFilter = HeadersExchangeFilter()
 

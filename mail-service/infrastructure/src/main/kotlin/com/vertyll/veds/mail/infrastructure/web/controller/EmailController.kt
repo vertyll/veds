@@ -6,8 +6,8 @@ import com.vertyll.veds.mail.application.dto.SendBatchEmailRequest
 import com.vertyll.veds.mail.application.dto.SendBatchEmailResponse
 import com.vertyll.veds.mail.application.dto.SendEmailRequest
 import com.vertyll.veds.mail.application.dto.SendEmailResponse
-import com.vertyll.veds.mail.application.service.EmailBatchService
-import com.vertyll.veds.mail.application.service.EmailService
+import com.vertyll.veds.mail.application.port.inbound.EmailBatchUseCase
+import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.domain.model.EmailTemplate
 import com.vertyll.veds.mail.infrastructure.response.ApiResponse
 import jakarta.validation.Valid
@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/mail")
 internal class EmailController(
-    private val emailService: EmailService,
-    private val emailBatchService: EmailBatchService,
+    private val emailService: EmailUseCase,
+    private val emailBatchService: EmailBatchUseCase,
 ) {
     @GetMapping("/logs")
     @PreAuthorize("hasRole('ADMIN')")

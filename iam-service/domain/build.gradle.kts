@@ -15,5 +15,4 @@ dependencyManagement {
 
 dependencies {
     implementation(libs.kotlin.stdlib.jdk8)
-    api("org.springframework.data:spring-data-commons")
 }

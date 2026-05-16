@@ -1,8 +1,8 @@
 package com.vertyll.veds.iam.domain.repository
 
+import com.vertyll.veds.iam.domain.model.PageRequest
+import com.vertyll.veds.iam.domain.model.PageResult
 import com.vertyll.veds.iam.domain.model.User
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface UserRepository {
@@ -16,7 +16,7 @@ interface UserRepository {
 
     fun existsByEmail(email: String): Boolean
 
-    fun findAll(pageable: Pageable): Page<User>
+    fun findAll(pageRequest: PageRequest): PageResult<User>
 
     fun deleteById(id: Long)
 }

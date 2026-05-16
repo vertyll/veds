@@ -2,7 +2,7 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 
 import com.vertyll.veds.iam.application.dto.UpdateProfileRequest
 import com.vertyll.veds.iam.application.dto.UserResponse
-import com.vertyll.veds.iam.application.service.UserService
+import com.vertyll.veds.iam.application.port.inbound.UserUseCase
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.sharedinfrastructure.utils.ETagUtils
 import io.swagger.v3.oas.annotations.Operation
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/users")
 @Tag(name = "Users", description = "User management API")
 internal class UserController(
-    private val userService: UserService,
+    private val userService: UserUseCase,
 ) {
     private companion object {
         private const val USER_RETRIEVED_SUCCESSFULLY = "User retrieved successfully"

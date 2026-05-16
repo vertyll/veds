@@ -1,5 +1,6 @@
 package com.vertyll.veds.iam.application.port.out
 
+@Suppress("kotlin:S6517")
 interface AuthEventPublisherPort {
     fun sendMailRequestedEvent(
         to: String,

@@ -1,5 +1,6 @@
 package com.vertyll.veds.iam.application.port.out
 
+import com.vertyll.veds.iam.domain.model.RoleType
 import java.util.UUID
 
 interface IdentityProviderPort {
@@ -8,7 +9,7 @@ interface IdentityProviderPort {
         password: String,
         firstName: String,
         lastName: String,
-        roleName: String = "USER",
+        roleName: String = RoleType.USER.name,
     ): UUID
 
     fun enableUser(keycloakId: UUID)

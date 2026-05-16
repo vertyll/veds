@@ -1,5 +1,7 @@
 package com.vertyll.veds.mail.application.service
 
+import com.vertyll.veds.mail.application.port.inbound.EmailSagaUseCase
+import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.application.port.out.MailFeedbackEventPublisherPort
 import com.vertyll.veds.mail.application.saga.model.SagaStepNames
 import com.vertyll.veds.mail.application.saga.model.SagaTypes
@@ -21,22 +23,22 @@ import org.springframework.transaction.annotation.Transactional
  * Inbound entry point used by the Kafka adapter (the Kafka inbound adapter).
  */
 @Service
-class EmailSagaService(
+internal class EmailSagaService(
     private val sagaProcess: SagaProcessPort,
-    private val emailService: EmailService,
+    private val emailService: EmailUseCase,
     private val mailFeedbackPublisher: MailFeedbackEventPublisherPort,
-) {
+) : EmailSagaUseCase {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    fun sendEmailWithSaga(
+    override fun sendEmailWithSaga(
         to: String,
         subject: String,
         templateName: String,
         variables: Map<String, String>,
-        replyTo: String? = null,
-        originSagaId: String? = null,
-        originalEventId: String? = null,
+        replyTo: String?,
+        originSagaId: String?,
+        originalEventId: String?,
     ): Boolean {
         val template = EmailTemplate.fromTemplateName(templateName)
         if (template == null) {

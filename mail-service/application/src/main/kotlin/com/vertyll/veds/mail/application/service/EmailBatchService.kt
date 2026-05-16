@@ -1,19 +1,21 @@
 package com.vertyll.veds.mail.application.service
 
+import com.vertyll.veds.mail.application.port.inbound.EmailBatchUseCase
+import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.domain.model.EmailTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class EmailBatchService(
-    private val emailService: EmailService,
-) {
-    fun processEmailBatch(
+internal class EmailBatchService(
+    private val emailService: EmailUseCase,
+) : EmailBatchUseCase {
+    override fun processEmailBatch(
         recipients: List<String>,
         subject: String,
         template: EmailTemplate,
         commonVariables: Map<String, String>,
         specificVariables: Map<String, Map<String, String>>,
-        replyTo: String? = null,
+        replyTo: String?,
     ): Map<String, Boolean> {
         val results = mutableMapOf<String, Boolean>()
         for (recipient in recipients) {

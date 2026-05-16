@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
 
-/**
- * JPA-backed adapter implementing the outbox ports for iam-service.
- */
 @Component
 internal class OutboxJpaAdapter(
     private val repository: OutboxJpaRepository,

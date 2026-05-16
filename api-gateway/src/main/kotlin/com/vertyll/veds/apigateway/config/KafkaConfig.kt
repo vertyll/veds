@@ -18,4 +18,4 @@ import org.springframework.context.annotation.Configuration
         DataSourceTransactionManagerAutoConfiguration::class,
     ],
 )
-class KafkaConfig
+internal class KafkaConfig

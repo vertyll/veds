@@ -1,7 +1,7 @@
 package com.vertyll.veds.iam.infrastructure.web.controller
 
 import com.vertyll.veds.iam.application.dto.RoleResponse
-import com.vertyll.veds.iam.application.service.RoleService
+import com.vertyll.veds.iam.application.port.inbound.RoleUseCase
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.sharedinfrastructure.utils.ETagUtils
 import io.swagger.v3.oas.annotations.Operation
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/roles")
 @Tag(name = "Roles", description = "Role management APIs")
 internal class RoleController(
-    private val roleService: RoleService,
+    private val roleService: RoleUseCase,
 ) {
     private companion object {
         private const val ROLE_RETRIEVED_SUCCESSFULLY = "Role retrieved successfully"

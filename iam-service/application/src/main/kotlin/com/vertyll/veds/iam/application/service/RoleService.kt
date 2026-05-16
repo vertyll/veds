@@ -2,6 +2,7 @@ package com.vertyll.veds.iam.application.service
 
 import com.vertyll.veds.iam.application.dto.RoleResponse
 import com.vertyll.veds.iam.application.exception.ApiException
+import com.vertyll.veds.iam.application.port.inbound.RoleUseCase
 import com.vertyll.veds.iam.application.port.out.IdentityProviderPort
 import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.repository.RoleRepository
@@ -12,11 +13,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class RoleService(
+internal class RoleService(
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
     private val identityProvider: IdentityProviderPort,
-) {
+) : RoleUseCase {
     private companion object {
         private const val ROLE_NOT_FOUND = "Role not found"
         private const val USER_NOT_FOUND = "User not found"
@@ -24,31 +25,31 @@ class RoleService(
     }
 
     @Transactional(readOnly = true)
-    fun getRoleById(id: Long): RoleResponse {
+    override fun getRoleById(id: Long): RoleResponse {
         val role = roleRepository.findById(id) ?: throw ApiException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND)
         return mapToDto(role)
     }
 
     @Transactional(readOnly = true)
-    fun getRoleByName(name: String): RoleResponse {
+    override fun getRoleByName(name: String): RoleResponse {
         val role = roleRepository.findByName(name) ?: throw ApiException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND)
         return mapToDto(role)
     }
 
     @Transactional(readOnly = true)
-    fun getAllRoles(): List<RoleResponse> = roleRepository.findAll().map { mapToDto(it) }
+    override fun getAllRoles(): List<RoleResponse> = roleRepository.findAll().map { mapToDto(it) }
 
     @Transactional(readOnly = true)
-    fun getRolesForUser(userId: Long): List<RoleResponse> {
+    override fun getRolesForUser(userId: Long): List<RoleResponse> {
         val user = userRepository.findById(userId) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
         return user.roles.map { mapToDto(it) }
     }
 
     @Transactional
-    fun assignRoleToUser(
+    override fun assignRoleToUser(
         userId: Long,
         roleName: String,
-        version: Long? = null,
+        version: Long?,
     ) {
         val user = userRepository.findById(userId) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 
@@ -64,10 +65,10 @@ class RoleService(
     }
 
     @Transactional
-    fun removeRoleFromUser(
+    override fun removeRoleFromUser(
         userId: Long,
         roleName: String,
-        version: Long? = null,
+        version: Long?,
     ) {
         val user = userRepository.findById(userId) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 

@@ -5,7 +5,7 @@ import com.vertyll.veds.iam.application.dto.ChangePasswordRequest
 import com.vertyll.veds.iam.application.dto.ConfirmPasswordChangeRequest
 import com.vertyll.veds.iam.application.dto.RegisterRequest
 import com.vertyll.veds.iam.application.dto.ResetPasswordRequest
-import com.vertyll.veds.iam.application.service.AuthService
+import com.vertyll.veds.iam.application.port.inbound.AuthUseCase
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
 import com.vertyll.veds.sharedinfrastructure.utils.KeycloakJwtUtils
@@ -28,7 +28,7 @@ import java.util.UUID
 @RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Authentication management APIs")
 internal class AuthController(
-    private val authService: AuthService,
+    private val authService: AuthUseCase,
     private val sharedConfigProperties: SharedConfigProperties,
 ) {
     private companion object {

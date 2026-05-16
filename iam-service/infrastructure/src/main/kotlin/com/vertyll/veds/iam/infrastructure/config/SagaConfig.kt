@@ -1,6 +1,6 @@
 package com.vertyll.veds.iam.infrastructure.config
 
-import com.vertyll.veds.iam.application.service.AuthCompensationService
+import com.vertyll.veds.iam.application.port.inbound.AuthCompensationUseCase
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.entity.SagaStepJpaEntity
 import com.vertyll.veds.iam.infrastructure.persistence.repository.SagaJpaRepository
@@ -81,7 +81,7 @@ internal class SagaConfig {
     fun iamSagaCompensationEngine(
         sagaStepRepository: SagaStepJpaRepository,
         compensationEventDeserializer: CompensationEventDeserializer,
-        authCompensationService: AuthCompensationService,
+        authCompensationService: AuthCompensationUseCase,
     ): SagaCompensationEngine<SagaStepJpaEntity> =
         SagaCompensationEngine(
             sagaStepRepository = sagaStepRepository,
