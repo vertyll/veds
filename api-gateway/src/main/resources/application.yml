@@ -21,6 +21,7 @@ spring:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
       - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - com.vertyll.veds.sharedinfrastructure.avro.AvroSerDeAutoConfiguration
 
 management:
   endpoints:

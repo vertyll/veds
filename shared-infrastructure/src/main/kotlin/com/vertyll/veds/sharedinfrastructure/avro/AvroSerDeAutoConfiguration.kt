@@ -3,6 +3,7 @@ package com.vertyll.veds.sharedinfrastructure.avro
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaInfraProperties
 import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnProperty(
     name = ["spring.kafka.schema-registry-url"],
 )
+@EnableConfigurationProperties(KafkaInfraProperties::class)
 internal class AvroSerDeAutoConfiguration {
     /** Confluent Avro serializer wired to the configured Schema Registry. */
     @Bean
