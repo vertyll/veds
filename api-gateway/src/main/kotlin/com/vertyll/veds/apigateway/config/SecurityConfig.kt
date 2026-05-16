@@ -1,7 +1,6 @@
 package com.vertyll.veds.apigateway.config
 
 import com.vertyll.veds.apigateway.security.JsonAuthenticationEntryPoint
-import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import com.vertyll.veds.sharedinfrastructure.security.ReactiveKeycloakJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -106,13 +105,13 @@ class SecurityConfig(
                     .authenticated()
                     // IAM service admin endpoints
                     .pathMatchers(*ROLE_ADMIN_ENDPOINTS)
-                    .hasRole(RoleType.ADMIN.value)
+                    .hasRole("ADMIN")
                     // IAM service regular endpoints
                     .pathMatchers(ROLE_USER_ENDPOINTS)
                     .authenticated()
                     // IAM service admin endpoints
                     .pathMatchers(*USER_ADMIN_ENDPOINTS)
-                    .hasRole(RoleType.ADMIN.value)
+                    .hasRole("ADMIN")
                     // IAM service user endpoints
                     .pathMatchers(USER_PROFILE_ENDPOINT)
                     .authenticated()
@@ -121,7 +120,7 @@ class SecurityConfig(
                     .authenticated()
                     // Mail service endpoints (admin only)
                     .pathMatchers(MAIL_ENDPOINTS)
-                    .hasRole(RoleType.ADMIN.value)
+                    .hasRole("ADMIN")
                     // Default policy - deny all
                     .anyExchange()
                     .authenticated()

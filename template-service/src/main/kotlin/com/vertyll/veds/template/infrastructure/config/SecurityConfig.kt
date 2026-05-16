@@ -1,6 +1,5 @@
 package com.vertyll.veds.template.infrastructure.config
 
-import com.vertyll.veds.sharedinfrastructure.role.RoleType
 import com.vertyll.veds.sharedinfrastructure.security.KeycloakJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -28,7 +27,7 @@ class SecurityConfig(
                     .requestMatchers("/actuator/**")
                     .permitAll()
                     .requestMatchers("/template/**")
-                    .hasRole(RoleType.ADMIN.value)
+                    .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated()
             }.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

@@ -34,6 +34,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Provides shared code, DTOs, event definitions, and utilities for all microservices.
 - Implements **persistence-agnostic contracts** for the Transactional Outbox and Saga patterns (`OutboxRepositoryPort`, `ProcessedEventRepositoryPort`, `SagaRepositoryPort`, `SagaStepRepositoryPort`) — any database (PostgreSQL, MongoDB, …) can plug in by implementing the ports.
 - Reusable Kafka building blocks: `KafkaOutboxProcessor` + `OutboxDispatchTx` (two-phase claim/dispatch), `ProcessedEventGuard` (idempotent receiver), `AvroPayloadSerializer`/`AvroPayloadDeserializer`.
+- Shared **technical IdP adapter** for OAuth2/OIDC: `KeycloakJwtAuthenticationConverter` (servlet) and `ReactiveKeycloakJwtAuthenticationConverter` (WebFlux) — wired via `KeycloakSecurityAutoConfiguration`. They translate the configured roles claim (`veds.shared.keycloak.roles-claim-path`) into Spring Security `ROLE_*` authorities without knowing any concrete role names — so they are role-vocabulary-agnostic and remain in `shared-infrastructure` as a pure technical adapter (see *Where do role names live?* below).
 - Saga engine: generic `SagaEngine`, `SagaCompensationRunner`, `SagaWatchdog` operating on F-bounded contracts (`Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>`) — zero unchecked casts in the engine.
 - Externalized configuration: `KafkaOutboxProperties` (`veds.outbox.*`) and `SagaProperties` (`veds.saga.*`) auto-registered by `OutboxAndSagaAutoConfiguration`.
 - Composable contracts for inter-service conventions: `SagaCompensationTopic.PREFIX` (each service composes its own `saga-compensation-<participant>` topic).
@@ -206,9 +207,30 @@ veds:
         path: "/"
 ```
 
-### Useful Keycloak URLs (local dev)
+### Where do role names live? (microservices anti–shared-kernel)
 
-| URL                                                                | Description                             |
+Role names (`USER`, `ADMIN`) are owned by **two places only**:
+1. **Keycloak realm** (`keycloak/realm-config/realm-export.json`) — the runtime source of truth issued in every access token's `realm_access.roles` claim.
+2. **iam-service** (`iam-service/.../domain/model/RoleType.kt`, `internal`) — a type-safe mirror used solely by the role *administrator* (`RoleInitializer` seeds the DB, `AuthService.register` assigns `USER` via the Keycloak Admin API). The enum is `internal` to the iam-service module and intentionally **not** exported.
+
+Other microservices (`api-gateway`, `mail-service`, `template-service`) **do not** depend on iam-service's enum. They check roles as plain strings:
+
+```kotlin
+// mail-service / template-service / api-gateway SecurityConfig
+.requestMatchers("/mail/**").hasRole("ADMIN")
+
+// IAM controllers
+@PreAuthorize("hasRole('ADMIN')")
+```
+
+Why no `shared-infrastructure.RoleType` enum:
+- It would be a **Shared Kernel** (DDD anti-pattern, Evans, *DDD* ch. 14) — every change to the role vocabulary would force a coordinated recompile/deploy across services.
+- It would conflict with the **Bounded Context** boundary: a role's *meaning* (what `ADMIN` is allowed to do) belongs to the service that owns the resource, not to a global enum.
+- The IdP is already the source of truth; an in-code mirror would inevitably drift from Keycloak.
+
+What stays in `shared-infrastructure/security/` is **only** the technical JWT → `Authentication` adapter (`KeycloakJwtAuthenticationConverter` / `ReactiveKeycloakJwtAuthenticationConverter`). It is role-name-agnostic — it maps *whatever* strings sit in the configured claim path onto `ROLE_*` authorities. Each service then decides which of those it cares about, in its own `SecurityConfig`.
+
+### Useful Keycloak URLs (local dev)| URL                                                                | Description                             |
 |--------------------------------------------------------------------|-----------------------------------------|
 | http://localhost:9000                                              | Keycloak admin console                  |
 | http://localhost:9000/realms/veds/.well-known/openid-configuration | OpenID Connect discovery                |

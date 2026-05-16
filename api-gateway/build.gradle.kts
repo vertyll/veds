@@ -19,6 +19,7 @@ extra["email"] = "gawrmiko@gmail.com"
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 configure<JavaPluginExtension> {

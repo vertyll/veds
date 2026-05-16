@@ -16,7 +16,7 @@ import com.vertyll.veds.iam.infrastructure.web.dto.ChangeEmailRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.ChangePasswordRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.RegisterRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.ResetPasswordRequest
-import com.vertyll.veds.sharedinfrastructure.role.RoleType
+import com.vertyll.veds.iam.domain.model.RoleType
 import com.vertyll.veds.sharedinfrastructure.saga.enums.SagaStepStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

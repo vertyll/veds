@@ -2,7 +2,7 @@ package com.vertyll.veds.iam.infrastructure.config
 
 import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.repository.RoleRepository
-import com.vertyll.veds.sharedinfrastructure.role.RoleType
+import com.vertyll.veds.iam.domain.model.RoleType
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
