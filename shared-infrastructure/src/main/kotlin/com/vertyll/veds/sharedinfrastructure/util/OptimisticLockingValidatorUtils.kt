@@ -3,7 +3,7 @@ package com.vertyll.veds.sharedinfrastructure.util
 import org.springframework.dao.OptimisticLockingFailureException
 import java.util.Objects
 
-object OptimisticLockingValidator {
+object OptimisticLockingValidatorUtils {
     fun validate(
         currentVersion: Long?,
         expectedVersion: Long?,

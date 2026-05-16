@@ -4,7 +4,7 @@ import com.vertyll.veds.iam.application.service.UserService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.UserResponse
-import com.vertyll.veds.sharedinfrastructure.http.ETagUtil
+import com.vertyll.veds.sharedinfrastructure.util.ETagUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -53,7 +53,7 @@ class UserController(
         @PathVariable id: Long,
     ): ResponseEntity<ApiResponse<UserResponse>> {
         val user = userService.getUserById(id)
-        val etag = ETagUtil.buildWeakETag(user.version)
+        val etag = ETagUtils.buildWeakETag(user.version)
         val response = ApiResponse.buildResponse(user, USER_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
         return if (etag != null) ResponseEntity.status(HttpStatus.OK).eTag(etag).body(response.body) else response
     }
@@ -64,7 +64,7 @@ class UserController(
         @PathVariable email: String,
     ): ResponseEntity<ApiResponse<UserResponse>> {
         val user = userService.getUserByEmail(email)
-        val etag = ETagUtil.buildWeakETag(user.version)
+        val etag = ETagUtils.buildWeakETag(user.version)
         val response = ApiResponse.buildResponse(user, USER_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
         return if (etag != null) ResponseEntity.status(HttpStatus.OK).eTag(etag).body(response.body) else response
     }
@@ -77,9 +77,9 @@ class UserController(
         @Valid @RequestBody request: UpdateProfileRequest,
         @RequestHeader(HttpHeaders.IF_MATCH, required = false) ifMatch: String?,
     ): ResponseEntity<ApiResponse<UserResponse>> {
-        val version = ETagUtil.parseIfMatchToVersion(ifMatch)
+        val version = ETagUtils.parseIfMatchToVersion(ifMatch)
         val user = userService.updateProfile(id, request, version)
-        val etag = ETagUtil.buildWeakETag(user.version)
+        val etag = ETagUtils.buildWeakETag(user.version)
         val response = ApiResponse.buildResponse(user, PROFILE_UPDATED_SUCCESSFULLY, HttpStatus.OK)
         return if (etag != null) ResponseEntity.status(HttpStatus.OK).eTag(etag).body(response.body) else response
     }

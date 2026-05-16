@@ -5,7 +5,7 @@ import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
 import com.vertyll.veds.iam.infrastructure.web.dto.UpdateProfileRequest
 import com.vertyll.veds.iam.infrastructure.web.dto.UserResponse
-import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidator
+import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidatorUtils
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -44,7 +44,7 @@ class UserService(
     ): UserResponse {
         val user = userRepository.findById(id) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 
-        OptimisticLockingValidator.validate(user.version, version) {
+        OptimisticLockingValidatorUtils.validate(user.version, version) {
             ApiException(USER_VERSION_MISMATCH, HttpStatus.PRECONDITION_FAILED)
         }
 

@@ -6,7 +6,7 @@ import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.iam.infrastructure.exception.ApiException
 import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponse
-import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidator
+import com.vertyll.veds.sharedinfrastructure.util.OptimisticLockingValidatorUtils
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -52,7 +52,7 @@ class RoleService(
     ) {
         val user = userRepository.findById(userId) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 
-        OptimisticLockingValidator.validate(user.version, version) {
+        OptimisticLockingValidatorUtils.validate(user.version, version) {
             ApiException(PRECONDITION_FAILED, HttpStatus.PRECONDITION_FAILED)
         }
 
@@ -71,7 +71,7 @@ class RoleService(
     ) {
         val user = userRepository.findById(userId) ?: throw ApiException(USER_NOT_FOUND, HttpStatus.NOT_FOUND)
 
-        OptimisticLockingValidator.validate(user.version, version) {
+        OptimisticLockingValidatorUtils.validate(user.version, version) {
             ApiException(PRECONDITION_FAILED, HttpStatus.PRECONDITION_FAILED)
         }
 

@@ -3,7 +3,7 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 import com.vertyll.veds.iam.application.service.RoleService
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.iam.infrastructure.web.dto.RoleResponse
-import com.vertyll.veds.sharedinfrastructure.http.ETagUtil
+import com.vertyll.veds.sharedinfrastructure.util.ETagUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpHeaders
@@ -37,7 +37,7 @@ class RoleController(
         @PathVariable id: Long,
     ): ResponseEntity<ApiResponse<RoleResponse>> {
         val role = roleService.getRoleById(id)
-        val etag = ETagUtil.buildWeakETag(role.version)
+        val etag = ETagUtils.buildWeakETag(role.version)
         val response = ApiResponse.buildResponse(role, ROLE_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
         return if (etag != null) ResponseEntity.status(HttpStatus.OK).eTag(etag).body(response.body) else response
     }
@@ -48,7 +48,7 @@ class RoleController(
         @PathVariable name: String,
     ): ResponseEntity<ApiResponse<RoleResponse>> {
         val role = roleService.getRoleByName(name)
-        val etag = ETagUtil.buildWeakETag(role.version)
+        val etag = ETagUtils.buildWeakETag(role.version)
         val response = ApiResponse.buildResponse(role, ROLE_RETRIEVED_SUCCESSFULLY, HttpStatus.OK)
         return if (etag != null) ResponseEntity.status(HttpStatus.OK).eTag(etag).body(response.body) else response
     }
@@ -78,7 +78,7 @@ class RoleController(
         @PathVariable roleName: String,
         @RequestHeader(HttpHeaders.IF_MATCH, required = false) ifMatch: String?,
     ): ResponseEntity<ApiResponse<Any>> {
-        val version = ETagUtil.parseIfMatchToVersion(ifMatch)
+        val version = ETagUtils.parseIfMatchToVersion(ifMatch)
         roleService.assignRoleToUser(userId, roleName, version)
         return ApiResponse.buildResponse(null, ROLE_ASSIGNED_SUCCESSFULLY, HttpStatus.OK)
     }
@@ -91,7 +91,7 @@ class RoleController(
         @PathVariable roleName: String,
         @RequestHeader(HttpHeaders.IF_MATCH, required = false) ifMatch: String?,
     ): ResponseEntity<ApiResponse<Any>> {
-        val version = ETagUtil.parseIfMatchToVersion(ifMatch)
+        val version = ETagUtils.parseIfMatchToVersion(ifMatch)
         roleService.removeRoleFromUser(userId, roleName, version)
         return ApiResponse.buildResponse(null, ROLE_REMOVED_SUCCESSFULLY, HttpStatus.OK)
     }

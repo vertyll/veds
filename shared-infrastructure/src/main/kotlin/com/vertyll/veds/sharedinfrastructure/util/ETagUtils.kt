@@ -1,6 +1,6 @@
-package com.vertyll.veds.sharedinfrastructure.http
+package com.vertyll.veds.sharedinfrastructure.util
 
-object ETagUtil {
+object ETagUtils {
     private const val WEAK_PREFIX = "W/\""
     private const val STRONG_QUOTE = '"'
 
