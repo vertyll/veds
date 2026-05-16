@@ -47,7 +47,7 @@ tasks.register("docs") {
 val composeCli = listOf("podman", "compose")
 val infraServices = listOf(
     "kafka", "schema-registry",
-    "iam-db", "mail-db", "template-db", "keycloak-db",
+    "iam-db", "mail-db", "keycloak-db",
     "keycloak", "mail-dev", "kafka-ui",
 )
 
