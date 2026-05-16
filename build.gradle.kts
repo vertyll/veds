@@ -9,7 +9,9 @@ fun aggregator(name: String, taskGroup: String, desc: String, dependsOnTask: Str
     tasks.register(name) {
         group = taskGroup
         description = desc
-        gradle.includedBuilds.forEach { dependsOn(it.task(":$dependsOnTask")) }
+        gradle.includedBuilds
+            .filterNot { it.name.endsWith("-contracts") }
+            .forEach { dependsOn(it.task(":$dependsOnTask")) }
     }
 }
 
