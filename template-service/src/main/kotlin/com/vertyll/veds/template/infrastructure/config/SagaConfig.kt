@@ -2,6 +2,7 @@ package com.vertyll.veds.template.infrastructure.config
 
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.saga.SagaCompensationTopic
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSerializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine
 import com.vertyll.veds.template.infrastructure.persistence.entity.SagaJpaEntity
@@ -20,7 +21,7 @@ import tools.jackson.databind.ObjectMapper
 @EnableScheduling // Enable scheduling for outbox processing
 internal class SagaConfig {
     companion object {
-        const val SAGA_COMPENSATION_TOPIC = "saga-compensation-template"
+        const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "template"
     }
 
     @Bean

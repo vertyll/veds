@@ -11,7 +11,6 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
 /**
@@ -27,7 +26,6 @@ class KafkaOutboxProcessor(
     private val outboxRepository: OutboxRepositoryPort,
     private val outboxMessageFactory: OutboxMessageFactory,
     private val kafkaTemplate: KafkaTemplate<String, ByteArray>,
-    private val objectMapper: ObjectMapper,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -84,27 +82,24 @@ class KafkaOutboxProcessor(
 
     /**
      * Creates a new outbox message for a raw topic name.
+     *
+     * The payload must already be serialized to its on-the-wire form
+     * ([ByteArray]). Encoding (Avro, JSON, …) is the responsibility of the
+     * caller — this processor is transport-agnostic.
      */
     @Transactional
     fun saveOutboxMessage(
         topic: String,
         key: String,
-        payload: Any,
+        payload: ByteArray,
         sagaId: String? = null,
         eventId: String? = null,
     ): OutboxMessage {
-        val payloadBytes =
-            when (payload) {
-                is ByteArray -> payload
-                is String -> payload.toByteArray(Charsets.UTF_8)
-                else -> objectMapper.writeValueAsBytes(payload)
-            }
-
         val message =
             outboxMessageFactory.create(
                 topic = topic,
                 key = key,
-                payload = payloadBytes,
+                payload = payload,
                 sagaId = sagaId,
                 eventId = eventId,
             )

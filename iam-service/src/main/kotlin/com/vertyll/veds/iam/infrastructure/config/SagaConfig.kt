@@ -14,6 +14,7 @@ import com.vertyll.veds.sharedinfrastructure.avro.AvroCompensationEventDeseriali
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.saga.SagaCompensationTopic
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventDeserializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSerializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaCompensationEngine
@@ -27,7 +28,7 @@ import tools.jackson.databind.ObjectMapper
 @EnableScheduling
 internal class SagaConfig {
     companion object {
-        const val SAGA_COMPENSATION_TOPIC = "saga-compensation-iam"
+        const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "iam"
     }
 
     @Bean

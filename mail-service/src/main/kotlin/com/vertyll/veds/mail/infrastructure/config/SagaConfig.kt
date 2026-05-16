@@ -9,6 +9,7 @@ import com.vertyll.veds.mail.infrastructure.saga.MailSagaCompensator
 import com.vertyll.veds.mail.infrastructure.saga.MailSagaEntityFactory
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.kafka.KafkaOutboxProcessor
+import com.vertyll.veds.sharedinfrastructure.saga.SagaCompensationTopic
 import com.vertyll.veds.sharedinfrastructure.saga.service.CompensationEventSerializer
 import com.vertyll.veds.sharedinfrastructure.saga.service.SagaEngine
 import org.springframework.context.annotation.Bean
@@ -20,7 +21,7 @@ import tools.jackson.databind.ObjectMapper
 @EnableScheduling // Enable scheduling for outbox processing
 internal class SagaConfig {
     companion object {
-        const val SAGA_COMPENSATION_TOPIC = "saga-compensation-mail"
+        const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "mail"
     }
 
     @Bean
