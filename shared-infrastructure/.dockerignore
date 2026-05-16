@@ -1,8 +1,29 @@
-.gradle
-build
+# Build outputs
+**/.gradle
+**/build
 out/
-.idea
-.vscode
-.DS_Store
+
+# IDE / OS
+**/.idea
+**/.vscode
+**/.run
+**/.DS_Store
 *.swp
 *.log
+
+# Docker specific
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.override.yml
+
+# Git / CI / docs
+.git
+.gitignore
+.github
+README.md
+
+# Project specific (Gradle wrapper must NOT be ignored)
+!gradle/
+!gradlew
+!gradlew.bat

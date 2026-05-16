@@ -14,18 +14,16 @@ on:
         default: "ubuntu-latest"
 
 jobs:
-  quality:
+  ktlint:
+    name: ktlint
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Set up JDK 25 (Zulu)
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "25"
-
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -35,19 +33,73 @@ jobs:
           key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
           restore-keys: |
             gradle-${{ inputs.service }}-
-
-      - name: ktlint
+      - name: ktlintCheck
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon ktlintCheck
+      - name: Upload ktlint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-reports-${{ inputs.service }}
+          path: |
+            ${{ inputs.service }}/build/reports/ktlint/
+            ${{ inputs.service }}/*/build/reports/ktlint/
+          if-no-files-found: ignore
 
+  detekt:
+    name: detekt
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25 (Zulu)
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "25"
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ inputs.service }}-
       - name: detekt
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon detekt
+      - name: Upload detekt reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-reports-${{ inputs.service }}
+          path: |
+            ${{ inputs.service }}/build/reports/detekt/
+            ${{ inputs.service }}/*/build/reports/detekt/
+          if-no-files-found: ignore
 
+  test:
+    name: test
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25 (Zulu)
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "25"
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ inputs.service }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ inputs.service }}-
       - name: Tests
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon test
-
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,9 +107,5 @@ jobs:
           name: test-reports-${{ inputs.service }}
           path: |
             ${{ inputs.service }}/build/reports/tests/
-            ${{ inputs.service }}/build/reports/ktlint/
-            ${{ inputs.service }}/build/reports/detekt/
             ${{ inputs.service }}/*/build/reports/tests/
-            ${{ inputs.service }}/*/build/reports/ktlint/
-            ${{ inputs.service }}/*/build/reports/detekt/
           if-no-files-found: ignore

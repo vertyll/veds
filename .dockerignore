@@ -4,6 +4,7 @@
 out/
 **/.idea
 **/.vscode
+**/.run
 **/.DS_Store
 *.swp
 *.log
@@ -14,15 +15,15 @@ Dockerfile
 docker-compose.yml
 docker-compose.override.yml
 
-# Git
+# Git / CI / docs
 .git
 .gitignore
+.github
+README.md
+screenshots/
+config/
 
-# Project specific
+# Project specific (Gradle wrapper must NOT be ignored)
 !gradle/
 !gradlew
 !gradlew.bat
-README.md
-Makefile
-screenshots/
-config/
