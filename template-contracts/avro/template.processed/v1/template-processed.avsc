@@ -10,4 +10,3 @@
     { "name": "payload", "type": { "type": "map", "values": "string" }, "default": {} }
   ]
 }
-
