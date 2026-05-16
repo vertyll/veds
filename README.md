@@ -32,12 +32,12 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 #### Shared Infrastructure
 - Provides shared code, DTOs, event definitions, and utilities for all microservices.
-- Implements contracts for shared patterns like an Outbox pattern.
-- Contains reusable components for Kafka integration.
-- Ensures consistency in how services communicate and process events.
-- Includes base classes for implementing event choreography.
-- Provides shared ports and adapters interfaces for consistent hexagonal architecture implementation.
-- Integration events definitions for inter-service communication.
+- Implements **persistence-agnostic contracts** for the Transactional Outbox and Saga patterns (`OutboxRepositoryPort`, `ProcessedEventRepositoryPort`, `SagaRepositoryPort`, `SagaStepRepositoryPort`) — any database (PostgreSQL, MongoDB, …) can plug in by implementing the ports.
+- Reusable Kafka building blocks: `KafkaOutboxProcessor` + `OutboxDispatchTx` (two-phase claim/dispatch), `ProcessedEventGuard` (idempotent receiver), `AvroPayloadSerializer`/`AvroPayloadDeserializer`.
+- Saga engine: generic `SagaEngine`, `SagaCompensationRunner`, `SagaWatchdog` operating on F-bounded contracts (`Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>`) — zero unchecked casts in the engine.
+- Externalized configuration: `KafkaOutboxProperties` (`veds.outbox.*`) and `SagaProperties` (`veds.saga.*`) auto-registered by `OutboxAndSagaAutoConfiguration`.
+- Composable contracts for inter-service conventions: `SagaCompensationTopic.PREFIX` (each service composes its own `saga-compensation-<participant>` topic).
+- Integration event schemas defined as Avro (`contracts/<service>/<topic>/v<n>/*.avsc`) — binary wire format with Schema Registry; Jackson is no longer used on the wire (kept only for saga payload JSON in DB and API Gateway HTTP).
 
 #### IAM Service
 - Responsible for user profile management, authorization, and account operations.
@@ -50,7 +50,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
     - Verification tokens.
     - Local saga state (`saga`, `saga_step` tables) for end-to-end traceability of distributed flows.
 - Provides endpoints for registration, profile management, and role administration.
-- Publishes events to Kafka through the `AuthEventPublisherPort` outbound port (e.g., `MailRequestEvent`).
+- Publishes events to Kafka through the `AuthEventPublisherPort` outbound port (e.g., `MailRequestedEvent`).
 - Consumes feedback events from mail-service (`MailSentEvent` / `MailFailedEvent`) and runs compensation logic via a dedicated `saga-compensation-iam` Kafka topic + `AuthCompensationService` use case (rollback user in Keycloak, delete verification token, revert email/password change).
 
 #### Mail Service
@@ -58,7 +58,7 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - Database stores:
     - Email logs and delivery status (`email_log` table).
     - Local saga state (`saga`, `saga_step` tables).
-- Consumes `MailRequestEvent` events from other services (`MailEventConsumer`).
+- Consumes `MailRequestedEvent` events from other services (`MailEventConsumer`).
 - Publishes `MailSentEvent` / `MailFailedEvent` back through the Transactional Outbox (`KafkaOutboxProcessor`).
 - Supports various email templates (welcome, password reset, account activation, email change confirmation, etc.).
 - Acts as a reactive participant in the choreography flow — has no outbound business-event port (publication is a saga mechanic, not a domain concern).
@@ -306,39 +306,59 @@ Benefits of this approach:
 - Better resilience as there's no single point of failure.
 - Aligns well with hexagonal architecture by treating event communication as external adapters.
 
-### Saga Pattern & Transactional Outbox (Choreography and Polyglot Persistence)
+### Saga Pattern & Transactional Outbox (Choreography, Polyglot Persistence)
 
 The system uses **choreography-based sagas** — there is no central orchestrator. Each participating service runs its own local saga and progresses by reacting to domain events on Kafka.
 
-**Polyglot Persistence via Shared Contracts:**
-The implementation of both the **Saga** and **Transactional Outbox** patterns relies on extracted, database-agnostic contracts (`OutboxMessage`, `Saga`, `SagaStep`) defined in the `shared-infrastructure` module. 
-- **Immutable Domain (`val`)**: These contracts are strictly read-only domain models (using Kotlin `val` properties), enforcing immutability and encapsulating business rules. They are completely decoupled from any database or ORM.
-- **Polyglot Persistence**: Because the shared abstractions know nothing about the storage mechanism, every microservice has full architectural freedom to choose its own desired database (e.g., PostgreSQL, MongoDB). Inside its infrastructure adapter, the microservice implements these contracts using its own mapping and mutable DB entities (using `var` as required by frameworks like Hibernate).
+**Polyglot Persistence via Shared Contracts.**
+Both the **Saga** and **Transactional Outbox** patterns are built on top of database-agnostic ports defined in `shared-infrastructure`:
 
-Key building blocks:
-1. **Transactional Outbox & Saga Engines** (`SagaEngine`, `KafkaOutboxProcessor` from `shared-infrastructure`): Reusable choreography coordinators operating strictly on interfaces. They ensure at-least-once event publication (no dual-write problem) and orchestrate compensation flows.
-2. Domain facts on Kafka topics — services react to events, never receive commands.
-3. `AWAITING_RESPONSE` saga state — the initiating saga waits for the feedback event correlated by `sagaId` (Saga Log Correlation pattern).
-4. Idempotency through localized status checks and unique constraints before re-applying a step.
-5. Recovery via scheduled jobs (e.g., `@Scheduled` inside `SchedulingConfig`) that poll the database for stuck sagas based on the provided generic interface implementations.
+| Contract | Purpose |
+|---|---|
+| `Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>` | Rich-aggregate ports with F-bounded generics — behavior methods return the concrete adapter type, eliminating unchecked casts. |
+| `SagaRepositoryPort`, `SagaStepRepositoryPort` | Persistence ports for sagas. |
+| `OutboxMessage`, `OutboxRepositoryPort` | Outbox aggregate + repository port (with `lockBatchForDispatch` for `SELECT … FOR UPDATE SKIP LOCKED`). |
+| `ProcessedEventRepositoryPort` | Idempotent-receiver ledger (UNIQUE `(eventId, consumerGroup)`). |
+
+`shared-infrastructure` ships JPA flavors (`BaseSaga`, `BaseSagaStep`, `BaseSagaRepository`, `BaseSagaStepRepository`, `OutboxJpaEntity`) — to introduce a different storage (MongoDB, DynamoDB, …) you only implement the ports against the new technology; the engines do not change.
+
+**Canonical building blocks (all in `shared-infrastructure`).**
+
+1. **Transactional Outbox** — `KafkaOutboxProcessor` (poller) + `OutboxDispatchTx` (transactional helper):
+   - Two-phase dispatch: a short transaction *claims* a batch with `SELECT … FOR UPDATE SKIP LOCKED` and flips rows to `PROCESSING`; Kafka publication happens *outside* of any DB transaction; success/failure is recorded in a fresh `REQUIRES_NEW` transaction (`markCompleted` / `markRetryScheduled` / `markDeadLettered`).
+   - Statuses: `READY → PROCESSING → COMPLETED` (happy path) or `→ DEAD_LETTERED` after exhausting retries (`OutboxStatus`).
+   - UNIQUE constraint on `event_id` enforces producer-side idempotency.
+   - Stuck-message reaper rescues `PROCESSING` rows abandoned by a crashed publisher (configurable threshold).
+   - All knobs externalized via `KafkaOutboxProperties` (`veds.outbox.poll-interval | batch-size | max-retries | retry-cooldown | stuck-threshold`).
+2. **Idempotent receiver** — `ProcessedEventGuard.claim(eventId, consumerGroup)` writes to a ledger with UNIQUE `(eventId, consumerGroup)`; duplicate deliveries are detected via caught `DataIntegrityViolationException` and short-circuited (Kafka's at-least-once delivery is neutralized at the consumer boundary).
+3. **Saga engine** — generic `SagaEngine<S, T>` with choreography semantics:
+   - `startSaga` / `recordSagaStep` / `awaitResponse` / `completeSaga` / `failSaga`.
+   - On step failure or explicit `failSaga`, an *after-commit* hook (`TransactionSynchronizationManager`) delegates to `SagaCompensationRunner.runCompensation` which opens its own `REQUIRES_NEW` transaction — so compensation only runs if the caller's business transaction actually commits, and runs through Spring's AOP proxy (no self-invocation pitfalls).
+4. **Saga watchdog** — `SagaWatchdog` (`@Scheduled`, `veds.saga.watchdog-interval`):
+   - Times out sagas stuck in `AWAITING_RESPONSE` longer than `veds.saga.await-response-timeout` (calls `failSaga`).
+   - Retries compensation for sagas in `COMPENSATING` / `COMPENSATION_FAILED` whose `updatedAt` is older than `veds.saga.compensation-retry-cooldown`.
+5. **Cross-service compensation topic naming** — `SagaCompensationTopic.PREFIX + "<service>"` (each service composes its own neutral topic, e.g. `saga-compensation-iam`).
+6. **Saga Log Correlation** — feedback events carry `sagaId`; the originating saga sits in `AWAITING_RESPONSE` until matched.
+7. **Recovery via scheduled jobs** — service-local `SchedulingConfig` wires `@EnableScheduling` so `KafkaOutboxProcessor` and `SagaWatchdog` ticks fire.
 
 Example: User Registration (iam-service ⇄ mail-service)
-1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `PUBLISH_USER_REGISTERED_EVENT` → `CREATE_VERIFICATION_TOKEN` → `PUBLISH_MAIL_REQUESTED_EVENT`, then transitions to `AWAITING_RESPONSE` and publishes `MailRequestedEvent` through the Outbox.
-2. `mail-service` (`MailEventConsumer`) consumes the event, begins its own local saga `EMAIL_SENDING`, performs `SEND_EMAIL`, completes its saga, and publishes `MailSentEvent` (or `MailFailedEvent`) through the Outbox.
-3. `iam-service` (`MailFeedbackConsumer`) consumes the feedback:
+1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `PUBLISH_USER_REGISTERED_EVENT` → `CREATE_VERIFICATION_TOKEN` → `PUBLISH_MAIL_REQUESTED_EVENT`, transitions to `AWAITING_RESPONSE`, and inserts a `MailRequestedEvent` row into the outbox (same JDBC transaction as the user write — no dual-write).
+2. The outbox poller publishes the Avro-serialized `MailRequestedEvent` to Kafka.
+3. `mail-service` (`MailEventConsumer`) consumes the event, claims it via `ProcessedEventGuard`, begins its own local saga `EMAIL_SENDING`, performs `SEND_EMAIL`, completes its saga, and inserts `MailSentEvent` (or `MailFailedEvent`) into its outbox.
+4. `iam-service` (`MailFeedbackConsumer`) consumes the feedback:
    - on `MailSentEvent` → `markSagaCompleted`,
-   - on `MailFailedEvent` → `markSagaFailed` + publishes compensation actions to the internal `saga-compensation-iam` topic; `SagaCompensationService` listens and delegates to the `AuthCompensationService` use case (rollback Keycloak user, delete verification token, revert email/password change).
+   - on `MailFailedEvent` → `failSaga` — the after-commit hook fires `SagaCompensationRunner.runCompensation`, which calls `IamSagaCompensator` to publish compensation actions to `saga-compensation-iam` (also via outbox); `SagaCompensationService` listens and delegates to `AuthCompensationService` (rollback Keycloak user, delete verification token, revert email/password change).
 
 Compensation only exists where effects are reversible — `mail-service` therefore does **not** have a `SagaCompensationService` (a sent email cannot be un-sent).
 
 ### Event-Driven Communication
 
-Services communicate asynchronously through Kafka events (definitions in `shared-infrastructure`):
-- **`MailRequestedEvent`** — published by `iam-service` (via `AuthEventPublisherPort`/`KafkaAuthEventPublisherAdapter`), consumed by `mail-service` (`MailEventConsumer`).
+Services communicate asynchronously through Kafka events. Integration events are defined as **Avro** schemas under `contracts/<service>/<topic>/v<n>/*.avsc` and serialized in binary form with Schema Registry:
+- **`MailRequestedEvent`** — published by `iam-service` (via `AuthEventPublisherPort` / `KafkaAuthEventPublisherAdapter`), consumed by `mail-service` (`MailEventConsumer`).
 - **`MailSentEvent`** / **`MailFailedEvent`** — published by `mail-service` through the Transactional Outbox, consumed by `iam-service` (`MailFeedbackConsumer`) to advance or fail the originating saga.
-- **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic (e.g. `DELETE_USER`, `DELETE_VERIFICATION_TOKEN`, `REVERT_PASSWORD_UPDATE`, `REVERT_EMAIL_UPDATE`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService`.
+- **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic (e.g. `DELETE_USER`, `DELETE_VERIFICATION_TOKEN`, `REVERT_PASSWORD_UPDATE`, `REVERT_EMAIL_UPDATE`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService`. Compensation event envelopes use Jackson JSON (internal, not part of the cross-service Avro contract).
 
-Event publishing and consuming are handled by dedicated adapters in `infrastructure/kafka/`, keeping the domain core focused on business logic.
+All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency. Event publishing and consuming are handled by dedicated adapters in `infrastructure/kafka/`, keeping the domain core focused on business logic.
 
 ## Optimistic Locking and Concurrency Control
 
@@ -355,22 +375,27 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 - `409 Conflict` — last-resort handler for JPA `ObjectOptimisticLockingFailureException` (race detected at commit time).
 
 ### Persistence: JPA Optimistic Locking
-- Entities use `@Version` to enable Optimistic Locking (e.g., `User`, `Role`, `KafkaOutbox`, and Saga/SagaStep entities where applicable).
-- Services follow the pattern: load the entity → apply changes → `save(...)` inside `@Transactional`. Hibernate includes `WHERE version = ?` and raises a conflict if data changed concurrently.
+- Entities use `@Version` to enable Optimistic Locking (e.g., `User`, `Role`, `OutboxJpaEntity`, `BaseSaga`, `BaseSagaStep`).
+- Services follow the pattern: load the entity → invoke a behavior method (e.g. `saga.markCompleted()`) → `save(...)` inside `@Transactional`. Hibernate includes `WHERE version = ?` and raises a conflict if data changed concurrently.
 
 ### Sagas (Internal, no ETag)
 - Sagas are backend-internal processes (event-driven), not HTTP resources — therefore **ETag/If-Match is not used in Sagas**.
 - Concurrency control:
-    - `@Version` on Saga and/or SagaStep where applicable, persisted via a load → mutate → save.
+    - `@Version` on `BaseSaga` and `BaseSagaStep` (load → behavior method → save), so Hibernate emits `WHERE version = ?` and raises a conflict if rows changed concurrently.
     - Idempotency for steps:
         - Database-level unique constraint on `(sagaId, stepName)` prevents duplicate step insertion.
-        - Service-level soft check in `recordSagaStep` returns the existing step if already present (safe retries/duplicates).
-- Compensation steps are recorded and published through Outbox when needed.
+        - Service-level soft check in `SagaEngine.recordSagaStep` returns the existing step if already present (safe retries/duplicates).
+        - Consumer-side `ProcessedEventGuard` short-circuits any event already processed by the same consumer group.
+- Compensation runs in a separate `REQUIRES_NEW` transaction inside `SagaCompensationRunner` and is scheduled with an *after-commit* hook, so a rolled-back business transaction never triggers a stray compensation. `SagaWatchdog` retries stuck `COMPENSATING` / `COMPENSATION_FAILED` sagas with a cooldown (`veds.saga.compensation-retry-cooldown`).
 
 ### Outbox Pattern
-- `KafkaOutbox` has `@Version`.
-- The `KafkaOutboxProcessor` updates message status by mutating the loaded entity and calling `save(...)` (no bulk JPQL updates). This leverages Optimistic Locking to avoid races between processor instances.
-- On failure, the processor increments `retryCount`, stores the error, and persists via `save(...)` again.
+- `OutboxJpaEntity` has `@Version` and a UNIQUE constraint on `event_id`.
+- The poller (`KafkaOutboxProcessor`) and the transactional helper (`OutboxDispatchTx`) implement a two-phase claim/dispatch:
+    1. Claim batch: short tx, `SELECT … FOR UPDATE SKIP LOCKED` (so multiple instances never grab the same row) → flip `READY → PROCESSING`.
+    2. Dispatch: Kafka send happens *outside* of any DB transaction; result is recorded via `markCompleted` or `markRetryScheduled`/`markDeadLettered` in a fresh `REQUIRES_NEW` transaction (Optimistic Locking still guards each row).
+- Retries: `retryCount` is bounded by `veds.outbox.max-retries`; exceeding it transitions the row to `DEAD_LETTERED` (manual intervention).
+- Stuck-message reaper: a row stuck in `PROCESSING` longer than `veds.outbox.stuck-threshold` (publisher crash) becomes claimable again.
+- All knobs externalized in `KafkaOutboxProperties` (`veds.outbox.*`); saga timing in `SagaProperties` (`veds.saga.*`).
 
 ## API Documentation
 
