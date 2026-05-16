@@ -1,6 +1,7 @@
-package com.vertyll.veds.iam.infrastructure.kafka
+package com.vertyll.veds.iam.infrastructure.kafka.producer
 
 import com.vertyll.veds.iam.application.port.out.AuthEventPublisherPort
+import com.vertyll.veds.iam.infrastructure.kafka.IamKafkaTopics
 import com.vertyll.veds.iam.mail.MailRequestedEvent
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadSerializer
 import com.vertyll.veds.sharedinfrastructure.event.Events

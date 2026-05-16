@@ -1,6 +1,7 @@
-package com.vertyll.veds.iam.infrastructure.kafka
+package com.vertyll.veds.iam.infrastructure.kafka.consumer
 
 import com.vertyll.veds.iam.application.port.inbound.MailFeedbackUseCase
+import com.vertyll.veds.iam.infrastructure.kafka.IamKafkaTopics
 import com.vertyll.veds.mail.mail.MailFailedEvent
 import com.vertyll.veds.mail.mail.MailSentEvent
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component
  * processing.
  */
 @Component
-internal class MailFeedbackConsumer(
+internal class MailFeedbackConsumerAdapter(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val mailFeedbackService: MailFeedbackUseCase,
     private val processedEventGuard: ProcessedEventGuard,

@@ -1,9 +1,10 @@
-package com.vertyll.veds.mail.infrastructure.kafka
+package com.vertyll.veds.template.infrastructure.kafka.consumer
 
-import com.vertyll.veds.iam.mail.MailRequestedEvent
-import com.vertyll.veds.mail.application.port.inbound.EmailSagaUseCase
 import com.vertyll.veds.sharedinfrastructure.avro.AvroPayloadDeserializer
 import com.vertyll.veds.sharedinfrastructure.kafka.ProcessedEventGuard
+import com.vertyll.veds.template.TemplateRequestedEvent
+import com.vertyll.veds.template.application.port.inbound.TemplateSagaUseCase
+import com.vertyll.veds.template.infrastructure.kafka.TemplateKafkaTopics
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -12,24 +13,22 @@ import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
 
 /**
- * Inbound Kafka adapter for the `mail-requested` topic.
- *
- * Decodes the Avro payload, dedupes via [ProcessedEventGuard] and delegates
- * the use case to the application layer ([EmailSagaUseCase]).
+ * Inbound Kafka adapter for `template.requested`. Dedupes via
+ * [ProcessedEventGuard] (idempotent receiver pattern).
  */
 @Component
-internal class MailEventConsumer(
+internal class TemplateEventConsumerAdapter(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
-    private val emailSagaService: EmailSagaUseCase,
+    private val templateSagaService: TemplateSagaUseCase,
     private val processedEventGuard: ProcessedEventGuard,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
-        const val CONSUMER_GROUP = "mail-service:mail-requested"
+        const val CONSUMER_GROUP = "template-service:template-requested"
     }
 
-    @KafkaListener(topics = [MailKafkaTopics.MAIL_REQUESTED])
+    @KafkaListener(topics = [TemplateKafkaTopics.TEMPLATE_REQUESTED])
     fun consume(
         record: ConsumerRecord<String, ByteArray>,
         @Payload payload: ByteArray,
@@ -40,17 +39,11 @@ internal class MailEventConsumer(
             return
         }
         try {
-            logger.info("Received {} message: key={}", MailKafkaTopics.MAIL_REQUESTED, record.key())
-            val event = avroPayloadDeserializer.deserialize(MailKafkaTopics.MAIL_REQUESTED, payload) as MailRequestedEvent
-            emailSagaService.sendEmailWithSaga(
-                to = event.to,
-                subject = event.subject,
-                templateName = event.templateName,
-                variables = event.variables ?: emptyMap(),
-                replyTo = event.replyTo,
-                originSagaId = event.sagaId,
-                originalEventId = event.eventId,
-            )
+            logger.info("Received ${TemplateKafkaTopics.TEMPLATE_REQUESTED} message: key={}", record.key())
+            val event = avroPayloadDeserializer.deserialize(TemplateKafkaTopics.TEMPLATE_REQUESTED, payload) as TemplateRequestedEvent
+            val name = event.name
+            val templatePayload = event.payload ?: event.content ?: ""
+            templateSagaService.processTemplateWithSaga(name, templatePayload)
         } catch (e: Exception) {
             logger.error("Error processing message from topic {}", record.topic(), e)
             throw e
