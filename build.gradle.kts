@@ -34,8 +34,14 @@ tasks.named("check") {
 
 tasks.register("docs") {
     group = "documentation"
-    description = "Generates Dokka HTML docs for shared-infrastructure (output: shared-infrastructure/build/dokka/html)"
+    description = "Generates Dokka HTML docs for shared-infrastructure (output: docs/dokka/index.html)"
     dependsOn(gradle.includedBuild("shared-infrastructure").task(":dokkaGenerate"))
+    doLast {
+        val index = rootDir.resolve("docs/dokka/index.html")
+        if (index.exists()) {
+            logger.lifecycle("Dokka HTML docs: ${index.toURI()}")
+        }
+    }
 }
 
 val composeCli = listOf("podman", "compose")
