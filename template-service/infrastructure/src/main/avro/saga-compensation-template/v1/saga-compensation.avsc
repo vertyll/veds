@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "SagaCompensationEvent",
+  "namespace": "com.vertyll.veds.template.saga",
+  "fields": [
+    { "name": "sagaId", "type": "string" },
+    { "name": "stepId", "type": ["null", "long"], "default": null },
+    { "name": "action", "type": "string" },
+    { "name": "extraPayload", "type": { "type": "map", "values": "string" }, "default": {} }
+  ]
+}
+

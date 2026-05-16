@@ -1,3 +1,4 @@
+r
 <p align="center">
 <img alt="" src="https://img.shields.io/badge/Kotlin-B125EA?style=for-the-badge&logo=kotlin&logoColor=white">
 <img alt="" src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
@@ -67,14 +68,16 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 #### Template Service
 - A baseline skeleton for spinning up a new microservice — structurally 1:1 with `mail-service`.
+- **Excluded from the root composite build** (`settings.gradle.kts`), from CI/CD pipelines, and from the global `contracts/` directory. Its Avro schemas live locally under `template-service/infrastructure/src/main/avro/` so they are **not** picked up by `schema-registry.yml` or Terraform topic provisioning.
+- Compile-only: `cd template-service && ./gradlew build`.
 - Provides:
-    - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/out`, `infrastructure/{persistence,kafka,saga,web,config,response,exception}`).
+    - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/{inbound,out}`, `infrastructure/{persistence,kafka,saga,web,config,response,exception}`).
     - Placeholder domain (`Template`, `TemplateStatus`, `TemplateRepository`) with rich-domain methods (`markProcessed`, `markFailed`).
     - Transactional Outbox scaffolding: local JPA entity implementing the shared read-only `OutboxMessage` contract, ensuring guaranteed decoupled event publication.
     - Saga choreography scaffolding: local `saga`/`saga_step` model, `SagaProcessPort`, thin `SagaManagerAdapter` delegating to a shared `SagaEngine` (composition over inheritance, see Saga Pattern section), neutral compensation topic `saga-compensation-template`.
     - Kafka skeleton: outbound `TemplateEventPublisherPort` + `KafkaTemplateEventPublisherAdapter` (using `KafkaOutboxProcessor`), inbound `TemplateEventConsumer`.
     - REST controller `/template` + DTOs.
-- Intended to be copied and renamed when starting a new service.
+- **When cloning**: copy the directory, rename packages, **move its `src/main/avro/*.avsc` into the shared `contracts/<new-service>/`** so the new service participates in global schema registration and topic provisioning, and add an `includeBuild("<new-service>")` line to the root `settings.gradle.kts`.
 
 ## Technology Stack
 
@@ -127,7 +130,7 @@ cd <service-name>
 - `api-gateway`
 - `iam-service`
 - `mail-service`
-- `template-service` (skeleton — not started by default)
+- `template-service` (reference template — excluded from root composite build; compile standalone only)
 - `shared-infrastructure` (library)
 
 4. Access the services:

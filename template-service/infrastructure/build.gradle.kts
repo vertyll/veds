@@ -27,8 +27,12 @@ dependencyManagement {
 }
 
 // --- Avro code generation (SpecificRecord) ---
+// NOTE: template-service is a *template* for cloning new microservices, so its
+// Avro schemas live LOCALLY (src/main/avro) and are intentionally NOT placed
+// under the shared `contracts/` directory. That keeps them out of the global
+// schema-registry registration and Terraform topic provisioning.
 val avroTools: Configuration by configurations.creating
-val avroContractsDir = file("$rootDir/../contracts")
+val avroContractsDir = file("$projectDir/src/main/avro")
 val avroGeneratedDir = layout.buildDirectory.dir("generated/sources/avro/main/java")
 val avroSchemas = fileTree(avroContractsDir) { include("**/*.avsc") }
 
