@@ -61,4 +61,7 @@ jobs:
             ${{ inputs.service }}/build/reports/tests/
             ${{ inputs.service }}/build/reports/ktlint/
             ${{ inputs.service }}/build/reports/detekt/
+            ${{ inputs.service }}/*/build/reports/tests/
+            ${{ inputs.service }}/*/build/reports/ktlint/
+            ${{ inputs.service }}/*/build/reports/detekt/
           if-no-files-found: ignore

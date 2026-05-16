@@ -31,7 +31,7 @@ RUN apk add --no-cache \
     adduser --system --uid 1001 --ingroup appuser appuser
 
 # Copy the built JAR from the build stage
-COPY --from=build /app/iam-service/build/libs/*.jar app.jar
+COPY --from=build /app/iam-service/infrastructure/build/libs/*.jar app.jar
 
 # Copy the entrypoint script and set permissions
 COPY iam-service/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
