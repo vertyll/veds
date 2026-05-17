@@ -14,8 +14,6 @@
 
 A microservices-based architecture, following Domain-Driven Design principles, Hexagonal Architecture, Separation of Concerns, SOLID principles, Choreography pattern for service coordination with the Saga pattern for distributed transactions.
 
----
-
 ## Architecture
 
 ![Architecture graph](https://raw.githubusercontent.com/vertyll/veds/refs/heads/main/screenshots/veds-architecture-graph.png)
@@ -102,8 +100,6 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
     - REST controller `/template` + DTOs.
 - **When cloning**: copy `template-service/` **and** `template-contracts/`, rename packages and module names, **move `template-contracts/avro/*.avsc` into the shared `contracts/<new-service>/`** so the new service participates in global schema registration and topic provisioning, point its `template-contracts/build.gradle.kts` at the new location, and add `includeBuild("<new-service>")` + `includeBuild("<new-service>-contracts")` lines to the root `settings.gradle.kts`.
 
----
-
 ## Technology Stack
 
 - **Back-end**: Spring Boot, Kotlin, Gradle Kotlin DSL.
@@ -119,8 +115,6 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - **Infrastructure as Code**: Terraform for Kafka topic provisioning.
 - **Build and Dependency Management**: Gradle with composite builds for modularization.
 - **Schema Management**: Apache Avro for schema definition, with Schema Registry for versioning and compatibility.
-
----
 
 ## Development Setup
 
@@ -171,8 +165,6 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
     - Keycloak: http://localhost:9000
     - Kafka UI: http://localhost:8090
     - MailDev: http://localhost:1080
-
----
 
 ## Keycloak Configuration
 
@@ -250,13 +242,9 @@ curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token 
   -d "password=Test1234!" | jq .
 ```
 
----
-
 ## API Testing (Insomnia)
 
 An Insomnia collection is provided at `insomnia-collection.yaml` in the project root.
-
----
 
 ## Architecture Design
 
@@ -362,8 +350,6 @@ Services communicate asynchronously through Kafka events. Integration events are
 
 All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency. Event publishing and consuming are handled by dedicated adapters in `infrastructure/kafka/`, keeping the domain core focused on business logic.
 
----
-
 ## Optimistic Locking and Concurrency Control
 
 This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimistic Locking (within services) to prevent lost updates and to ensure safe concurrency across microservices and asynchronous processing.
@@ -406,24 +392,18 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 - Stuck-message reaper: a row stuck in `PROCESSING` longer than `veds.outbox.stuck-threshold` (publisher crash) becomes claimable again.
 - All knobs externalized in `KafkaOutboxProperties` (`veds.outbox.*`); saga timing in `SagaProperties` (`veds.saga.*`).
 
----
-
 ## API Documentation
 
 Each service provides its own Swagger UI for API documentation:
 - IAM Service: http://localhost:8082/swagger-ui.html
 - Mail Service: http://localhost:8083/swagger-ui.html
-- Template Service: http://localhost:8084/swagger-ui.html (when started)
-
----
+- Template Service: http://localhost:8084/swagger-ui.html
 
 ## Monitoring
 
 - Each service exposes health and metrics endpoints through Spring Boot Actuator
 - Health checks can be accessed at `/actuator/health` on each service
 - Metrics can be collected for observability and monitoring service health
-
----
 
 ## Formatting and code style
 
