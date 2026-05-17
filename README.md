@@ -8,9 +8,13 @@
     <img alt="" src="https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white">
 </p>
 
+# VEDS (Vertyll Event-Driven System)
+
 ## Project Assumptions
 
 A microservices-based architecture, following Domain-Driven Design principles, Hexagonal Architecture, Separation of Concerns, SOLID principles, Choreography pattern for service coordination with the Saga pattern for distributed transactions.
+
+---
 
 ## Architecture
 
@@ -98,6 +102,8 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
     - REST controller `/template` + DTOs.
 - **When cloning**: copy `template-service/` **and** `template-contracts/`, rename packages and module names, **move `template-contracts/avro/*.avsc` into the shared `contracts/<new-service>/`** so the new service participates in global schema registration and topic provisioning, point its `template-contracts/build.gradle.kts` at the new location, and add `includeBuild("<new-service>")` + `includeBuild("<new-service>-contracts")` lines to the root `settings.gradle.kts`.
 
+---
+
 ## Technology Stack
 
 - **Back-end**: Spring Boot, Kotlin, Gradle Kotlin DSL.
@@ -114,6 +120,8 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 - **Build and Dependency Management**: Gradle with composite builds for modularization.
 - **Schema Management**: Apache Avro for schema definition, with Schema Registry for versioning and compatibility.
 
+---
+
 ## Development Setup
 
 ### Prerequisites
@@ -125,46 +133,46 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 ### Getting Started
 
 1. Clone the repository:
-```bash
-git clone https://github.com/vertyll/veds.git
-# and
-cd veds
-```
+    ```bash
+    git clone https://github.com/vertyll/veds.git
+    # and
+    cd veds
+    ```
 
 2. Start the infrastructure:
-```bash
-docker-compose up -d
-```
+    ```bash
+    docker-compose up -d
+    ```
 
 3. Build and run microservices:
-
-**Building:**
-```bash
-cd <service-name>
-./gradlew build
-```
-
-**Local Running:**
-```bash
-cd <service-name>
-./gradlew bootRun --args='--spring.profiles.active=local'
-```
-
-**Available Services:**
-- `api-gateway`
-- `iam-service`
-- `mail-service`
-- `template-service` (reference template service)
-- `shared-infrastructure` (library)
-- `iam-contracts`, `mail-contracts`, `template-contracts` (Apache Avro contracts)
+    1. **Building:**
+        ```bash
+        cd <service-name>
+        ./gradlew build
+        ```
+    2. **Local Running:**
+        ```bash
+        cd <service-name>
+        ./gradlew bootRun --args='--spring.profiles.active=local'
+        ```
+    
+    3. **Available Services:**
+        - `api-gateway`
+        - `iam-service`
+        - `mail-service`
+        - `template-service` (reference template service)
+        - `shared-infrastructure` (library)
+        - `iam-contracts`, `mail-contracts`, `template-contracts` (Apache Avro contracts)
 
 4. Access the services:
-- API Gateway: http://localhost:8080
-- IAM Service: http://localhost:8082
-- Mail Service: http://localhost:8083
-- Keycloak: http://localhost:9000
-- Kafka UI: http://localhost:8090
-- MailDev: http://localhost:1080
+    - API Gateway: http://localhost:8080
+    - IAM Service: http://localhost:8082
+    - Mail Service: http://localhost:8083
+    - Keycloak: http://localhost:9000
+    - Kafka UI: http://localhost:8090
+    - MailDev: http://localhost:1080
+
+---
 
 ## Keycloak Configuration
 
@@ -242,9 +250,13 @@ curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token 
   -d "password=Test1234!" | jq .
 ```
 
+---
+
 ## API Testing (Insomnia)
 
 An Insomnia collection is provided at `insomnia-collection.yaml` in the project root.
+
+---
 
 ## Architecture Design
 
@@ -315,7 +327,7 @@ Both the **Saga** and **Transactional Outbox** patterns are built on top of data
 **Canonical building blocks (all in `shared-infrastructure`).**
 
 1. **Transactional Outbox** — `KafkaOutboxProcessor` (poller) + `OutboxDispatchTx` (transactional helper):
-   - Two-phase dispatch: a short transaction *claims* a batch with `SELECT … FOR UPDATE SKIP LOCKED` and flips rows to `PROCESSING`; Kafka publication happens *outside* of any DB transaction; success/failure is recorded in a fresh `REQUIRES_NEW` transaction (`markCompleted` / `markRetryScheduled` / `markDeadLettered`).
+   - Two-phase dispatch: a short transaction *claims* a batch with `SELECT … FOR UPDATE SKIP LOCKED` and flips rows to `PROCESSING`; Kafka publication happens *outside* any DB transaction; success/failure is recorded in a fresh `REQUIRES_NEW` transaction (`markCompleted` / `markRetryScheduled` / `markDeadLettered`).
    - Statuses: `READY → PROCESSING → COMPLETED` (happy path) or `→ DEAD_LETTERED` after exhausting retries (`OutboxStatus`).
    - UNIQUE constraint on `event_id` enforces producer-side idempotency.
    - Stuck-message reaper rescues `PROCESSING` rows abandoned by a crashed publisher (configurable threshold).
@@ -349,6 +361,8 @@ Services communicate asynchronously through Kafka events. Integration events are
 - **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic as an Avro **tagged union** (`DeleteUserAction`, `DeleteVerificationTokenAction`, `RevertPasswordUpdateAction`, `RevertEmailUpdateAction`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService` after being decoded by `AvroAuthCompensationCommandTranslator` (ACL) into a typed `sealed interface AuthCompensationCommand`. No `Map<String, Any?>` envelope, no stringly-typed `action` discriminator — exhaustive `when` at compile time.
 
 All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency. Event publishing and consuming are handled by dedicated adapters in `infrastructure/kafka/`, keeping the domain core focused on business logic.
+
+---
 
 ## Optimistic Locking and Concurrency Control
 
@@ -387,10 +401,12 @@ This project uses a combination of HTTP ETags (at API boundaries) and JPA Optimi
 - `OutboxJpaEntity` has `@Version` and a UNIQUE constraint on `event_id`.
 - The poller (`KafkaOutboxProcessor`) and the transactional helper (`OutboxDispatchTx`) implement a two-phase claim/dispatch:
     1. Claim batch: short tx, `SELECT … FOR UPDATE SKIP LOCKED` (so multiple instances never grab the same row) → flip `READY → PROCESSING`.
-    2. Dispatch: Kafka send happens *outside* of any DB transaction; result is recorded via `markCompleted` or `markRetryScheduled`/`markDeadLettered` in a fresh `REQUIRES_NEW` transaction (Optimistic Locking still guards each row).
+    2. Dispatch: Kafka send happens *outside* any DB transaction; result is recorded via `markCompleted` or `markRetryScheduled`/`markDeadLettered` in a fresh `REQUIRES_NEW` transaction (Optimistic Locking still guards each row).
 - Retries: `retryCount` is bounded by `veds.outbox.max-retries`; exceeding it transitions the row to `DEAD_LETTERED` (manual intervention).
 - Stuck-message reaper: a row stuck in `PROCESSING` longer than `veds.outbox.stuck-threshold` (publisher crash) becomes claimable again.
 - All knobs externalized in `KafkaOutboxProperties` (`veds.outbox.*`); saga timing in `SagaProperties` (`veds.saga.*`).
+
+---
 
 ## API Documentation
 
@@ -399,11 +415,15 @@ Each service provides its own Swagger UI for API documentation:
 - Mail Service: http://localhost:8083/swagger-ui.html
 - Template Service: http://localhost:8084/swagger-ui.html (when started)
 
+---
+
 ## Monitoring
 
 - Each service exposes health and metrics endpoints through Spring Boot Actuator
 - Health checks can be accessed at `/actuator/health` on each service
 - Metrics can be collected for observability and monitoring service health
+
+---
 
 ## Formatting and code style
 
