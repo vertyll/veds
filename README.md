@@ -8,7 +8,7 @@
     <img alt="" src="https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white">
 </p>
 
-# VEDS
+## Project Assumptions
 
 A microservices-based architecture following principles:
 - Domain-Driven Design.
