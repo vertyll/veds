@@ -14,11 +14,6 @@ dependencyManagement {
                 .toString(),
         )
         mavenBom(
-            libs.spring.cloud.dependencies
-                .get()
-                .toString(),
-        )
-        mavenBom(
             libs.testcontainers.bom
                 .get()
                 .toString(),
@@ -36,14 +31,13 @@ dependencies {
     implementation(libs.bundles.spring.boot.common)
     implementation(libs.bundles.spring.boot.webmvc.security)
     implementation(libs.bundles.keycloak.admin)
-    implementation(libs.spring.cloud.starter.openfeign)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.spring.boot.starter.flyway) {
         exclude(group = "org.flywaydb", module = "flyway-core")
     }
     implementation(libs.bundles.flyway)
+
     runtimeOnly(libs.postgresql)
 
     testImplementation(libs.bundles.test.common)
-    testImplementation(libs.bundles.test.security)
 }

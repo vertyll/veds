@@ -14,11 +14,6 @@ dependencyManagement {
                 .toString(),
         )
         mavenBom(
-            libs.spring.cloud.dependencies
-                .get()
-                .toString(),
-        )
-        mavenBom(
             libs.testcontainers.bom
                 .get()
                 .toString(),
@@ -39,8 +34,8 @@ dependencies {
         exclude(group = "org.flywaydb", module = "flyway-core")
     }
     implementation(libs.bundles.flyway)
+
     runtimeOnly(libs.postgresql)
 
     testImplementation(libs.bundles.test.common)
-    testImplementation(libs.bundles.test.security)
 }

@@ -51,9 +51,10 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation("com.vertyll.veds:shared-infrastructure")
+
     // --- Common ---
     implementation(libs.bundles.spring.boot.common)
-    implementation("com.vertyll.veds:shared-infrastructure")
 
     // --- Gateway & Reactive ---
     implementation(libs.bundles.spring.boot.gateway)
@@ -61,9 +62,6 @@ dependencies {
 
     // --- API Documentation ---
     implementation(libs.springdoc.openapi.starter.webflux.ui)
-
-    // --- Development Tools ---
-    developmentOnly(libs.spring.boot.devtools)
 
     // --- Testing ---
     testImplementation(libs.bundles.test.common)

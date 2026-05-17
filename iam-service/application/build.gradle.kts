@@ -17,5 +17,7 @@ dependencyManagement {
 dependencies {
     implementation(project(":iam-domain"))
     implementation("com.vertyll.veds:shared-infrastructure")
+
     implementation(libs.bundles.spring.boot.common)
+    implementation(libs.spring.boot.starter.validation)
 }

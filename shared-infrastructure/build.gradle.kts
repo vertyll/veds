@@ -49,11 +49,6 @@ dependencyManagement {
                 .toString(),
         )
         mavenBom(
-            libs.spring.cloud.dependencies
-                .get()
-                .toString(),
-        )
-        mavenBom(
             libs.testcontainers.bom
                 .get()
                 .toString(),
@@ -76,7 +71,6 @@ dependencies {
 
     // --- Infrastructure API ---
     api(libs.bundles.shared.infrastructure.api)
-    api(libs.postgresql)
     api(libs.apache.avro)
     api(libs.confluent.kafka.avro.serializer)
 
