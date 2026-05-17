@@ -76,4 +76,4 @@ infra/**/*.tfstate.backup
 !.idea/runConfigurations/**
 
 ### Generated docs ###
-docs/
+docs/dokka/*
