@@ -83,18 +83,13 @@ test-common = [
     "springframework-kafka-test",
     "testcontainers-junit-jupiter",
     "testcontainers-kafka",
-    "spring-boot-starter-test",
     "spring-boot-starter-security-test",
     "springframework-kafka-test"
 ]
 
 # Shared infrastructure API dependencies
 shared-infrastructure-api = [
-    "spring-boot-starter-jackson",
-    "springframework-kafka",
     "spring-boot-starter-data-jpa",
     "spring-boot-starter-oauth2-resource-server",
     "spring-boot-starter-security",
-    "jackson-module-kotlin",
-    "kotlin-logging",
 ]
