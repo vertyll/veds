@@ -19,12 +19,12 @@ python scripts/schema_registry/register_schemas.py --registry-url http://localho
 
 The script automatically derives the Schema Registry **Subject** name from the directory structure of your contracts.
 
-**Expected Path Structure:** `contracts/{service}/{topic}/v{version}/{schema}.avsc`
+**Expected Path Structure:** `contracts/{service}/{topic}/v{version}/{schema}.avsc`.
 
-**Resulting Subject Name:** `{topic}-value`
+**Resulting Subject Name:** `{topic}-value`.
 
 ### Example
 
-If a new schema is placed at: `contracts/mail-service/mail-requested/v1/mail-requested.avsc`
+If a new schema is placed at: `contracts/mail-service/mail-requested/v1/mail-requested.avsc`.
 
-The script will register it under the subject: `mail-requested-value`
+The script will register it under the subject: `mail-requested-value`.

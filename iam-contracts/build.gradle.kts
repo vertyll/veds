@@ -75,4 +75,3 @@ dependencies {
 tasks.jar {
     enabled = true
 }
-
