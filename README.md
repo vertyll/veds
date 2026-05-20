@@ -12,6 +12,7 @@
 
 A microservices-based architecture following principles:
 - Domain-Driven Design.
+- Event-Driven Architecture.
 - Hexagonal Architecture.
 - Separation of Concerns.
 - Choreography pattern for service coordination.
@@ -19,11 +20,13 @@ A microservices-based architecture following principles:
 - Outbox pattern for reliable event publishing.
 - SOLID.
 
+## Architecture Graph
+
 ![Architecture graph](https://raw.githubusercontent.com/vertyll/veds/refs/heads/main/screenshots/veds-architecture-graph.png)
 
 ## Technology Stack
 
-- **Back-end**: Spring Boot, Kotlin, Gradle Kotlin DSL.
+- **Back-end**: Spring Boot, Kotlin, Gradle Kotlin DSL (a separate build for each service).
 - **Database**: PostgreSQL (a separate instance for each service).
 - **Message Broker**: Apache Kafka KRaft (Zookeeper-less).
 - **Identity Provider**: Keycloak (OAuth2 / OpenID Connect).
@@ -39,8 +42,8 @@ A microservices-based architecture following principles:
 
 ## Documentation
 
-- [Architecture](./docs/architecture.md) — components, design principles, hexagonal architecture, DDD, choreography pattern.
-- [Saga Pattern & Transactional Outbox](./docs/saga-and-outbox.md) — saga engine, outbox, idempotent receiver, event-driven communication.
+- [Architecture](./docs/architecture.md) — components and design principles.
+- [Saga Pattern & Transactional Outbox](./docs/saga-and-outbox.md) — saga engine, outbox, idempotent receiver.
 - [Concurrency Control](./docs/concurrency.md) — optimistic locking, ETags, saga and outbox concurrency.
 - [Keycloak Configuration](./docs/keycloak.md) — realm setup, authentication flow, role management.
 - [Development Setup](./docs/development-setup.md) — prerequisites, getting started, service URLs, API testing, code style.

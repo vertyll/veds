@@ -41,7 +41,7 @@ cd <service-name>
 - `mail-service`.
 - `template-service` (reference template service).
 - `shared-infrastructure` (library).
-- `iam-contracts`, `mail-contracts`, `template-contracts` (Apache Avro contracts).
+- `*-contracts` (Apache Avro contracts).
 
 ## Service URLs
 

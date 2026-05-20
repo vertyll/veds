@@ -8,14 +8,14 @@ The system uses **choreography-based sagas** — there is no central orchestrato
 
 Both the **Saga** and **Transactional Outbox** patterns are built on top of database-agnostic ports defined in `shared-infrastructure`:
 
-| Contract                                         | Purpose                                                                                                                        |
-|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| `Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>` | Rich-aggregate ports with F-bounded generics — behavior methods return the concrete adapter type, eliminating unchecked casts. |
-| `SagaRepositoryPort`, `SagaStepRepositoryPort`   | Persistence ports for sagas.                                                                                                   |
-| `OutboxMessage`, `OutboxRepositoryPort`          | Outbox aggregate + repository port (with `lockBatchForDispatch` for `SELECT … FOR UPDATE SKIP LOCKED`).                        |
-| `ProcessedEventRepositoryPort`                   | Idempotent-receiver ledger (UNIQUE `(eventId, consumerGroup)`).                                                                |
+| Contract                                              | Purpose                                                                                                                        |
+|-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `Saga<S : Saga<S>>`, <br/>`SagaStep<T : SagaStep<T>>` | Rich-aggregate ports with F-bounded generics — behavior methods return the concrete adapter type, eliminating unchecked casts. |
+| `SagaRepositoryPort`, <br/>`SagaStepRepositoryPort`   | Persistence ports for sagas.                                                                                                   |
+| `OutboxMessage`, <br/>`OutboxRepositoryPort`          | Outbox aggregate + repository port (with `lockBatchForDispatch` for `SELECT … FOR UPDATE SKIP LOCKED`).                        |
+| `ProcessedEventRepositoryPort`                        | Idempotent-receiver ledger (UNIQUE `(eventId, consumerGroup)`).                                                                |
 
-`shared-infrastructure` ships JPA flavors (`BaseSaga`, `BaseSagaStep`, `BaseSagaRepository`, `BaseSagaStepRepository`, `OutboxJpaEntity`) — to introduce a different storage (MongoDB, DynamoDB, …) you only implement the ports against the new technology; the engines do not change.
+`shared-infrastructure` ships JPA flavors (`BaseSaga`, `BaseSagaStep`, `BaseSagaRepository`, `BaseSagaStepRepository`, `OutboxJpaEntity`) — to introduce a different storage (MongoDB, PostgreSQL, …) you only implement the ports against the new technology; the engines do not change.
 
 ## Canonical Building Blocks
 
@@ -80,4 +80,4 @@ Services communicate asynchronously through Kafka events. Integration events are
 - **`MailSentEvent`** / **`MailFailedEvent`** — published by `mail-service` through the Transactional Outbox, consumed by `iam-service` (`MailFeedbackConsumer`) to advance or fail the originating saga.
 - **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic as an Avro **tagged union** (`DeleteUserAction`, `DeleteVerificationTokenAction`, `RevertPasswordUpdateAction`, `RevertEmailUpdateAction`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService` after being decoded by `AvroAuthCompensationCommandTranslator` (ACL) into a typed `sealed interface AuthCompensationCommand`. No `Map<String, Any?>` envelope, no stringly-typed `action` discriminator — exhaustive `when` at compile time.
 
-All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency.
+> **Note:** All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency.

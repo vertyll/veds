@@ -2,7 +2,15 @@
 
 ## Overview
 
-A microservices-based architecture following Domain-Driven Design principles, Hexagonal Architecture, Separation of Concerns, SOLID principles, Choreography pattern for service coordination, and the Saga pattern for distributed transactions.
+A microservices-based architecture following principles:
+- Domain-Driven Design.
+- Event-Driven Architecture.
+- Hexagonal Architecture.
+- Separation of Concerns.
+- Choreography pattern for service coordination.
+- Saga pattern for distributed transactions.
+- Outbox pattern for reliable event publishing.
+- SOLID.
 
 The project is split into the following components:
 
@@ -10,10 +18,10 @@ The project is split into the following components:
 2. **IAM Service** – Consolidates user management, roles, permissions, and account operations. Authentication is delegated to Keycloak.
 3. **Mail Service** – Handles email sending operations and templates.
 4. **Shared Infrastructure** – Engines, contracts, and utilities used across all microservices.
-5. **`iam-contracts`, `mail-contracts`, `template-contracts`** – Per-bounded-context Avro Published Language modules. Each holds only Avro `*.avsc` schemas and the Java `SpecificRecord` classes generated from them.
+5. **Each `*-contracts`** – Per-bounded-context Avro Published Language modules. Each holds only Avro schemas and the Java `SpecificRecord` classes generated from them.
 6. **Template Service** – Baseline configuration for future microservices.
 
-Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
+> **Note:** Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing reliable event publication.
 
 ## Components
 
@@ -107,6 +115,14 @@ Each microservice is designed around a specific business domain with:
 - A layered architecture within the hexagonal structure.
 - Domain-specific language.
 - Encapsulated business logic.
+
+### Event-Driven Architecture
+- Services communicate asynchronously via events (Kafka).
+- Promotes loose coupling and high scalability.
+- Enables reactive, responsive systems.
+- Aligns with the choreography pattern for service coordination.
+- Supports eventual consistency and distributed transactions via the Saga pattern.
+- Supports the Outbox pattern for reliable event publication.
 
 ### SOLID Principles and Separation of Concerns
 
