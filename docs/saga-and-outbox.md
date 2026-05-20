@@ -70,7 +70,7 @@ Service-local `SchedulingConfig` wires `@EnableScheduling` so `KafkaOutboxProces
     - on `MailSentEvent` → `markSagaCompleted`.
     - on `MailFailedEvent` → `failSaga` — the after-commit hook fires `SagaCompensationRunner.runCompensation`, which calls `IamSagaCompensator` to publish compensation actions to `saga-compensation-iam` (also via outbox); `SagaCompensationService` listens and delegates to `AuthCompensationService` (rollback Keycloak user, delete verification token, revert email/password change).
 
-> **Note:** Compensation only exists where effects are reversible — `mail-service` therefore does **not** have a `SagaCompensationService` (a sent email cannot be un-sent).
+Compensation only exists where effects are reversible — `mail-service` therefore does **not** have a `SagaCompensationService` (a sent email cannot be un-sent).
 
 ## Event-Driven Communication
 
@@ -80,4 +80,4 @@ Services communicate asynchronously through Kafka events. Integration events are
 - **`MailSentEvent`** / **`MailFailedEvent`** — published by `mail-service` through the Transactional Outbox, consumed by `iam-service` (`MailFeedbackConsumer`) to advance or fail the originating saga.
 - **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic as an Avro **tagged union** (`DeleteUserAction`, `DeleteVerificationTokenAction`, `RevertPasswordUpdateAction`, `RevertEmailUpdateAction`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService` after being decoded by `AvroAuthCompensationCommandTranslator` (ACL) into a typed `sealed interface AuthCompensationCommand`. No `Map<String, Any?>` envelope, no stringly-typed `action` discriminator — exhaustive `when` at compile time.
 
-> **Note:** All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency.
+All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency.
