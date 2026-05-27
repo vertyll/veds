@@ -9,7 +9,7 @@ kotlin = "2.3.21"
 
 # Dependencies
 testcontainers = "1.21.3"
-kotlin-logging = "8.0.03"
+kotlin-logging = "8.0.4"
 avro = "1.12.1"
 confluent = "7.8.6"
 
