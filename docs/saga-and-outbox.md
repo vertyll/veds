@@ -6,7 +6,7 @@ The system uses **choreography-based sagas** — there is no central orchestrato
 
 ## Polyglot Persistence via Shared Contracts
 
-Both the **Saga** and **Transactional Outbox** patterns are built on top of database-agnostic ports defined in `shared-infrastructure`:
+Both the **Saga** and **Transactional Outbox** patterns are built on top of database-agnostic ports defined in `shared-infrastructure`. To introduce a different storage (MongoDB, PostgreSQL, …), you only implement the ports against the new technology; the engines (`shared-infrastructure` ships JPA flavors like `BaseSaga`, `BaseSagaStep`, `OutboxJpaEntity`, etc.) do not change.
 
 | Contract                                              | Purpose                                                                                                                        |
 |-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
@@ -15,69 +15,41 @@ Both the **Saga** and **Transactional Outbox** patterns are built on top of data
 | `OutboxMessage`, <br/>`OutboxRepositoryPort`          | Outbox aggregate + repository port (with `lockBatchForDispatch` for `SELECT … FOR UPDATE SKIP LOCKED`).                        |
 | `ProcessedEventRepositoryPort`                        | Idempotent-receiver ledger (UNIQUE `(eventId, consumerGroup)`).                                                                |
 
-`shared-infrastructure` ships JPA flavors (`BaseSaga`, `BaseSagaStep`, `BaseSagaRepository`, `BaseSagaStepRepository`, `OutboxJpaEntity`) — to introduce a different storage (MongoDB, PostgreSQL, …) you only implement the ports against the new technology; the engines do not change.
-
 ## Canonical Building Blocks
 
-All building blocks live in `shared-infrastructure`.
+All building blocks live in `shared-infrastructure` and provide the foundation for robust asynchronous processing.
 
-### 1. Transactional Outbox
+| Component                | Implementation Details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Transactional Outbox** | Consists of `KafkaOutboxProcessor` (poller) and `OutboxDispatchTx` (transactional helper).<br/>• **Two-phase dispatch**: Claims a batch with `SELECT … FOR UPDATE SKIP LOCKED` (`READY → PROCESSING`). Kafka publication happens *outside* any DB transaction. Success/failure is recorded in a fresh `REQUIRES_NEW` transaction (`COMPLETED`, `markRetryScheduled`, `markDeadLettered`).<br/>• **Idempotency**: UNIQUE constraint on `event_id`.<br/>• **Reaper**: Rescues stuck `PROCESSING` rows abandoned by a crash.<br/>• **Config**: Externalized via `KafkaOutboxProperties`. |
+| **Idempotent Receiver**  | `ProcessedEventGuard.claim(eventId, consumerGroup)` writes to a ledger. Duplicate deliveries throw `DataIntegrityViolationException` and are short-circuited, neutralizing Kafka's at-least-once delivery.                                                                                                                                                                                                                                                                                                                                                                            |
+| **Saga Engine**          | Generic `SagaEngine<S, T>` with choreography semantics. On step failure or `failSaga`, an *after-commit* hook (`TransactionSynchronizationManager`) delegates to `SagaCompensationRunner.runCompensation` in a `REQUIRES_NEW` transaction (runs only if business tx commits).                                                                                                                                                                                                                                                                                                         |
+| **Saga Watchdog**        | A scheduled job (`@Scheduled`) that times out sagas stuck in `AWAITING_RESPONSE` and retries compensation for `COMPENSATING` / `COMPENSATION_FAILED` states based on a cooldown.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| **Compensation Topic**   | Follows the convention `SagaCompensationTopic.PREFIX + "<service>"` — each service composes its own neutral topic (e.g. `saga-compensation-iam`).                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Saga Log Correlation** | Feedback events carry `sagaId`; the originating saga sits in `AWAITING_RESPONSE` until matched.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **Recovery Jobs**        | Service-local `SchedulingConfig` wires `@EnableScheduling` so `KafkaOutboxProcessor` and `SagaWatchdog` ticks fire.                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
-`KafkaOutboxProcessor` (poller) + `OutboxDispatchTx` (transactional helper):
+## Example: User Registration Flow
 
-- **Two-phase dispatch**: a short transaction *claims* a batch with `SELECT … FOR UPDATE SKIP LOCKED` and flips rows to `PROCESSING`; Kafka publication happens *outside* any DB transaction; success/failure is recorded in a fresh `REQUIRES_NEW` transaction (`markCompleted` / `markRetryScheduled` / `markDeadLettered`).
-- **Statuses**: `READY → PROCESSING → COMPLETED` (happy path) or `→ DEAD_LETTERED` after exhausting retries (`OutboxStatus`).
-- **UNIQUE constraint** on `event_id` enforces producer-side idempotency.
-- **Stuck-message reaper** rescues `PROCESSING` rows abandoned by a crashed publisher (configurable threshold).
-- **All knobs externalized** via `KafkaOutboxProperties` (`veds.outbox.poll-interval | batch-size | max-retries | retry-cooldown | stuck-threshold`).
+This example illustrates the choreography between `iam-service` and `mail-service`.
 
-### 2. Idempotent Receiver
+> **Note:** Compensation only exists where effects are reversible. A sent email cannot be un-sent, therefore `mail-service` does **not** have a `SagaCompensationService`.
 
-`ProcessedEventGuard.claim(eventId, consumerGroup)` writes to a ledger with UNIQUE `(eventId, consumerGroup)`; duplicate deliveries are detected via caught `DataIntegrityViolationException` and short-circuited (Kafka's at-least-once delivery is neutralized at the consumer boundary).
-
-### 3. Saga Engine
-
-Generic `SagaEngine<S, T>` with choreography semantics:
-
-- `startSaga` / `recordSagaStep` / `awaitResponse` / `completeSaga` / `failSaga`.
-- On step failure or explicit `failSaga`, an *after-commit* hook (`TransactionSynchronizationManager`) delegates to `SagaCompensationRunner.runCompensation` which opens its own `REQUIRES_NEW` transaction — so compensation only runs if the caller's business transaction actually commits, and runs through Spring's AOP proxy (no self-invocation pitfalls).
-
-### 4. Saga Watchdog
-
-`SagaWatchdog` (`@Scheduled`, `veds.saga.watchdog-interval`):
-
-- Times out sagas stuck in `AWAITING_RESPONSE` longer than `veds.saga.await-response-timeout` (calls `failSaga`).
-- Retries compensation for sagas in `COMPENSATING` / `COMPENSATION_FAILED` whose `updatedAt` is older than `veds.saga.compensation-retry-cooldown`.
-
-### 5. Cross-Service Compensation Topic Naming
-
-`SagaCompensationTopic.PREFIX + "<service>"` — each service composes its own neutral topic (e.g. `saga-compensation-iam`).
-
-### 6. Saga Log Correlation
-
-Feedback events carry `sagaId`; the originating saga sits in `AWAITING_RESPONSE` until matched.
-
-### 7. Recovery via Scheduled Jobs
-
-Service-local `SchedulingConfig` wires `@EnableScheduling` so `KafkaOutboxProcessor` and `SagaWatchdog` ticks fire.
-
-## Example: User Registration (iam-service ⇄ mail-service)
-
-1. `iam-service` (`AuthService.register`) begins a local saga `USER_REGISTRATION`, records steps `CREATE_USER` → `PUBLISH_USER_REGISTERED_EVENT` → `CREATE_VERIFICATION_TOKEN` → `PUBLISH_MAIL_REQUESTED_EVENT`, transitions to `AWAITING_RESPONSE`, and inserts a `MailRequestedEvent` row into the outbox (same JDBC transaction as the user write — no dual-write).
-2. The outbox poller publishes the Avro-serialized `MailRequestedEvent` to Kafka.
-3. `mail-service` (`MailEventConsumer`) consumes the event, claims it via `ProcessedEventGuard`, begins its own local saga `EMAIL_SENDING`, performs `SEND_EMAIL`, completes its saga, and inserts `MailSentEvent` (or `MailFailedEvent`) into its outbox.
-4. `iam-service` (`MailFeedbackConsumer`) consumes the feedback:
-    - on `MailSentEvent` → `markSagaCompleted`.
-    - on `MailFailedEvent` → `failSaga` — the after-commit hook fires `SagaCompensationRunner.runCompensation`, which calls `IamSagaCompensator` to publish compensation actions to `saga-compensation-iam` (also via outbox); `SagaCompensationService` listens and delegates to `AuthCompensationService` (rollback Keycloak user, delete verification token, revert email/password change).
-
-Compensation only exists where effects are reversible — `mail-service` therefore does **not** have a `SagaCompensationService` (a sent email cannot be un-sent).
+| No.   | Phase    | Actor          | Action Sequence                                                                                                                                                                                                                                                                                                                          |
+|-------|----------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **1** | Init     | `iam-service`  | Begins local saga `USER_REGISTRATION`.<br/>Records steps: `CREATE_USER` → `PUBLISH_USER_REGISTERED_EVENT` → `CREATE_VERIFICATION_TOKEN` → `PUBLISH_MAIL_REQUESTED_EVENT`.<br/>Transitions to `AWAITING_RESPONSE`.<br/>Inserts `MailRequestedEvent` into the outbox (same JDBC tx, no dual-write).                                        |
+| **2** | Publish  | Outbox Poller  | Publishes the Avro-serialized `MailRequestedEvent` to Kafka.                                                                                                                                                                                                                                                                             |
+| **3** | Process  | `mail-service` | Consumes event (`MailEventConsumer`), claims via `ProcessedEventGuard`.<br/>Begins local saga `EMAIL_SENDING`, performs `SEND_EMAIL`, completes saga.<br/>Inserts `MailSentEvent` (or `MailFailedEvent`) into its outbox.                                                                                                                |
+| **4** | Feedback | `iam-service`  | Consumes feedback via `MailFeedbackConsumer`.<br/>• **On `MailSentEvent`**: Calls `markSagaCompleted`.<br/>• **On `MailFailedEvent`**: Calls `failSaga` → after-commit hook fires `SagaCompensationRunner` → `IamSagaCompensator` publishes to `saga-compensation-iam` → `AuthCompensationService` rolls back Keycloak user, token, etc. |
 
 ## Event-Driven Communication
 
-Services communicate asynchronously through Kafka events. Integration events are defined as **Avro** schemas under `contracts/<service>/<topic>/v<n>/*.avsc` and serialized in binary form with Schema Registry:
+Services communicate asynchronously through Kafka events. Integration events are defined as **Avro** schemas under `contracts/<service>/<topic>/v<n>/*.avsc` and serialized in binary form with Schema Registry.
 
-- **`MailRequestedEvent`** — published by `iam-service` (via `AuthEventPublisherPort` / `KafkaAuthEventPublisherAdapter`), consumed by `mail-service` (`MailEventConsumer`).
-- **`MailSentEvent`** / **`MailFailedEvent`** — published by `mail-service` through the Transactional Outbox, consumed by `iam-service` (`MailFeedbackConsumer`) to advance or fail the originating saga.
-- **Saga compensation actions** — published by `iam-service` to its own internal `saga-compensation-iam` topic as an Avro **tagged union** (`DeleteUserAction`, `DeleteVerificationTokenAction`, `RevertPasswordUpdateAction`, `RevertEmailUpdateAction`), consumed by `SagaCompensationService` and dispatched to `AuthCompensationService` after being decoded by `AvroAuthCompensationCommandTranslator` (ACL) into a typed `sealed interface AuthCompensationCommand`. No `Map<String, Any?>` envelope, no stringly-typed `action` discriminator — exhaustive `when` at compile time.
+*All publishing goes through the Outbox (`KafkaOutboxProcessor`); all consumption goes through `ProcessedEventGuard` for idempotency.*
 
-All publishing goes through the Outbox (`KafkaOutboxProcessor.saveOutboxMessage(topic, key, payload: ByteArray, ...)`); all consumption goes through `ProcessedEventGuard` for idempotency.
+| Event                                        | Publisher      | Consumer       | Details                                                                                                                                                                                                                                                                                                                                               |
+|----------------------------------------------|----------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **`MailRequestedEvent`**                     | `iam-service`  | `mail-service` | Published via `AuthEventPublisherPort` / `KafkaAuthEventPublisherAdapter`. Consumed by `MailEventConsumer`.                                                                                                                                                                                                                                           |
+| **`MailSentEvent`** or **`MailFailedEvent`** | `mail-service` | `iam-service`  | Published through the Transactional Outbox. Consumed by `MailFeedbackConsumer` to advance or fail the originating saga.                                                                                                                                                                                                                               |
+| **Compensation Actions**                     | `iam-service`  | `iam-service`  | Published to internal `saga-compensation-iam` topic as an Avro **tagged union** (`DeleteUserAction`, `DeleteVerificationTokenAction`, etc.). Decoded by `AvroAuthCompensationCommandTranslator` (ACL) into a typed `sealed interface AuthCompensationCommand`. Handled via compile-time exhaustive `when` (no stringly-typed discriminator or `Map`). |

@@ -27,73 +27,76 @@ Each microservice follows Hexagonal Architecture principles with a three-layer s
 
 ### Kafka KRaft Mode
 
-- The system uses Kafka in KRaft mode (Kafka Raft), eliminating the need for Zookeeper.
-- Configuration is handled via `KAFKA_PROCESS_ROLES` (broker, controller) and `KAFKA_CONTROLLER_QUORUM_VOTERS`.
-- A static `CLUSTER_ID` is provided in `docker-compose.yml` for simplified setup.
+The system uses Kafka in KRaft mode (Kafka Raft), eliminating the need for Zookeeper.
+
+| Aspect            | Implementation Details                                                                                        |
+|-------------------|---------------------------------------------------------------------------------------------------------------|
+| **Configuration** | Configuration is handled via `KAFKA_PROCESS_ROLES` (broker, controller) and `KAFKA_CONTROLLER_QUORUM_VOTERS`. |
+| **Setup**         | A static `CLUSTER_ID` is provided in `docker-compose.yml` for simplified setup.                               |
 
 ### Shared Infrastructure
 
-- Provides shared engines, event definitions, and utilities for all microservices.
-- Implements **persistence-agnostic contracts** for the Transactional Outbox and Saga patterns (`OutboxRepositoryPort`, `ProcessedEventRepositoryPort`, `SagaRepositoryPort`, `SagaStepRepositoryPort`) — any database (PostgreSQL, MongoDB, …) can plug in by implementing the ports.
-- Reusable Kafka building blocks: `KafkaOutboxProcessor` + `OutboxDispatchTx` (two-phase claim/dispatch), `ProcessedEventGuard` (idempotent receiver), `AvroPayloadSerializer`/`AvroPayloadDeserializer`.
-- Shared **technical IdP adapter** for OAuth2/OIDC: `KeycloakJwtAuthenticationConverter` (servlet) and `ReactiveKeycloakJwtAuthenticationConverter` (WebFlux) — wired via `KeycloakSecurityAutoConfiguration`. They translate the configured roles claim (`veds.shared.keycloak.roles-claim-path`) into Spring Security `ROLE_*` authorities without knowing any concrete role names — so they are role-vocabulary-agnostic and remain in `shared-infrastructure` as a pure technical adapter (see *Where do role names live?* in [Keycloak configuration](./keycloak.md)).
-- Saga engine: generic `SagaEngine`, `SagaCompensationRunner`, `SagaWatchdog` operating on F-bounded contracts (`Saga<S : Saga<S>>`, `SagaStep<T : SagaStep<T>>`) — zero unchecked casts in the engine.
-- Externalized configuration: `KafkaOutboxProperties` (`veds.outbox.*`) and `SagaProperties` (`veds.saga.*`) auto-registered by `OutboxAndSagaAutoConfiguration`.
-- Composable contracts for inter-service conventions: `SagaCompensationTopic.PREFIX` (each service composes its own `saga-compensation-<participant>` topic).
-- Integration event schemas defined as Avro (`contracts/<service>/<topic>/v<n>/*.avsc`) — binary wire format with Schema Registry.
+Provides shared engines, event definitions, and utilities for all microservices.
+
+| Component                 | Description                                                                                                                                                                                        |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Persistence Contracts** | Implements persistence-agnostic contracts for the Transactional Outbox and Saga patterns (`OutboxRepositoryPort`, `ProcessedEventRepositoryPort`, `SagaRepositoryPort`, `SagaStepRepositoryPort`). |
+| **Kafka Blocks**          | Reusable Kafka building blocks: `KafkaOutboxProcessor` + `OutboxDispatchTx`, `ProcessedEventGuard`, `AvroPayloadSerializer`/`AvroPayloadDeserializer`.                                             |
+| **IdP Adapter**           | Shared technical IdP adapter for OAuth2/OIDC that translates configured roles into Spring Security authorities without knowing concrete role names.                                                |
+| **Saga Engine**           | Generic `SagaEngine`, `SagaCompensationRunner`, and `SagaWatchdog` operating on F-bounded contracts with zero unchecked casts.                                                                     |
+| **Configuration**         | Externalized configuration (`KafkaOutboxProperties`, `SagaProperties`) auto-registered by `OutboxAndSagaAutoConfiguration`.                                                                        |
+| **Composable Contracts**  | Inter-service conventions, such as `SagaCompensationTopic.PREFIX` for defining participant topics.                                                                                                 |
+| **Event Schemas**         | Integration event schemas defined as Avro binary wire format with Schema Registry.                                                                                                                 |
 
 ### Avro Published Language Modules
 
-- **Why a separate module per bounded context:**
-  Avro schemas owned by a service end up as generated `SpecificRecord` Java classes. Generating them inside the consuming service produced a classic Spring Boot DevTools pitfall: the generated classes were loaded by `RestartClassLoader` while collaborator code in `shared-infrastructure` used the application classloader, yielding `ClassCastException: X cannot be cast to X` at runtime.
-  Lifting the contracts into their own composite-build modules ships them as plain library JARs, so they always resolve via the application classloader — the issue cannot recur even when DevTools is added.
-- **What each module contains:** a single `java-library` Gradle build that runs `avro-tools` over the `*.avsc` files and produces a `SpecificRecord` JAR (`api("org.apache.avro:avro:...")` so consumers get the runtime transitively).
-- **Where the schemas live:**
-    - `iam-contracts` / `mail-contracts` read schemas from the repository-root `contracts/<service>/**` directory — single source of truth shared with the Terraform topic provisioner and the Schema Registry registration script.
-    - `template-contracts` keeps its schemas **locally** (`template-contracts/avro/**`) — the template service is intentionally excluded from production schema/topic provisioning. When cloning, move the schemas under `contracts/<new-service>/`.
-- **Anti-Corruption Layer (ACL):** generated Avro types **never** leave the `infrastructure/saga/` package. A dedicated translator (`AvroAuthCompensationCommandTranslator`, `AvroTemplateCompensationCommandTranslator`) decodes raw bytes into a Kotlin `sealed interface` (`AuthCompensationCommand`, `TemplateCompensationCommand`) living in `application/saga/model/`. The application layer therefore stays Avro, Jackson, Kafka and Spring free, and compensation dispatch is an exhaustive `when` over a typed hierarchy (no `Map<String, Any?>`, no stringly-typed `action` discriminators, compile-time-checked).
-- **DevTools:** intentionally not declared in `iam-service/infrastructure`, `mail-service/infrastructure`, `template-service/infrastructure`.
+| Aspect                          | Details                                                                                                                                     |
+|---------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| **Separate Module Rationale**   | Lifting contracts into composite-build modules ships them as plain library JARs, avoiding Spring Boot DevTools `ClassCastException` issues. |
+| **Module Contents**             | A single `java-library` Gradle build that runs `avro-tools` over `*.avsc` files to produce a `SpecificRecord` JAR.                          |
+| **Schema Location**             | IAM/Mail read schemas from the repository-root `contracts/` directory; Template service keeps them locally in `template-contracts/avro/`.   |
+| **Anti-Corruption Layer (ACL)** | Generated Avro types never leave the infrastructure layer and are decoded into a typed Kotlin `sealed interface` for the application layer. |
+| **DevTools**                    | Intentionally not declared in service infrastructure layers to prevent classloader conflicts.                                               |
 
 ### IAM Service
 
-- Responsible for user profile management, authorization, and account operations.
-- Authentication is fully delegated to Keycloak (via the `IdentityProviderPort` outbound port, implemented by `KeycloakIdentityProviderAdapter`).
-- Uses Keycloak Admin API (via service account) for user provisioning and role sync.
-- Database stores:
-    - User profile data (first name, last name, preferences) linked by `keycloakId`.
-    - Role definitions and user-role assignments.
-    - User-specific permissions.
-    - Verification tokens.
-    - Local saga state (`saga`, `saga_step` tables) for end-to-end traceability of distributed flows.
-- Provides endpoints for registration, profile management, and role administration.
-- Publishes events to Kafka through the `AuthEventPublisherPort` outbound port (e.g., `MailRequestedEvent`).
-- Consumes feedback events from mail-service (`MailSentEvent` / `MailFailedEvent`) and runs compensation logic via a dedicated `saga-compensation-iam` Kafka topic + `AuthCompensationService` use case (rollback user in Keycloak, delete verification token, revert email/password change). The compensation envelope is an Avro **tagged union** (`DeleteUserAction | DeleteVerificationTokenAction | RevertPasswordUpdateAction | RevertEmailUpdateAction`) decoded by an ACL translator into the application-layer `sealed interface AuthCompensationCommand`.
+Responsible for user profile management, authorization, and account operations.
+
+| Feature               | Details                                                                                                                      |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Authentication**    | Fully delegated to Keycloak via the `IdentityProviderPort` outbound port.                                                    |
+| **Admin Integration** | Uses Keycloak Admin API via a service account for user provisioning and role sync.                                           |
+| **Database Stores**   | Stores user profile data, role definitions, permissions, verification tokens, and local saga state for distributed flows.    |
+| **Endpoints**         | Provides endpoints for registration, profile management, and role administration.                                            |
+| **Outbound Events**   | Publishes events (e.g., `MailRequestedEvent`) to Kafka through the `AuthEventPublisherPort` outbound port.                   |
+| **Saga Compensation** | Consumes mail feedback events and runs compensation logic via `AuthCompensationService` based on decoded Avro tagged unions. |
 
 ### Mail Service
 
-- Responsible for sending emails based on Thymeleaf templates.
-- Database stores:
-    - Email logs and delivery status (`email_log` table).
-    - Local saga state (`saga`, `saga_step` tables).
-- Consumes `MailRequestedEvent` events from other services (`MailEventConsumer`).
-- Publishes `MailSentEvent` / `MailFailedEvent` back through the Transactional Outbox (`KafkaOutboxProcessor`).
-- Supports various email templates (welcome, password reset, account activation, email change confirmation, etc.).
-- Acts as a reactive participant in the choreography flow — has no outbound business-event port (publication is a saga mechanic, not a domain concern).
-- Uses hexagonal architecture to decouple email sending logic from the SMTP/mail provider.
+Responsible for sending emails based on Thymeleaf templates.
+
+| Feature                 | Details                                                                                                           |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------|
+| **Database Stores**     | Stores email logs, delivery status, and local saga state.                                                         |
+| **Inbound Events**      | Consumes `MailRequestedEvent` events from other services via `MailEventConsumer`.                                 |
+| **Outbound Events**     | Publishes `MailSentEvent` or `MailFailedEvent` back through the Transactional Outbox.                             |
+| **Templates Supported** | Supports various email templates like welcome, password reset, account activation, and email change confirmation. |
+| **Architecture Role**   | Acts as a reactive choreography participant that decouples email sending logic from the SMTP provider.            |
 
 ### Template Service
 
-- A baseline skeleton for spinning up a new microservice.
-- Excluded from the global `contracts/` directory. Its Avro schemas live locally in a paired Published Language module `template-contracts/avro/` so they are **not** picked up by the production provisioner image or Terraform topic provisioning.
-- Provides:
-    - Hexagonal package layout (`domain/model`, `domain/repository`, `application/service`, `application/saga/{model,port}`, `application/port/{inbound,out}`, `infrastructure/{persistence,kafka,saga,web,config,response,exception}`).
-    - Placeholder domain (`Template`, `TemplateStatus`, `TemplateRepository`) with rich-domain methods (`markProcessed`, `markFailed`).
-    - Transactional Outbox scaffolding: local JPA entity implementing the shared read-only `OutboxMessage` contract, ensuring guaranteed decoupled event publication.
-    - Saga choreography scaffolding: local `saga`/`saga_step` model, `SagaProcessPort`, thin `SagaManagerAdapter` delegating to a shared `SagaEngine` (composition over inheritance), neutral compensation topic `saga-compensation-template`.
-    - **Typed compensation pipeline** mirroring `iam-service`: sealed `TemplateCompensationCommand` in the application layer, `AvroTemplateCompensationCommandTranslator` (ACL) in infrastructure, `TemplateCompensationEventSerializer`, `TemplateSagaCompensator`, `TemplateSagaCompensationHandler`, `SagaCompensationService` (Kafka inbound) and a placeholder `TemplateCompensationService` use case to wire from on clone.
-    - Kafka skeleton: outbound `TemplateEventPublisherPort` + `KafkaTemplateEventPublisherAdapter` (using `KafkaOutboxProcessor`), inbound `TemplateEventConsumer`.
-    - REST controller `/template` + DTOs.
-- **When cloning**: copy `template-service/` **and** `template-contracts/`, rename packages and module names, **move `template-contracts/avro/*.avsc` into the shared `contracts/<new-service>/`** so the new service participates in global schema registration and topic provisioning, point its `template-contracts/build.gradle.kts` at the new location, and add `includeBuild("<new-service>")` + `includeBuild("<new-service>-contracts")` lines to the root `settings.gradle.kts`.
+A baseline skeleton for spinning up a new microservice.
+
+| Feature                   | Details                                                                                                                            |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| **Schema Isolation**      | Excluded from the global `contracts/` directory; schemas live locally so they are not picked up by production provisioners.        |
+| **Package Layout**        | Provides a Hexagonal package layout containing domain, application, and infrastructure layers.                                     |
+| **Domain & Outbox**       | Includes a placeholder domain and Transactional Outbox scaffolding implementing the shared read-only `OutboxMessage` contract.     |
+| **Saga Scaffolding**      | Provides local saga model, `SagaProcessPort`, and an adapter delegating to the shared `SagaEngine`.                                |
+| **Compensation Pipeline** | Features a typed compensation pipeline mirroring IAM, including an Anti-Corruption Layer and serializers.                          |
+| **Kafka Integration**     | Contains a Kafka skeleton with an outbound publisher adapter and an inbound consumer.                                              |
+| **Web Skeleton**          | Provides a REST controller (`/template`) and corresponding DTOs.                                                                   |
+| **Cloning Instructions**  | Requires copying service and contracts, renaming packages, moving Avro schemas to the shared directory, and updating Gradle paths. |
 
 ## Design Principles
 

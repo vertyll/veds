@@ -42,15 +42,21 @@ All Keycloak-related config is centralized in `shared-infrastructure/src/main/re
 ## Where Do Role Names Live? (Microservices Anti–Shared-Kernel)
 
 Role names are owned by **two places only**:
-1. **Keycloak realm** (`keycloak/realm-config/realm-export.json`) — the runtime source of truth issued in every access token's `realm_access.roles` claim.
-2. **iam-service** (`iam-service/.../domain/model/RoleType.kt`, `internal`) — a type-safe mirror used solely by the role *administrator* (`RoleInitializer` seeds the DB, `AuthService.register` assigns `USER` via the Keycloak Admin API). The enum is `internal` to the iam-service module and intentionally **not** exported.
+
+| Location           | Details                                                                                                                                                                                                                                                                                                        |
+|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Keycloak realm** | (`keycloak/realm-config/realm-export.json`) — the runtime source of truth issued in every access token's `realm_access.roles` claim.                                                                                                                                                                           |
+| **iam-service**    | (`iam-service/.../domain/model/RoleType.kt`, `internal`) — a type-safe mirror used solely by the role *administrator* (`RoleInitializer` seeds the DB, `AuthService.register` assigns `USER` via the Keycloak Admin API). The enum is `internal` to the iam-service module and intentionally **not** exported. |
 
 > **Note** Other microservices **do not** depend on iam-service's enum. They check roles as plain strings.
 
 **Why no `shared-infrastructure.RoleType` enum:**
-- It would be a **Shared Kernel** (DDD antipattern, Evans, *DDD* ch. 14) — every change to the role vocabulary would force a coordinated recompile/deploy across services.
-- It would conflict with the **Bounded Context** boundary: a role's *meaning* (what `ADMIN` is allowed to do) belongs to the service that owns the resource, not to a global enum.
-- The IdP is already the source of truth; an in-code mirror would inevitably drift from Keycloak.
+
+| Reason                        | Explanation                                                                                                                              |
+|-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| **Shared Kernel Antipattern** | (DDD antipattern, Evans, *DDD* ch. 14) — every change to the role vocabulary would force a coordinated recompile/deploy across services. |
+| **Bounded Context Conflict**  | A role's *meaning* (what `ADMIN` is allowed to do) belongs to the service that owns the resource, not to a global enum.                  |
+| **Source of Truth Drift**     | The IdP is already the source of truth; an in-code mirror would inevitably drift from Keycloak.                                          |
 
 What stays in `shared-infrastructure/security/` is **only** the technical JWT → `Authentication` adapter (`KeycloakJwtAuthenticationConverter` / `ReactiveKeycloakJwtAuthenticationConverter`). It is role-name-agnostic — it maps *whatever* strings sit in the configured claim path onto `ROLE_*` authorities. Each service then decides which of those it cares about, in its own `SecurityConfig`.
 
