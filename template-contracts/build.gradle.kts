@@ -8,7 +8,7 @@ plugins {
 
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
-description = "Template bounded-context Avro contracts (template.requested, template.processed, template.failed, saga-compensation-template)"
+description = "Template bounded-context Avro contracts"
 
 extra["author"] = "Mikołaj Gawron"
 extra["email"] = "gawrmiko@gmail.com"

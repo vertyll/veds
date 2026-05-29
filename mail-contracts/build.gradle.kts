@@ -8,7 +8,7 @@ plugins {
 
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
-description = "Mail bounded-context Avro contracts (mail-sent, mail-failed, saga-compensation-mail)"
+description = "Mail bounded-context Avro contracts"
 
 extra["author"] = "Mikołaj Gawron"
 extra["email"] = "gawrmiko@gmail.com"
