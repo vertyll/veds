@@ -19,7 +19,8 @@ class KeycloakJwtAuthenticationConverter(
 ) : Converter<Jwt, AbstractAuthenticationToken> {
     override fun convert(jwt: Jwt): AbstractAuthenticationToken {
         val authorities = extractRoles(jwt).map { SimpleGrantedAuthority("ROLE_$it") }
-        return JwtAuthenticationToken(jwt, authorities, jwt.subject)
+        val subject = requireNotNull(jwt.subject) { "JWT is missing the mandatory 'sub' (subject) claim" }
+        return JwtAuthenticationToken(jwt, authorities, subject)
     }
 
     private fun extractRoles(jwt: Jwt) = KeycloakJwtUtils.extractRoles(jwt, sharedConfig.keycloak.rolesClaimPath)
