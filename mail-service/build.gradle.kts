@@ -92,3 +92,11 @@ listOf("test", "detekt", "ktlintCheck", "ktlintFormat").forEach { taskName ->
         dependsOn(subprojects.map { "${it.path}:$taskName" })
     }
 }
+
+listOf("build", "clean").forEach { taskName ->
+    tasks.register(taskName) {
+        group = "build"
+        description = "Aggregates :$taskName across all subprojects"
+        dependsOn(subprojects.map { "${it.path}:$taskName" })
+    }
+}
