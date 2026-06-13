@@ -5,6 +5,7 @@ import com.vertyll.veds.iam.application.dto.ChangePasswordRequest
 import com.vertyll.veds.iam.application.dto.ConfirmPasswordChangeRequest
 import com.vertyll.veds.iam.application.dto.RegisterRequest
 import com.vertyll.veds.iam.application.dto.ResetPasswordRequest
+import com.vertyll.veds.iam.application.exception.ApiException
 import com.vertyll.veds.iam.application.port.inbound.AuthUseCase
 import com.vertyll.veds.iam.infrastructure.response.ApiResponse
 import com.vertyll.veds.sharedinfrastructure.config.SharedConfigProperties
@@ -44,6 +45,8 @@ internal class AuthController(
         private const val PASSWORD_CHANGED_SUCCESSFULLY = "Password changed successfully"
         private const val USER_DETAILS_RETRIEVED_SUCCESSFULLY = "User details retrieved successfully"
         private const val PERMISSIONS_RETRIEVED_SUCCESSFULLY = "Permissions retrieved successfully"
+        private const val EMAIL_CLAIM_MISSING = "Authenticated token does not contain a valid email claim"
+        private const val SUBJECT_CLAIM_MISSING = "Authenticated token does not contain a valid subject claim"
     }
 
     @PostMapping("/register")
@@ -101,7 +104,9 @@ internal class AuthController(
         @RequestBody @Valid
         request: ChangeEmailRequest,
     ): ResponseEntity<ApiResponse<Any>> {
-        val email = jwt.getClaimAsString("email")
+        val email =
+            jwt.getClaimAsString("email")
+                ?: throw ApiException(EMAIL_CLAIM_MISSING, HttpStatus.UNAUTHORIZED)
         authService.requestEmailChange(email, request)
         return ApiResponse.buildResponse(null, EMAIL_CHANGE_INSTRUCTIONS_SEND_TO_EMAIL, HttpStatus.OK)
     }
@@ -122,7 +127,9 @@ internal class AuthController(
         @RequestBody @Valid
         request: ChangePasswordRequest,
     ): ResponseEntity<ApiResponse<Any>> {
-        val email = jwt.getClaimAsString("email")
+        val email =
+            jwt.getClaimAsString("email")
+                ?: throw ApiException(EMAIL_CLAIM_MISSING, HttpStatus.UNAUTHORIZED)
         authService.changePassword(email, request)
         return ApiResponse.buildResponse(null, PASSWORD_CHANGE_CONFIRMATION_SENT, HttpStatus.OK)
     }
@@ -159,10 +166,16 @@ internal class AuthController(
         }
 
         val roles = KeycloakJwtUtils.extractRoles(jwt, sharedConfigProperties.keycloak.rolesClaimPath)
+        val subject =
+            jwt.subject
+                ?: throw ApiException(SUBJECT_CLAIM_MISSING, HttpStatus.UNAUTHORIZED)
+        val email =
+            jwt.getClaimAsString("email")
+                ?: throw ApiException(EMAIL_CLAIM_MISSING, HttpStatus.UNAUTHORIZED)
         val userInfo =
-            mapOf(
-                "sub" to jwt.subject,
-                "email" to (jwt.getClaimAsString("email") ?: ""),
+            mapOf<String, Any>(
+                "sub" to subject,
+                "email" to email,
                 "roles" to roles,
             )
 
