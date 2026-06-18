@@ -3,9 +3,9 @@
 spring-boot = "4.1.0"
 spring-dependency-management = "1.1.7"
 ktlint-plugin = "14.0.1"
-detekt-plugin = "2.0.0-alpha.3"
+detekt-plugin = "2.0.0-alpha.5"
 dokka-plugin = "2.2.0"
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 
 # Dependencies
 testcontainers = "1.21.3"
