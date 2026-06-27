@@ -29,7 +29,7 @@ configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("org.eclipse.jetty:jetty-bom:9.4.59"))
             .using(module("org.eclipse.jetty:jetty-bom:9.4.59.v20231031"))
-            .because("Confluent 7.8.7 references jetty-bom:9.4.59 which is not published")
+            .because("Confluent 8.2.2 references jetty-bom:9.4.59 which is not published")
     }
 }
 

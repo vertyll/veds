@@ -44,7 +44,7 @@ services:
 
   # Kafka and Zookeeper for event-driven communication
   kafka:
-    image: docker.io/confluentinc/cp-kafka:7.8.7
+    image: docker.io/confluentinc/cp-kafka:8.2.2
     container_name: kafka
     restart: always
     ports:
@@ -82,7 +82,7 @@ services:
 
   # Schema Registry for managing Avro schemas, configured to connect to the Kafka broker
   schema-registry:
-    image: docker.io/confluentinc/cp-schema-registry:7.8.7
+    image: docker.io/confluentinc/cp-schema-registry:8.2.2
     container_name: schema-registry
     depends_on:
       kafka:
