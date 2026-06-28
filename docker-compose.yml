@@ -1,7 +1,7 @@
 services:
   # Postgres databases for each service
   iam-db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: iam-db
     restart: always
     volumes:
@@ -22,7 +22,7 @@ services:
       start_period: 10s
 
   mail-db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: mail-db
     restart: always
     volumes:
@@ -183,7 +183,7 @@ services:
 
   # Keycloak database
   keycloak-db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: keycloak-db
     restart: always
     ports:
