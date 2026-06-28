@@ -5,7 +5,7 @@ services:
     container_name: iam-db
     restart: always
     volumes:
-      - iam-postgres-data:/var/lib/postgresql/data
+      - iam-postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -26,7 +26,7 @@ services:
     container_name: mail-db
     restart: always
     volumes:
-      - mail-postgres-data:/var/lib/postgresql/data
+      - mail-postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -193,7 +193,7 @@ services:
       POSTGRES_USER: keycloak_user
       POSTGRES_PASSWORD: keycloak_pass
     volumes:
-      - keycloak-postgres-data:/var/lib/postgresql/data
+      - keycloak-postgres-data:/var/lib/postgresql
     networks:
       - microservices-network
     healthcheck:
