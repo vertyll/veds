@@ -10,7 +10,7 @@ kotlin = "2.4.0"
 springdoc = "3.0.1"
 testcontainers = "1.21.3"
 kotlin-logging = "8.0.4"
-springframework-cloud = "2025.1.0"
+springframework-cloud = "2025.1.2"
 
 [libraries]
 # Spring Boot Starters - Common
