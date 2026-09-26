@@ -1,9 +1,10 @@
+name: veds
+
 services:
   # Postgres databases for each service
   iam-db:
-    image: postgres:18-alpine
-    container_name: iam-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - iam-postgres-data:/var/lib/postgresql
     environment:
@@ -11,7 +12,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: iam_db
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -22,9 +23,8 @@ services:
       start_period: 10s
 
   mail-db:
-    image: postgres:18-alpine
-    container_name: mail-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - mail-postgres-data:/var/lib/postgresql
     environment:
@@ -32,7 +32,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mail_service
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -43,9 +43,8 @@ services:
       start_period: 10s
 
   project-db:
-    image: postgres:18-alpine
-    container_name: project-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - project-postgres-data:/var/lib/postgresql
     environment:
@@ -53,7 +52,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: project_service
     ports:
-      - "5435:5432"
+      - "127.0.0.1:5435:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -64,9 +63,8 @@ services:
       start_period: 10s
 
   task-db:
-    image: postgres:18-alpine
-    container_name: task-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - task-postgres-data:/var/lib/postgresql
     environment:
@@ -74,7 +72,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: task_service
     ports:
-      - "5436:5432"
+      - "127.0.0.1:5436:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -85,9 +83,8 @@ services:
       start_period: 10s
 
   notification-db:
-    image: postgres:18-alpine
-    container_name: notification-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - notification-postgres-data:/var/lib/postgresql
     environment:
@@ -95,7 +92,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: notification_service
     ports:
-      - "5437:5432"
+      - "127.0.0.1:5437:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -106,9 +103,8 @@ services:
       start_period: 10s
 
   translation-db:
-    image: postgres:18-alpine
-    container_name: translation-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - translation-postgres-data:/var/lib/postgresql
     environment:
@@ -116,7 +112,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: translation_service
     ports:
-      - "5438:5432"
+      - "127.0.0.1:5438:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -127,9 +123,8 @@ services:
       start_period: 10s
 
   file-db:
-    image: postgres:18-alpine
-    container_name: file-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     volumes:
       - file-postgres-data:/var/lib/postgresql
     environment:
@@ -137,7 +132,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: file_service
     ports:
-      - "5439:5432"
+      - "127.0.0.1:5439:5432"
     networks:
       - microservices-network
     healthcheck:
@@ -149,9 +144,8 @@ services:
 
   # Session store for the API Gateway's Token Handler (BFF).
   gateway-session-store:
-    image: redis:8-alpine
-    container_name: gateway-session-store
-    restart: always
+    image: docker.io/library/redis:8-alpine
+    restart: unless-stopped
     command:
       - "redis-server"
       - "--appendonly"
@@ -177,28 +171,26 @@ services:
 
   # RedisInsight
   redisinsight:
-    image: redis/redisinsight:latest
-    container_name: redisinsight
-    restart: always
+    image: docker.io/redis/redisinsight:3.8.0
+    restart: unless-stopped
     ports:
-      - "8001:5540"
+      - "127.0.0.1:8001:5540"
     networks:
       - microservices-network
 
   # Object storage.
   object-storage:
-    image: dxflrs/garage:v2.3.0
-    container_name: object-storage
-    restart: always
+    image: docker.io/dxflrs/garage:v2.4.1
+    restart: unless-stopped
     volumes:
       - ./infra/garage/garage.toml:/etc/garage.toml:ro
       - object-storage-data:/var/lib/garage/data
       - object-storage-meta:/var/lib/garage/meta
     ports:
       # S3 API
-      - "9100:3900"
+      - "127.0.0.1:9100:3900"
       # Admin API, used by the console and by the bootstrap job
-      - "9102:3903"
+      - "127.0.0.1:9102:3903"
     networks:
       - microservices-network
     healthcheck:
@@ -211,7 +203,6 @@ services:
   # One-shot bootstrap.
   object-storage-init:
     image: docker.io/library/alpine:3.20
-    container_name: object-storage-init
     depends_on:
       object-storage:
         condition: service_healthy
@@ -230,9 +221,8 @@ services:
 
   # Browser console for the object store.
   object-storage-ui:
-    image: noooste/garage-ui:latest
-    container_name: object-storage-ui
-    restart: always
+    image: docker.io/noooste/garage-ui:v0.13.0
+    restart: unless-stopped
     depends_on:
       object-storage:
         condition: service_healthy
@@ -245,18 +235,17 @@ services:
       GARAGE_UI_GARAGE_ENDPOINT: http://object-storage:3900
       GARAGE_UI_GARAGE_ADMIN_ENDPOINT: http://object-storage:3903
     ports:
-      - "9101:8080"
+      - "127.0.0.1:9101:8080"
     networks:
       - microservices-network
 
   # Kafka and Zookeeper for event-driven communication
   kafka:
     image: docker.io/confluentinc/cp-kafka:8.2.2
-    container_name: kafka
-    restart: always
+    restart: unless-stopped
     ports:
-      - "9092:9092"
-      - "29092:29092"
+      - "127.0.0.1:9092:9092"
+      - "127.0.0.1:29092:29092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -290,13 +279,12 @@ services:
   # Schema Registry for managing Avro schemas, configured to connect to the Kafka broker
   schema-registry:
     image: docker.io/confluentinc/cp-schema-registry:8.2.2
-    container_name: schema-registry
-    restart: always
+    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
@@ -314,7 +302,6 @@ services:
   # One-shot bootstrap: provisions Kafka topics from the same Terraform module
   topics-init:
     image: docker.io/hashicorp/terraform:1.7.5
-    container_name: topics-init
     depends_on:
       kafka:
         condition: service_healthy
@@ -336,7 +323,6 @@ services:
   # One-shot bootstrap: registers every Avro schema under contracts to the Schema Registry
   schemas-init:
     image: docker.io/library/python:3.11-alpine
-    container_name: schemas-init
     depends_on:
       schema-registry:
         condition: service_healthy
@@ -357,9 +343,8 @@ services:
 
   # Keycloak for identity and access management, configured to use a Postgres database and import a realm on startup
   keycloak:
-    container_name: keycloak
     image: quay.io/keycloak/keycloak:26.6.4
-    restart: always
+    restart: unless-stopped
     command: start-dev --import-realm
     environment:
       KC_DB: postgres
@@ -375,7 +360,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
     ports:
-      - "9000:8080"
+      - "127.0.0.1:9000:8080"
     depends_on:
       keycloak-db:
         condition: service_healthy
@@ -392,11 +377,10 @@ services:
 
   # Keycloak database
   keycloak-db:
-    image: postgres:18-alpine
-    container_name: keycloak-db
-    restart: always
+    image: docker.io/library/postgres:18-alpine
+    restart: unless-stopped
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     environment:
       POSTGRES_DB: keycloak_db
       POSTGRES_USER: keycloak_user
@@ -414,8 +398,7 @@ services:
 
   # Kafbat UI
   kafbat-ui:
-    image: ghcr.io/kafbat/kafka-ui:latest
-    container_name: kafbat-ui
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
     depends_on:
       kafka:
         condition: service_healthy
@@ -426,13 +409,13 @@ services:
       schemas-init:
         condition: service_completed_successfully
     ports:
-      - "8090:8080"
+      - "127.0.0.1:8090:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: kafka-dev
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
       DYNAMIC_CONFIG_ENABLED: "true"
-    restart: always
+    restart: unless-stopped
     networks:
       - microservices-network
     healthcheck:
@@ -443,13 +426,12 @@ services:
       start_period: 30s
 
   # Web service for mail testing
-  mail-dev:
-    image: maildev/maildev:latest
-    container_name: mail-dev
-    restart: always
+  maildev:
+    image: docker.io/maildev/maildev:3.0.0
+    restart: unless-stopped
     ports:
-      - "1025:1025"
-      - "1080:1080"
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:1080:1080"
     networks:
       - microservices-network
     healthcheck:
