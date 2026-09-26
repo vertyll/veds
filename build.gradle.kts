@@ -106,78 +106,27 @@ tasks.register("docs") {
     val landingPage = rootDir.resolve("docs/dokka/index.html")
     val libraries = documentedLibraries
 
+    val template = rootDir.resolve("gradle/docs/landing.html")
+    inputs.file(template)
+
     doLast {
         // Dokka writes one self-contained site per module. Without a landing page the published
         // root would be a bare directory listing.
-        //
-        // The template is trimmed *before* the generated sections are substituted in: an
-        // interpolated block carries its own newlines, and `trimIndent` would then measure the
-        // common indent as zero and strip nothing.
         fun cards(entries: List<DocumentedLibrary>) =
             entries.joinToString("\n") {
                 """      <li><a href="${it.name}/index.html"><code>${it.name}</code></a><span>${it.blurb}</span></li>"""
             }
 
-        val template =
-            """
-            <!doctype html>
-            <html lang="en">
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>veds — shared library API documentation</title>
-                <style>
-                  :root {
-                    color-scheme: light dark;
-                    --fg: #1a1a1a; --muted: #5b5b5b; --line: #e2e2e2; --accent: #1f6feb;
-                  }
-                  @media (prefers-color-scheme: dark) {
-                    :root { --fg: #e8e8e8; --muted: #a0a0a0; --line: #303030; --accent: #6aa9ff; }
-                  }
-                  body {
-                    font-family: system-ui, -apple-system, sans-serif;
-                    max-width: 46rem; margin: 0 auto; padding: 4rem 1.25rem;
-                    line-height: 1.6; color: var(--fg);
-                  }
-                  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
-                  h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em;
-                       color: var(--muted); margin: 2.5rem 0 .75rem; font-weight: 600; }
-                  p.lede { color: var(--muted); margin: 0 0 .5rem; }
-                  ul { list-style: none; padding: 0; margin: 0; }
-                  li { display: flex; flex-direction: column; gap: .15rem;
-                       padding: .7rem 0; border-bottom: 1px solid var(--line); }
-                  li span { color: var(--muted); font-size: .92rem; }
-                  a { color: var(--accent); text-decoration: none; font-weight: 600; }
-                  a:hover { text-decoration: underline; }
-                  code { font-size: .95rem; }
-                  footer { margin-top: 2.5rem; color: var(--muted); font-size: .88rem; }
-                </style>
-              </head>
-              <body>
-                <h1>veds — shared libraries</h1>
-                <p class="lede">API documentation generated from KDoc with Dokka.</p>
-
-                <h2>Framework-free — safe for an application layer</h2>
-                <ul>
-            @@PURE@@
-                </ul>
-
-                <h2>Spring — infrastructure layer only</h2>
-                <ul>
-            @@SPRING@@
-                </ul>
-
-                <footer>
-                  What each module is responsible for, and why they are separate, is described in
-                  <code>docs/shared-modules.md</code>.
-                </footer>
-              </body>
-            </html>
-            """.trimIndent()
-
         landingPage.parentFile.mkdirs()
         landingPage.writeText(
             template
+                .readText()
+                .replace("@@PROJECT@@", "veds")
+                .replace("@@SUBJECT@@", "shared library")
+                .replace("@@HEADING@@", "shared libraries")
+                .replace("@@LEDE@@", "API documentation generated from KDoc with Dokka.")
+                .replace("@@PURE_SCOPE@@", "safe for an application layer")
+                .replace("@@UNIT@@", "module")
                 .replace("@@PURE@@", cards(libraries.filter { it.frameworkFree }))
                 .replace("@@SPRING@@", cards(libraries.filterNot { it.frameworkFree })),
         )
