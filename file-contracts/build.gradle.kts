@@ -19,13 +19,9 @@ repositories {
 
 configure<JavaPluginExtension> {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
     }
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
 }
-
-val avroVersion = "1.12.2"
 
 val avroTools: Configuration = configurations.create("avroTools")
 val avroContractsDir = file("$rootDir/../contracts/file-service")
@@ -64,12 +60,12 @@ sourceSets {
 }
 
 dependencies {
-    avroTools("org.apache.avro:avro-tools:$avroVersion") {
+    avroTools(libs.avro.tools) {
         exclude(group = "org.apache.avro", module = "trevni-avro")
         exclude(group = "org.apache.avro", module = "trevni-core")
     }
 
-    api("org.apache.avro:avro:$avroVersion")
+    api(libs.avro)
 }
 
 tasks.jar {

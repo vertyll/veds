@@ -39,10 +39,8 @@ subprojects {
     plugins.withId(rootProject.libs.plugins.kotlin.jvm.get().pluginId) {
         configure<JavaPluginExtension> {
             toolchain {
-                languageVersion = JavaLanguageVersion.of(25)
+                languageVersion = JavaLanguageVersion.of(rootProject.libs.versions.java.get())
             }
-            sourceCompatibility = JavaVersion.VERSION_25
-            targetCompatibility = JavaVersion.VERSION_25
         }
 
         tasks.withType<KotlinCompile>().configureEach {
