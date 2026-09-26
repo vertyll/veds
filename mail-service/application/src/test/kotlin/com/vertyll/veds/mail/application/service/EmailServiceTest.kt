@@ -30,14 +30,14 @@ class EmailServiceTest {
             override fun findByTemplateName(templateName: String): List<EmailLog> = emptyList()
 
             override fun findBySentAtBetween(
-                from: Instant,
-                to: Instant,
+                start: Instant,
+                end: Instant,
             ): List<EmailLog> = emptyList()
 
             override fun countByStatusAndSentAtBetween(
                 status: EmailStatus,
-                from: Instant,
-                to: Instant,
+                start: Instant,
+                end: Instant,
             ): Long = 0
 
             override fun findRecentFailedEmails(limit: Int): List<EmailLog> = emptyList()
