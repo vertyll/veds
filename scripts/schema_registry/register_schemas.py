@@ -36,8 +36,7 @@ def _delete_subject(registry_url: str, subject: str) -> None:
     for suffix in ("", "?permanent=true"):
         try:
             req = request.Request(base + suffix, method="DELETE")
-            with request.urlopen(req, timeout=15):
-                pass
+            request.urlopen(req, timeout=15).close()
         except error.HTTPError as e:
             # 404 means it was never there, which is the state we wanted anyway.
             if e.code != 404:
