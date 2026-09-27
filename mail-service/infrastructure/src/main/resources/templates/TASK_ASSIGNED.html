@@ -1,12 +1,8 @@
-<!doctype html>
-<html
-  lang="en"
-  xmlns:th="http://www.thymeleaf.org"
-  th:replace="~{_layout :: page('Task assigned to you', ~{::content})}"
->
-  <body>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: page('Task assigned to you', ~{::content})}">
+<body>
     <div th:fragment="content" th:remove="tag">
-      <p style="margin: 0; color: #374151; font-size: 15px">A task in one of your projects has been assigned to you.</p>
+        <p style="margin: 0 0 16px; font-size: 15px; color: #e8e8e8;">A task in one of your projects has been assigned to you.</p>
     </div>
-  </body>
+</body>
 </html>
