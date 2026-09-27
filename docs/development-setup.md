@@ -39,13 +39,15 @@ Every `docker compose` command in this document works verbatim as `podman compos
 compose file uses nothing Docker-specific.
 
 This brings up PostgreSQL (one database per service), Keycloak, Kafka with Schema Registry, Redis, Garage and MailDev.
-Two one-shot jobs run automatically and then exit — they are supposed to:
+Three one-shot jobs run automatically and then exit — they are supposed to:
 
 - **`topics-init`** applies `infra/kafka/topics.tf`, creating every topic
+- **`schemas-init`** registers every Avro schema under `contracts/` with the Schema Registry
 - **`object-storage-init`** gives Garage its cluster layout, bucket, access key and CORS rules
 
-Neither can be expressed in a configuration file: both are cluster state. `topics-init` applies it with
-Terraform, `object-storage-init` through the Garage admin API.
+None of this can be expressed in a configuration file: it is cluster state. `topics-init` applies it with
+Terraform, `schemas-init` with `scripts/schema_registry/register_schemas.py`, `object-storage-init` through the
+Garage admin API.
 
 Wait for the health checks before moving on:
 
@@ -53,7 +55,10 @@ Wait for the health checks before moving on:
 docker compose -f docker-compose.local.yml ps
 ```
 
-## 3. Register the Avro schemas
+## 3. Re-register the Avro schemas
+
+`schemas-init` registers the schemas on every `up`. After changing a schema, register it again without restarting
+the stack:
 
 ```bash
 python scripts/schema_registry/register_schemas.py --registry-url http://localhost:8081
