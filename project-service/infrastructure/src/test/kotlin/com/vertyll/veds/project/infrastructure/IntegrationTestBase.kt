@@ -22,7 +22,7 @@ abstract class IntegrationTestBase protected constructor() {
                 .also { it.start() }
 
         private val kafka: KafkaContainer =
-            KafkaContainer(DockerImageName.parse("apache/kafka-native:3.8.0"))
+            KafkaContainer(DockerImageName.parse("apache/kafka-native:4.3.1"))
                 .also { it.start() }
 
         @JvmStatic

@@ -202,7 +202,7 @@ services:
 
   # One-shot bootstrap.
   object-storage-init:
-    image: docker.io/library/alpine:3.20
+    image: docker.io/library/alpine:3.24
     depends_on:
       object-storage:
         condition: service_healthy
@@ -241,7 +241,7 @@ services:
 
   # Kafka and Zookeeper for event-driven communication
   kafka:
-    image: docker.io/confluentinc/cp-kafka:8.2.2
+    image: docker.io/confluentinc/cp-kafka:8.3.2
     restart: unless-stopped
     ports:
       - "127.0.0.1:9092:9092"
@@ -278,7 +278,7 @@ services:
 
   # Schema Registry for managing Avro schemas, configured to connect to the Kafka broker
   schema-registry:
-    image: docker.io/confluentinc/cp-schema-registry:8.2.2
+    image: docker.io/confluentinc/cp-schema-registry:8.3.2
     restart: unless-stopped
     depends_on:
       kafka:
@@ -301,7 +301,7 @@ services:
 
   # One-shot bootstrap: provisions Kafka topics from the same Terraform module
   topics-init:
-    image: docker.io/hashicorp/terraform:1.7.5
+    image: docker.io/hashicorp/terraform:1.16.4
     depends_on:
       kafka:
         condition: service_healthy
@@ -322,7 +322,7 @@ services:
 
   # One-shot bootstrap: registers every Avro schema under contracts to the Schema Registry
   schemas-init:
-    image: docker.io/library/python:3.11-alpine
+    image: docker.io/library/python:3.14-alpine
     depends_on:
       schema-registry:
         condition: service_healthy
@@ -343,7 +343,7 @@ services:
 
   # Keycloak for identity and access management, configured to use a Postgres database and import a realm on startup
   keycloak:
-    image: quay.io/keycloak/keycloak:26.6.4
+    image: quay.io/keycloak/keycloak:26.7.4
     restart: unless-stopped
     command: start-dev --import-realm
     environment:

@@ -1,4 +1,4 @@
-FROM hashicorp/terraform:1.7.5
+FROM hashicorp/terraform:1.16.4
 
 RUN apk add --no-cache python3 ca-certificates bash
 

@@ -44,7 +44,7 @@ class DeadLetterRoutingIntegrationTest {
     }
 
     private val kafka: KafkaContainer =
-        KafkaContainer(DockerImageName.parse("apache/kafka-native:3.8.0")).also { it.start() }
+        KafkaContainer(DockerImageName.parse("apache/kafka-native:4.3.1")).also { it.start() }
 
     private fun producerFactory() =
         DefaultKafkaProducerFactory<String, ByteArray>(
