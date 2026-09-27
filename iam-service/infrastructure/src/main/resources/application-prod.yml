@@ -20,7 +20,6 @@ spring:
     clean-disabled: true
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     consumer:
       group-id: iam-service-group
 

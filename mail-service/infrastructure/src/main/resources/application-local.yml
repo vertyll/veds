@@ -22,6 +22,9 @@ spring:
     validate-on-migrate: true
 
   kafka:
+    bootstrap-servers: localhost:29092
+    properties:
+      schema.registry.url: http://localhost:8081
     consumer:
       group-id: mail-service-group
 
@@ -30,7 +33,6 @@ spring:
     port: 1025
     username: ""
     password: ""
-    from: no-reply@veds.local
     properties:
       mail:
         smtp:
@@ -73,3 +75,7 @@ veds:
   translation:
     client:
       base-url: http://localhost:8087
+
+application:
+  mail:
+    from: no-reply@veds.local

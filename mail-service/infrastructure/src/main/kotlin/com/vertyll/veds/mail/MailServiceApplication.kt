@@ -1,5 +1,6 @@
 package com.vertyll.veds.mail
 
+import com.vertyll.veds.mail.infrastructure.config.MailProperties
 import com.vertyll.veds.shared.authz.client.AuthzClientProperties
 import com.vertyll.veds.shared.translation.client.TranslationClientProperties
 import com.vertyll.veds.shared.web.config.SharedConfigAutoConfiguration
@@ -33,7 +34,7 @@ import org.springframework.kafka.annotation.EnableKafka
     "com.vertyll.veds.shared.messaging.kafka.persistence.inbox",
 )
 @EnableKafka
-@EnableConfigurationProperties(TranslationClientProperties::class, AuthzClientProperties::class)
+@EnableConfigurationProperties(TranslationClientProperties::class, AuthzClientProperties::class, MailProperties::class)
 class MailServiceApplication
 
 fun main(args: Array<String>) {

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 
 /**
  * Autoconfiguration registering the shared Avro serializer/deserializer
- * beans, conditional on `spring.kafka.schema-registry-url` being set so
+ * beans, conditional on `spring.kafka.properties.schema.registry.url` being set so
  * services that do not use Avro on the wire incur no cost.
  *
  * The beans are infrastructure-only — Confluent's [KafkaAvroSerializer] /
@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @ConditionalOnProperty(
-    name = ["spring.kafka.schema-registry-url"],
+    name = ["spring.kafka.properties.schema.registry.url"],
 )
 @EnableConfigurationProperties(KafkaInfraProperties::class)
 internal class AvroSerDeAutoConfiguration {

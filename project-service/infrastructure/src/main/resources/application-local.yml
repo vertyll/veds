@@ -19,6 +19,9 @@ spring:
     validate-on-migrate: true
 
   kafka:
+    bootstrap-servers: localhost:29092
+    properties:
+      schema.registry.url: http://localhost:8081
     consumer:
       group-id: project-service-group
 

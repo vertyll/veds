@@ -14,18 +14,22 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "spring.kafka")
 data class KafkaInfraProperties(
     /** Comma-separated list of Kafka broker addresses (host:port). */
-    val bootstrapServers: String = "localhost:29092",
-    /** Schema Registry endpoint used by Avro serializer/deserializer. */
-    val schemaRegistryUrl: String = "http://localhost:8081",
-    val security: Security = Security(),
-    val ssl: Ssl = Ssl(),
-    val consumer: Consumer = Consumer(),
+    val bootstrapServers: String,
+    /** Client properties passed through to Kafka, including `schema.registry.url` for Avro. */
+    val properties: Map<String, String>,
+    val security: Security,
+    val ssl: Ssl,
+    val consumer: Consumer,
 ) {
+    /** Schema Registry endpoint used by the Avro serializer and deserializer. */
+    val schemaRegistryUrl: String
+        get() = properties.getValue(SCHEMA_REGISTRY_URL)
+
     data class Consumer(
         /** Kafka consumer group id used by this service. */
-        val groupId: String = "default-group",
+        val groupId: String,
         /** Where to start reading when no committed offset exists. */
-        val autoOffsetReset: String = "earliest",
+        val autoOffsetReset: String,
     )
 
     /**
@@ -34,8 +38,8 @@ data class KafkaInfraProperties(
      * (SPRING_KAFKA_SECURITY_PROTOCOL / KAFKA_SECURITY_PROTOCOL via yml).
      */
     data class Security(
-        /** PLAINTEXT (default, local dev) or SSL (cluster listener :9094). */
-        val protocol: String = "PLAINTEXT",
+        /** PLAINTEXT (local dev) or SSL (cluster listener :9094). */
+        val protocol: String,
     )
 
     /**
@@ -45,8 +49,12 @@ data class KafkaInfraProperties(
      */
     data class Ssl(
         /** Plain filesystem path to the truststore, e.g. /tls-kafka/truststore.p12. */
-        val trustStoreLocation: String = "",
-        val trustStoreType: String = "PKCS12",
-        val trustStorePassword: String = "",
+        val trustStoreLocation: String,
+        val trustStoreType: String,
+        val trustStorePassword: String,
     )
+
+    private companion object {
+        const val SCHEMA_REGISTRY_URL = "schema.registry.url"
+    }
 }
