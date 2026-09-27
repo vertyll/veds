@@ -26,11 +26,6 @@ internal class SessionTokenRelayFilterTest {
             gatewayClientId = "veds-api-gateway",
             gatewayClientSecret = "secret",
             rolesClaimPath = "realm_access.roles",
-            oauth =
-                SharedKeycloakProperties.OAuthProperties(
-                    redirectUri = "http://localhost:8080/auth/callback",
-                    postLoginRedirectUri = "http://localhost:4200/",
-                ),
             cookie =
                 SharedKeycloakProperties.CookieProperties(
                     refreshTokenCookieName = "KEYCLOAK_REFRESH_TOKEN",

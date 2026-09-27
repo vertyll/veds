@@ -64,3 +64,6 @@ veds:
     session:
       encryption-key: ${GATEWAY_SESSION_ENCRYPTION_KEY:ZTeJ0h/U451Ooa3ePJvmh1K0WaNTk8rq6TsWTNGQBzo=}
       ttl: ${GATEWAY_SESSION_TTL:7d}
+    oauth:
+      redirect-uri: http://localhost:8080/auth/callback
+      post-login-redirect-uri: "http://localhost:4200/"

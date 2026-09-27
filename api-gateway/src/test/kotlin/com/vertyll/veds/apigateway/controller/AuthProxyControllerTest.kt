@@ -1,5 +1,6 @@
 package com.vertyll.veds.apigateway.controller
 
+import com.vertyll.veds.apigateway.config.GatewayOAuthProperties
 import com.vertyll.veds.apigateway.security.AuthTransactionCookies
 import com.vertyll.veds.apigateway.session.KeycloakTokenClient
 import com.vertyll.veds.apigateway.session.SessionCookies
@@ -25,11 +26,6 @@ internal class AuthProxyControllerTest {
             gatewayClientId = "veds-api-gateway",
             gatewayClientSecret = "secret",
             rolesClaimPath = "realm_access.roles",
-            oauth =
-                SharedKeycloakProperties.OAuthProperties(
-                    redirectUri = "http://localhost:8080/auth/callback",
-                    postLoginRedirectUri = "http://localhost:4200/",
-                ),
             cookie =
                 SharedKeycloakProperties.CookieProperties(
                     refreshTokenCookieName = "KEYCLOAK_REFRESH_TOKEN",
@@ -43,6 +39,7 @@ internal class AuthProxyControllerTest {
     private val controller =
         AuthProxyController(
             sharedConfig = properties,
+            oauth = GatewayOAuthProperties("http://localhost:8080/auth/callback", "http://localhost:4200/"),
             authTransactionCookies = AuthTransactionCookies(properties),
             sessionCookies = mock(SessionCookies::class.java),
             sessionStore = mock(SessionStore::class.java),

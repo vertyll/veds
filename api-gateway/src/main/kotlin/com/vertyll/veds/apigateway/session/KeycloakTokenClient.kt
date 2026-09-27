@@ -1,6 +1,7 @@
 package com.vertyll.veds.apigateway.session
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.vertyll.veds.apigateway.config.GatewayOAuthProperties
 import com.vertyll.veds.shared.web.config.SharedKeycloakProperties
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -14,6 +15,7 @@ import java.util.Base64
 @Component
 internal class KeycloakTokenClient(
     private val sharedConfig: SharedKeycloakProperties,
+    private val oauth: GatewayOAuthProperties,
     private val objectMapper: com.fasterxml.jackson.databind.ObjectMapper,
 ) {
     private companion object {
@@ -41,7 +43,7 @@ internal class KeycloakTokenClient(
                 .with("client_id", sharedConfig.gatewayClientId)
                 .with("client_secret", sharedConfig.gatewayClientSecret)
                 .with("code", code)
-                .with("redirect_uri", sharedConfig.oauth.redirectUri)
+                .with("redirect_uri", oauth.redirectUri)
                 .with("code_verifier", codeVerifier),
         )
 

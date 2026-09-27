@@ -79,3 +79,6 @@ veds:
     session:
       encryption-key: ${GATEWAY_SESSION_ENCRYPTION_KEY}
       ttl: ${GATEWAY_SESSION_TTL:7d}
+    oauth:
+      redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+      post-login-redirect-uri: ${APP_POST_LOGIN_REDIRECT_URI}

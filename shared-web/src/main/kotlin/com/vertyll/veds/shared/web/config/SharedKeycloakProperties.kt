@@ -31,16 +31,9 @@ data class SharedKeycloakProperties(
     val gatewayClientSecret: String,
     /** Dotted path to the roles claim inside the access token. */
     val rolesClaimPath: String,
-    /** Redirect URIs for the browser leg of the login flow. */
-    val oauth: OAuthProperties,
     /** Attributes of the refresh-token cookie the gateway sets. */
     val cookie: CookieProperties,
 ) {
-    data class OAuthProperties(
-        val redirectUri: String,
-        val postLoginRedirectUri: String,
-    )
-
     data class CookieProperties(
         val refreshTokenCookieName: String,
         val httpOnly: Boolean,

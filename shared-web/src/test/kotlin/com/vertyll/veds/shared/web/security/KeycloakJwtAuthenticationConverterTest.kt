@@ -18,7 +18,6 @@ class KeycloakJwtAuthenticationConverterTest {
             gatewayClientId = "veds-api-gateway",
             gatewayClientSecret = "",
             rolesClaimPath = "realm_access.roles",
-            oauth = SharedKeycloakProperties.OAuthProperties("http://localhost:8080/auth/callback", "http://localhost:4200"),
             cookie =
                 SharedKeycloakProperties.CookieProperties(
                     "KEYCLOAK_REFRESH_TOKEN",

@@ -1,5 +1,6 @@
 package com.vertyll.veds.apigateway.controller
 
+import com.vertyll.veds.apigateway.config.GatewayOAuthProperties
 import com.vertyll.veds.apigateway.security.AuthTransactionCookies
 import com.vertyll.veds.apigateway.security.Pkce
 import com.vertyll.veds.apigateway.session.KeycloakTokenClient
@@ -25,6 +26,7 @@ import java.net.URI
 @RequestMapping("/auth")
 internal class AuthProxyController(
     private val sharedConfig: SharedKeycloakProperties,
+    private val oauth: GatewayOAuthProperties,
     private val authTransactionCookies: AuthTransactionCookies,
     private val sessionCookies: SessionCookies,
     private val sessionStore: SessionStore,
@@ -67,7 +69,7 @@ internal class AuthProxyController(
             UriComponentsBuilder
                 .fromUriString(keycloakAuthorizationUrl())
                 .queryParam("client_id", sharedConfig.gatewayClientId)
-                .queryParam("redirect_uri", sharedConfig.oauth.redirectUri)
+                .queryParam("redirect_uri", oauth.redirectUri)
                 .queryParam("response_type", "code")
                 .queryParam("scope", SCOPE)
                 .queryParam("state", state)
@@ -173,7 +175,7 @@ internal class AuthProxyController(
     private fun redirectToApp(error: String?): ResponseEntity<Void> {
         val target =
             UriComponentsBuilder
-                .fromUriString(sharedConfig.oauth.postLoginRedirectUri)
+                .fromUriString(oauth.postLoginRedirectUri)
                 .apply { if (error != null) queryParam(ERROR_PARAM, error) }
                 .encode()
                 .build()

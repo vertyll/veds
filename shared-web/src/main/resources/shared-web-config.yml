@@ -22,9 +22,6 @@ veds:
       gateway-client-id: ${KEYCLOAK_GATEWAY_CLIENT_ID}
       gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET}
       roles-claim-path: realm_access.roles
-      oauth:
-        redirect-uri: ${KEYCLOAK_REDIRECT_URI}
-        post-login-redirect-uri: ${APP_POST_LOGIN_REDIRECT_URI}
       cookie:
         refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
         http-only: true
