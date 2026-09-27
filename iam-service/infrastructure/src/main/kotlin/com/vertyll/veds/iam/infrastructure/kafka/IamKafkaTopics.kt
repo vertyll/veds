@@ -6,6 +6,4 @@ internal object IamKafkaTopics {
     const val ROLE_PERMISSIONS_CHANGED = "role-permissions-changed"
 
     const val MAIL_REQUESTED = "mail-requested"
-    const val MAIL_SENT = "mail-sent"
-    const val MAIL_FAILED = "mail-failed"
 }

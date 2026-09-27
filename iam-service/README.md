@@ -7,7 +7,7 @@ Users, roles, permissions and the account lifecycle.
 | Port      | 8082                                                                          |
 | Database  | 5432                                                                          |
 | Publishes | `user-registered`, `user-profile-updated`; sends the `mail-requested` command |
-| Consumes  | `mail-sent`, `mail-failed`                                                    |
+| Consumes  | —                                                                             |
 
 ## Permissions belong to roles
 

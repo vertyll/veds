@@ -30,8 +30,8 @@ mail-service even though mail-service never produces it.
 | `task-comment-added`       | task-service    | notification                     |
 | `file-confirmed`           | file-service    | —                                |
 | `file-deleted`             | file-service    | task                             |
-| `mail-sent`                | mail-service    | iam, project                     |
-| `mail-failed`              | mail-service    | iam, project                     |
+| `mail-sent`                | mail-service    | project                          |
+| `mail-failed`              | mail-service    | project                          |
 
 `file-confirmed` has no consumer yet. It is published because the alternative — adding it later, once something needs
 it — means a producer change at the moment a consumer is already waiting.
