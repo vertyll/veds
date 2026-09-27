@@ -11,9 +11,4 @@ enum class EmailTemplate(
     SET_NEW_PASSWORD("SET_NEW_PASSWORD"),
 
     CHANGE_EMAIL("CHANGE_EMAIL"),
-    ;
-
-    companion object {
-        fun fromTemplateName(name: String): EmailTemplate? = EmailTemplate.entries.find { it.templateName == name }
-    }
 }
