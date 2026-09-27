@@ -304,9 +304,8 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
         language: LanguageTag,
     ): Map<UUID, Translation> =
         allTranslationsOf(table, ownerColumn)
-            .mapValues { (_, translations) -> translations.firstOrNull { it.language == language } }
-            .filterValues { it != null }
-            .mapValues { (_, t) -> t!! }
+            .mapNotNull { (id, translations) -> translations.firstOrNull { it.language == language }?.let { id to it } }
+            .toMap()
 
     private fun <T> jakarta.persistence.TypedQuery<T>.applyCriteria(criteria: ProjectSearchCriteria) =
         setParameter("requesterId", criteria.requesterId)

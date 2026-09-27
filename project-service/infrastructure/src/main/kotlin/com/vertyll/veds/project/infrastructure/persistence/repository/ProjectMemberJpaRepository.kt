@@ -31,8 +31,3 @@ internal interface ProjectMemberJpaRepository : JpaRepository<ProjectMemberJpaEn
         @Param("projectIds") projectIds: Collection<UUID>,
     ): List<ProjectMemberCountProjection>
 }
-
-internal interface ProjectMemberCountProjection {
-    val projectId: UUID
-    val memberCount: Long
-}

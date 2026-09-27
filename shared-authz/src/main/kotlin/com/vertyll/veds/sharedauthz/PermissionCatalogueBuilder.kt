@@ -1,9 +1,5 @@
 package com.vertyll.veds.sharedauthz
 
-/** Scopes the permission-catalogue DSL so an outer builder's methods stay out of an inner block. */
-@DslMarker
-annotation class PermissionDsl
-
 /**
  * Receiver of the [permissions] DSL. Not constructed directly.
  */
@@ -40,3 +36,9 @@ class PermissionCatalogueBuilder(
             stockRoles = stockRoles.toList(),
         )
 }
+
+/** Declares the permissions a service enforces. */
+fun permissions(
+    module: String,
+    block: PermissionCatalogueBuilder.() -> Unit,
+): PermissionCatalogue = PermissionCatalogueBuilder(module).apply(block).build()

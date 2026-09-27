@@ -1,6 +1,5 @@
 package com.vertyll.veds.project.infrastructure.web.security
 
-import com.vertyll.veds.project.application.dto.Actor
 import com.vertyll.veds.project.domain.error.ProjectError
 import com.vertyll.veds.project.domain.model.LanguageTag
 import com.vertyll.veds.sharederror.ApiException
@@ -50,19 +49,4 @@ internal object CurrentUser {
     }
 
     private fun claimMissing(claim: String) = ApiException(ProjectError.TOKEN_CLAIM_MISSING, mapOf(CLAIM_PARAM to claim))
-}
-
-internal data class ActorIdentity(
-    val id: UUID,
-    val email: String,
-    val firstName: String?,
-    val lastName: String?,
-) {
-    fun toActor(): Actor =
-        Actor(
-            id = id,
-            email = email,
-            firstName = firstName,
-            lastName = lastName,
-        )
 }

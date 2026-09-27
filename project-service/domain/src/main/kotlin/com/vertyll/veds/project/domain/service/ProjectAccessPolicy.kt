@@ -72,10 +72,6 @@ object ProjectAccessPolicy {
     ): Boolean = role.isActive && permits(project, userId, member, role, ProjectPermission.VIEW_PROJECT).isPermitted
 }
 
-internal fun interface AccessRule {
-    fun evaluate(request: AccessRequest): AccessDecision?
-}
-
 private val RESOURCE_STATE =
     AccessRule { request ->
         if (!request.project.isActive && request.isMutating) {

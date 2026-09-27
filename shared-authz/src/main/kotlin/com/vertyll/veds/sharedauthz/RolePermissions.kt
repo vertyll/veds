@@ -21,12 +21,3 @@ data class RolePermissions(
 ) {
     fun grants(permission: String): Boolean = unrestricted || permission in permissions
 }
-
-/**
- * The role-to-permission projection one service holds for its own module.
- */
-interface RolePermissionsSource {
-    fun forRoles(roles: Collection<String>): Set<String>
-
-    fun isUnrestricted(roles: Collection<String>): Boolean
-}

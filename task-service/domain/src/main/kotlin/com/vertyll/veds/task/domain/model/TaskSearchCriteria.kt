@@ -13,10 +13,3 @@ data class TaskSearchCriteria(
     val sortBy: TaskSortField = TaskSortField.CREATED_AT,
     val sortDescending: Boolean = true,
 )
-
-enum class TaskSortField {
-    CREATED_AT,
-    UPDATED_AT,
-    PRIORITY,
-    NAME,
-}

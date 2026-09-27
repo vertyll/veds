@@ -1,20 +1,11 @@
 package com.vertyll.veds.task.infrastructure.persistence.entity
 
 import jakarta.persistence.Column
-import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.IdClass
-import jakarta.persistence.Index
-import jakarta.persistence.Table
-import java.io.Serializable
 import java.time.Instant
 import java.util.UUID
 
-@Entity
-@Table(
-    name = "project_membership_ref",
-    indexes = [Index(name = "idx_membership_ref_user", columnList = "user_id")],
-)
 @IdClass(ProjectMembershipRefId::class)
 internal class ProjectMembershipRefJpaEntity(
     @Id
@@ -28,12 +19,3 @@ internal class ProjectMembershipRefJpaEntity(
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant = Instant.now(),
 )
-
-internal data class ProjectMembershipRefId(
-    var projectId: UUID? = null,
-    var userId: UUID? = null,
-) : Serializable {
-    companion object {
-        private const val serialVersionUID: Long = 1L
-    }
-}

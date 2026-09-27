@@ -21,16 +21,3 @@ data class TaskListItemResponse(
     val updatedAt: Instant,
     val version: Long?,
 )
-
-data class TaskCategoryView(
-    val id: UUID,
-    val name: String,
-    val nameLanguage: String,
-    val color: String,
-)
-
-data class TaskUserView(
-    val id: UUID,
-    val displayName: String,
-    val avatarFileId: UUID?,
-)

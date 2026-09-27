@@ -216,11 +216,10 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     SELECT COUNT(e) FROM WorkLogEntryJpaEntity e
                     WHERE e.taskId = :taskId $readableByCaller $chosen
                     """,
-                    java.lang.Long::class.java,
+                    Long::class.javaObjectType,
                 ).setParameter("taskId", taskId)
                 .also { if (!readsHidden) it.setParameter("readerId", readerId) }
                 .singleResult
-                .toLong()
 
         val totalMinutes =
             entityManager
@@ -229,7 +228,7 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     SELECT COALESCE(SUM(e.minutes), 0) FROM WorkLogEntryJpaEntity e
                     WHERE e.taskId = :taskId $readableByCaller $chosen
                     """,
-                    java.lang.Long::class.java,
+                    Long::class.javaObjectType,
                 ).setParameter("taskId", taskId)
                 .also { if (!readsHidden) it.setParameter("readerId", readerId) }
                 .singleResult
@@ -431,9 +430,3 @@ internal class TaskQueryAdapter : TaskQueryPort {
             .setParameter("assigneeId", criteria.assigneeId)
             .setParameter("searchTerm", criteria.searchTerm)
 }
-
-internal data class ResolvedLabelRow(
-    val name: String,
-    val language: String,
-    val color: String,
-)
