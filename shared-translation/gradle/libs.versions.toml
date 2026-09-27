@@ -1,58 +1,45 @@
 [versions]
 java = "25"
-# Plugins
+
 ktlint-plugin = "14.2.0"
 detekt-plugin = "2.0.0-alpha.6"
 dokka-plugin = "2.2.0"
 kotlin = "2.4.10"
 
-# Dependencies
-testcontainers = "1.21.3"
+testcontainers = "2.0.5"
 kotlin-logging = "8.0.4"
-icu4j = "76.1"
+icu4j = "78.3"
 avro = "1.12.2"
-confluent = "8.2.2"
+confluent = "8.3.2"
 
 [libraries]
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version = "5.11.4" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
-# CLDR plural rules and ICU MessageFormat. Required for Polish few/many.
+
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
-# Spring Boot Starters - Common
+
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-boot-starter-jackson = { module = "org.springframework.boot:spring-boot-starter-jackson" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 
-# Configuration Processors
-
-# Kafka
 springframework-kafka = { module = "org.springframework.kafka:spring-kafka" }
 springframework-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 
-# Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 
-# Avro
-
-# Kotlin
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
-# Spring Boot Test Starters
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-security-test = { module = "org.springframework.security:spring-security-test" }
 
-# Testcontainers
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter" }
-testcontainers-kafka = { module = "org.testcontainers:kafka" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
 
-# OAuth2 / Keycloak
 spring-boot-starter-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
-
-# BOMs
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -61,8 +48,3 @@ detekt = { id = "dev.detekt", version.ref = "detekt-plugin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka-plugin" }
 
 [bundles]
-# Common dependencies
-
-# Common test dependencies
-
-# Shared infrastructure API dependencies

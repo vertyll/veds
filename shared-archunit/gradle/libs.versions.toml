@@ -3,8 +3,8 @@ java = "25"
 ktlint-plugin = "14.2.0"
 detekt-plugin = "2.0.0-alpha.6"
 kotlin = "2.4.10"
-archunit = "1.4.1"
-junit = "5.11.4"
+archunit = "1.5.1"
+junit = "6.1.3"
 
 [libraries]
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }

@@ -1,6 +1,6 @@
 [versions]
 java = "25"
-# Plugins
+
 spring-boot = "4.1.1"
 spring-dependency-management = "1.1.7"
 ktlint-plugin = "14.2.0"
@@ -8,42 +8,29 @@ detekt-plugin = "2.0.0-alpha.6"
 dokka-plugin = "2.2.0"
 kotlin = "2.4.10"
 
-# Dependencies
 kotlin-logging = "8.0.4"
 avro = "1.12.2"
-confluent = "8.2.2"
+confluent = "8.3.2"
 
 [libraries]
-# Spring Boot Starters - Common
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-boot-starter-jackson = { module = "org.springframework.boot:spring-boot-starter-jackson" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 
-# Configuration Processors
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
-# Kafka
 springframework-kafka = { module = "org.springframework.kafka:spring-kafka" }
 springframework-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 
-# Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 
-# Avro
-
-# Kotlin
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
-# Spring Boot Test Starters
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 
-
-# Spring Framework
-
-# BOMs
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 
 [plugins]
@@ -58,7 +45,6 @@ detekt = { id = "dev.detekt", version.ref = "detekt-plugin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka-plugin" }
 
 [bundles]
-# Common dependencies
 spring-boot-common = [
     "spring-boot-starter",
     "kotlin-reflect",
@@ -69,14 +55,12 @@ spring-boot-common = [
     "kotlin-logging"
 ]
 
-# Common test dependencies
 test-common = [
     "kotlin-test-junit5",
     "spring-boot-starter-test",
     "springframework-kafka-test",
 ]
 
-# Exposed to services: they extend the base entities and repositories.
 saga-engine-api = [
     "spring-boot-starter-data-jpa",
 ]

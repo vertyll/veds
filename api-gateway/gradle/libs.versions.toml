@@ -1,20 +1,18 @@
 [versions]
 java = "25"
-# Plugins
+
 spring-boot = "4.1.1"
 spring-dependency-management = "1.1.7"
 ktlint-plugin = "14.2.0"
 detekt-plugin = "2.0.0-alpha.6"
 kotlin = "2.4.10"
 
-# Dependencies
-springdoc = "3.0.1"
-testcontainers = "1.21.3"
+springdoc = "3.1.1"
+testcontainers = "2.0.5"
 kotlin-logging = "8.0.4"
-springframework-cloud = "2025.1.2"
+springframework-cloud = "2025.1.3"
 
 [libraries]
-# Spring Boot Starters - Common
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-boot-starter-jackson = { module = "org.springframework.boot:spring-boot-starter-jackson" }
@@ -22,45 +20,35 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-data-redis-reactive = { module = "org.springframework.boot:spring-boot-starter-data-redis-reactive" }
 
-# Spring Cloud
 spring-cloud-gateway-server-webflux = { module = "org.springframework.cloud:spring-cloud-gateway-server-webflux" }
 spring-cloud-starter-netflix-eureka-client = { module = "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client" }
 spring-cloud-starter-config = { module = "org.springframework.cloud:spring-cloud-starter-config" }
 spring-cloud-starter-circuitbreaker-reactor-resilience4j = { module = "org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j" }
 spring-cloud-starter-loadbalancer = { module = "org.springframework.cloud:spring-cloud-starter-loadbalancer" }
 
-# Kafka
 springframework-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 
-# Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 
-# Kotlin
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
-# Kotlin Coroutines & Reactor
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor" }
 reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions" }
 reactor-test = { module = "io.projectreactor:reactor-test" }
 
-# Cache
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 
-# OpenAPI/Swagger
 springdoc-openapi-starter-webflux-ui = { module = "org.springdoc:springdoc-openapi-starter-webflux-ui", version.ref = "springdoc" }
 
-# Spring Boot Test Starters
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-security-test = { module = "org.springframework.security:spring-security-test" }
 
-# Testcontainers
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter" }
-testcontainers-kafka = { module = "org.testcontainers:kafka" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
 
-# BOMs
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springframework-cloud" }
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
@@ -74,7 +62,6 @@ ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }
 detekt = { id = "dev.detekt", version.ref = "detekt-plugin" }
 
 [bundles]
-# Common dependencies
 spring-boot-common = [
     "spring-boot-starter",
     "kotlin-reflect",
@@ -84,7 +71,6 @@ spring-boot-common = [
     "kotlin-logging"
 ]
 
-# API Gateway specific
 spring-boot-gateway = [
     "spring-cloud-gateway-server-webflux",
     "spring-cloud-starter-netflix-eureka-client",
@@ -98,13 +84,11 @@ spring-boot-gateway = [
     "caffeine"
 ]
 
-# Gateway Kotlin extensions
 gateway-kotlin = [
     "reactor-kotlin-extensions",
     "kotlinx-coroutines-reactor",
 ]
 
-# Common test dependencies
 test-common = [
     "spring-boot-starter-test",
     "spring-boot-starter-security-test",
@@ -113,7 +97,6 @@ test-common = [
     "testcontainers-kafka",
 ]
 
-# Gateway tests
 test-gateway = [
     "reactor-test",
     "kotlin-test-junit5",
