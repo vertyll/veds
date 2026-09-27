@@ -1,7 +1,6 @@
 name: veds
 
 services:
-  # Postgres databases for each service
   iam-db:
     image: docker.io/library/postgres:18-alpine
     restart: unless-stopped
@@ -142,7 +141,6 @@ services:
       retries: 5
       start_period: 10s
 
-  # Session store for the API Gateway's Token Handler (BFF).
   gateway-session-store:
     image: docker.io/library/redis:8-alpine
     restart: unless-stopped
@@ -169,7 +167,6 @@ services:
       retries: 5
       start_period: 5s
 
-  # RedisInsight
   redisinsight:
     image: docker.io/redis/redisinsight:3.8.0
     restart: unless-stopped
@@ -178,7 +175,6 @@ services:
     networks:
       - microservices-network
 
-  # Object storage.
   object-storage:
     image: docker.io/dxflrs/garage:v2.4.1
     restart: unless-stopped
@@ -187,9 +183,7 @@ services:
       - object-storage-data:/var/lib/garage/data
       - object-storage-meta:/var/lib/garage/meta
     ports:
-      # S3 API
       - "127.0.0.1:9100:3900"
-      # Admin API, used by the console and by the bootstrap job
       - "127.0.0.1:9102:3903"
     networks:
       - microservices-network
@@ -200,7 +194,6 @@ services:
       retries: 10
       start_period: 15s
 
-  # One-shot bootstrap.
   object-storage-init:
     image: docker.io/library/alpine:3.24
     depends_on:
@@ -219,7 +212,6 @@ services:
     networks:
       - microservices-network
 
-  # Browser console for the object store.
   object-storage-ui:
     image: docker.io/noooste/garage-ui:v0.13.0
     restart: unless-stopped
@@ -239,7 +231,6 @@ services:
     networks:
       - microservices-network
 
-  # Kafka and Zookeeper for event-driven communication
   kafka:
     image: docker.io/confluentinc/cp-kafka:8.3.2
     restart: unless-stopped
@@ -276,7 +267,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # Schema Registry for managing Avro schemas, configured to connect to the Kafka broker
   schema-registry:
     image: docker.io/confluentinc/cp-schema-registry:8.3.2
     restart: unless-stopped
@@ -299,7 +289,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # One-shot bootstrap: provisions Kafka topics from the same Terraform module
   topics-init:
     image: docker.io/hashicorp/terraform:1.16.4
     depends_on:
@@ -320,7 +309,6 @@ services:
       - microservices-network
     restart: "no"
 
-  # One-shot bootstrap: registers every Avro schema under contracts to the Schema Registry
   schemas-init:
     image: docker.io/library/python:3.14-alpine
     depends_on:
@@ -341,7 +329,6 @@ services:
       - microservices-network
     restart: "no"
 
-  # Keycloak for identity and access management, configured to use a Postgres database and import a realm on startup
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.4
     restart: unless-stopped
@@ -375,7 +362,6 @@ services:
       retries: 5
       start_period: 60s
 
-  # Keycloak database
   keycloak-db:
     image: docker.io/library/postgres:18-alpine
     restart: unless-stopped
@@ -396,7 +382,6 @@ services:
       retries: 5
       start_period: 10s
 
-  # Kafbat UI
   kafbat-ui:
     image: ghcr.io/kafbat/kafka-ui:v1.5.0
     depends_on:
@@ -425,7 +410,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # Web service for mail testing
   maildev:
     image: docker.io/maildev/maildev:3.0.0
     restart: unless-stopped

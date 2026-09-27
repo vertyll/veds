@@ -1,7 +1,4 @@
 #!/bin/bash
-# =============================================================================
-# veds-provisioner entrypoint
-# =============================================================================
 set -euo pipefail
 
 : "${KAFKA_BOOTSTRAP_SERVERS:?KAFKA_BOOTSTRAP_SERVERS is required}"
@@ -15,9 +12,6 @@ echo "  SCHEMA_REGISTRY_URL     = ${SCHEMA_REGISTRY_URL}"
 echo "  SCHEMA_COMPATIBILITY    = ${SCHEMA_COMPATIBILITY}"
 echo "=========================================="
 
-# ----------------------------------------------------------------------------
-# Step 1: Terraform - Kafka topics
-# ----------------------------------------------------------------------------
 echo
 echo "==> [1/2] Provisioning Kafka topics via Terraform"
 
@@ -56,9 +50,6 @@ rm -f /state/plan.tfplan
 
 terraform apply -auto-approve -input=false
 
-# ----------------------------------------------------------------------------
-# Step 2: Schema Registry - Avro contracts
-# ----------------------------------------------------------------------------
 echo
 echo "==> [2/2] Registering Avro schemas in Schema Registry"
 
