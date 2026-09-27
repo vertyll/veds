@@ -3,7 +3,21 @@ name: "Checks: Template Service"
 on:
   push:
     branches:
-      - "main"
+      - main
+    paths:
+      - "template-service/**"
+      - "shared-saga-api/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation-client/**"
+      - "shared-saga-engine/**"
+      - "shared-messaging-kafka/**"
+      - "template-contracts/**"
+      - "shared-authz/**"
+      - "shared-translation/**"
+      - ".github/workflows/template-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -25,6 +39,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:

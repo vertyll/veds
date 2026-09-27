@@ -2,8 +2,23 @@ name: Build and Publish Translation Service
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "translation-service/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation/**"
+      - "shared-authz/**"
+      - "shared-authz-client/**"
+      - "shared-messaging-kafka/**"
+      - "iam-contracts/**"
+      - "contracts/iam-service/role-permissions-changed/**"
+      - ".github/workflows/translation-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -25,6 +40,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-translation-service
@@ -38,6 +57,7 @@ jobs:
 
   build-and-push:
     needs: quality
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:

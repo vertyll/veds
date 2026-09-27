@@ -2,8 +2,28 @@ name: Build and Publish Mail Service
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "mail-service/**"
+      - "shared-saga-api/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation-client/**"
+      - "shared-saga-engine/**"
+      - "shared-messaging-kafka/**"
+      - "iam-contracts/**"
+      - "mail-contracts/**"
+      - "contracts/mail-service/**"
+      - "contracts/iam-service/mail-requested/**"
+      - "shared-authz/**"
+      - "shared-authz-client/**"
+      - "shared-translation/**"
+      - ".github/workflows/mail-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -30,6 +50,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-mail-service
@@ -43,6 +67,7 @@ jobs:
 
   build-and-push:
     needs: quality
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:

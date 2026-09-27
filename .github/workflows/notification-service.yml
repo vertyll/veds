@@ -2,8 +2,26 @@ name: Build and Publish Notification Service
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "notification-service/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation-client/**"
+      - "shared-messaging-kafka/**"
+      - "notification-contracts/**"
+      - "project-contracts/**"
+      - "task-contracts/**"
+      - "mail-contracts/**"
+      - "iam-contracts/**"
+      - "contracts/**"
+      - "shared-translation/**"
+      - ".github/workflows/notification-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -28,6 +46,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-notification-service
@@ -41,6 +63,7 @@ jobs:
 
   build-and-push:
     needs: quality
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:

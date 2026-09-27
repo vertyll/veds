@@ -2,8 +2,28 @@ name: Build and Publish Project Service
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "project-service/**"
+      - "shared-saga-api/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation-client/**"
+      - "shared-saga-engine/**"
+      - "shared-messaging-kafka/**"
+      - "project-contracts/**"
+      - "mail-contracts/**"
+      - "iam-contracts/**"
+      - "contracts/**"
+      - "shared-authz/**"
+      - "shared-authz-client/**"
+      - "shared-translation/**"
+      - ".github/workflows/project-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -30,6 +50,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-project-service
@@ -43,6 +67,7 @@ jobs:
 
   build-and-push:
     needs: quality
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:

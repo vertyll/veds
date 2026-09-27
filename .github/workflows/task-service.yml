@@ -2,8 +2,27 @@ name: Build and Publish Task Service
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "task-service/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation-client/**"
+      - "shared-messaging-kafka/**"
+      - "task-contracts/**"
+      - "project-contracts/**"
+      - "iam-contracts/**"
+      - "file-contracts/**"
+      - "contracts/**"
+      - "shared-authz/**"
+      - "shared-authz-client/**"
+      - "shared-translation/**"
+      - ".github/workflows/task-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -29,6 +48,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-task-service
@@ -42,6 +65,7 @@ jobs:
 
   build-and-push:
     needs: quality
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:

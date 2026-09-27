@@ -2,8 +2,25 @@ name: Build and Publish IAM Service
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "iam-service/**"
+      - "shared-web/**"
+      - "shared-error/**"
+      - "shared-archunit/**"
+      - "shared-translation-client/**"
+      - "shared-messaging-kafka/**"
+      - "iam-contracts/**"
+      - "mail-contracts/**"
+      - "contracts/iam-service/**"
+      - "contracts/mail-service/**"
+      - "shared-authz/**"
+      - "shared-translation/**"
+      - ".github/workflows/iam-service.yml"
+      - ".github/workflows/quality-checks.yml"
   pull_request:
     branches:
       - main
@@ -27,6 +44,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-iam-service
@@ -40,6 +61,7 @@ jobs:
 
   build-and-push:
     needs: quality
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:

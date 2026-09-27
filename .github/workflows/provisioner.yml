@@ -2,8 +2,16 @@ name: Build and Publish Provisioner
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+    paths:
+      - "infra/kafka/**"
+      - "infra/provisioner/**"
+      - "contracts/**"
+      - "scripts/schema_registry/**"
+      - ".github/workflows/provisioner.yml"
   pull_request:
     branches:
       - main
@@ -18,12 +26,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: zot.vertyll.dev
   IMAGE_NAME: vertyll/veds-provisioner
 
 jobs:
   build-and-push:
+    if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
     steps:
