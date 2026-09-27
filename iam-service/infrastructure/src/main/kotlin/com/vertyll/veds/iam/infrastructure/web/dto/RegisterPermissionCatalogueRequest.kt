@@ -12,10 +12,8 @@ data class RegisterPermissionCatalogueRequest(
     @field:Pattern(regexp = "^[a-z][a-z0-9-]*$")
     val module: String,
     @field:NotEmpty
-    @field:Valid
-    val permissions: List<PermissionDeclarationRequest>,
-    @field:Valid
-    val stockRoles: List<StockRoleRequest> = emptyList(),
+    val permissions: List<@Valid PermissionDeclarationRequest>,
+    val stockRoles: List<@Valid StockRoleRequest> = emptyList(),
 ) {
     data class PermissionDeclarationRequest(
         @field:NotBlank
