@@ -59,6 +59,11 @@ dependencies {
 
     implementation(libs.springdoc.openapi.starter.webflux.ui)
 
+    if (System.getProperty("os.name").startsWith("Mac")) {
+        val arch = if (System.getProperty("os.arch") == "aarch64") "osx-aarch_64" else "osx-x86_64"
+        runtimeOnly(variantOf(libs.netty.resolver.dns.native.macos) { classifier(arch) })
+    }
+
     testImplementation(libs.bundles.test.common)
     testImplementation(libs.bundles.test.gateway)
 }
