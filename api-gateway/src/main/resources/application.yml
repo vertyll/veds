@@ -3,7 +3,7 @@ spring:
     name: api-gateway
 
   profiles:
-    active: local
+    default: local
 
   main:
     web-application-type: reactive

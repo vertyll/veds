@@ -9,7 +9,7 @@ spring:
     encoding: UTF-8
 
   profiles:
-    active: local
+    default: local
 
 management:
   endpoints:

@@ -91,7 +91,7 @@ Each in its own terminal, or through the `.run` configurations in IntelliJ (`All
 
 ```bash
 cd <service-name>
-./gradlew bootRun --args='--spring.profiles.active=local'
+./gradlew bootRun
 ```
 
 > [!NOTE]

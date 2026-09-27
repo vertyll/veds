@@ -3,7 +3,7 @@ spring:
     name: iam-service
 
   profiles:
-    active: local
+    default: local
 
 management:
   endpoints:
