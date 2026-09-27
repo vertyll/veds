@@ -44,7 +44,7 @@ logging:
 veds:
   authz:
     client:
-      base-url: ${IAM_SERVICE_URL:http://iam-service:8082}
+      base-url: ${IAM_SERVICE_URL}
   translation:
     client:
-      base-url: ${TRANSLATION_SERVICE_URL:http://translation-service:8087}
+      base-url: ${TRANSLATION_SERVICE_URL}

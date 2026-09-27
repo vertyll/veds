@@ -305,6 +305,7 @@ services:
         -var=partitions=1
     volumes:
       - ./infra/kafka:/infra
+      - topics-state:/state
     networks:
       - microservices-network
     restart: "no"
@@ -441,4 +442,5 @@ volumes:
   object-storage-meta:
   gateway-session-data:
   kafka-data:
+  topics-state:
   keycloak-postgres-data:

@@ -1,0 +1,21 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000/realms/veds
+          jwk-set-uri: http://localhost:9000/realms/veds/protocol/openid-connect/certs
+veds:
+  shared:
+    keycloak:
+      server-url: http://localhost:9000
+      realm: veds
+      admin-client-id: veds-service-account
+      admin-client-secret: "**********"
+      gateway-client-id: veds-api-gateway
+      gateway-client-secret: "**********"
+      oauth:
+        redirect-uri: http://localhost:8080/auth/callback
+        post-login-redirect-uri: "http://localhost:4200/"
+      cookie:
+        secure: false

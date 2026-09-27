@@ -1,7 +1,7 @@
 spring:
   data:
     redis:
-      host: ${REDIS_HOST:gateway-session-store}
+      host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
       ssl:
@@ -18,31 +18,31 @@ spring:
         webflux:
           routes:
             - id: iam-service
-              uri: ${IAM_SERVICE_URL:http://localhost:8082}
+              uri: ${IAM_SERVICE_URL}
               predicates:
                 - Path=/auth/**, /users/**, /roles/**, /permissions/**
             - id: mail-service
-              uri: ${MAIL_SERVICE_URL:http://localhost:8083}
+              uri: ${MAIL_SERVICE_URL}
               predicates:
                 - Path=/mail/**
             - id: project-service
-              uri: ${PROJECT_SERVICE_URL:http://localhost:8084}
+              uri: ${PROJECT_SERVICE_URL}
               predicates:
                 - Path=/projects/**, /project-types/**, /project-roles/**, /project-user-roles/**
             - id: task-service
-              uri: ${TASK_SERVICE_URL:http://localhost:8085}
+              uri: ${TASK_SERVICE_URL}
               predicates:
                 - Path=/tasks/**
             - id: translation-service
-              uri: ${TRANSLATION_SERVICE_URL:http://localhost:8087}
+              uri: ${TRANSLATION_SERVICE_URL}
               predicates:
                 - Path=/translations/**, /admin/translations/**
             - id: file-service
-              uri: ${FILE_SERVICE_URL:http://localhost:8088}
+              uri: ${FILE_SERVICE_URL}
               predicates:
                 - Path=/files/**
             - id: notification-service
-              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+              uri: ${NOTIFICATION_SERVICE_URL}
               predicates:
                 - Path=/notifications/**, /ws/notifications/**
 

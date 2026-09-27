@@ -43,4 +43,4 @@ logging:
 veds:
   authz:
     client:
-      base-url: ${IAM_SERVICE_URL:http://iam-service:8082}
+      base-url: ${IAM_SERVICE_URL}

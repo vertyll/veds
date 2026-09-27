@@ -4,15 +4,16 @@ import org.springframework.boot.EnvironmentPostProcessor
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.env.YamlPropertySourceLoader
 import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.Profiles
 import org.springframework.core.io.ClassPathResource
 
 /**
- * EnvironmentPostProcessor that automatically loads shared-messaging-config.yml from the classpath.
- * This eliminates the need for each microservice to manually import it in application.yml.
+ * Loads `shared-messaging-config.yml` from the classpath, and `shared-messaging-config-local.yml` on top of it when the `local` or
+ * `test` profile is in effect, so no microservice has to import them in its own `application.yml`.
  *
  * Added **last**, so these are defaults: a service's own `application-*.yml`, a profile or an
- * environment variable all override them. Adding them first would invert that — a service could
- * not change a shared value even in its own file.
+ * environment variable all override them. The base file carries no local fallbacks: in every other
+ * profile each endpoint and credential has to come from the environment.
  */
 internal class SharedMessagingEnvironmentPostProcessor : EnvironmentPostProcessor {
     private val loader = YamlPropertySourceLoader()
@@ -21,12 +22,20 @@ internal class SharedMessagingEnvironmentPostProcessor : EnvironmentPostProcesso
         environment: ConfigurableEnvironment,
         application: SpringApplication,
     ) {
-        val resource = ClassPathResource("shared-messaging-config.yml")
-        if (resource.exists()) {
-            val propertySources = loader.load("shared-messaging-config", resource)
-            propertySources.forEach {
-                environment.propertySources.addLast(it)
-            }
+        if (environment.acceptsProfiles(Profiles.of(DEVELOPMENT_PROFILES))) {
+            load(environment, "shared-messaging-config-local")
         }
+        load(environment, "shared-messaging-config")
+    }
+
+    private fun load(
+        environment: ConfigurableEnvironment,
+        name: String,
+    ) {
+        loader.load(name, ClassPathResource("$name.yml")).forEach { environment.propertySources.addLast(it) }
+    }
+
+    private companion object {
+        const val DEVELOPMENT_PROFILES = "local | test"
     }
 }

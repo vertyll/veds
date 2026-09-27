@@ -44,12 +44,12 @@ logging:
 veds:
   translation:
     client:
-      base-url: ${TRANSLATION_SERVICE_URL:http://translation-service:8087}
+      base-url: ${TRANSLATION_SERVICE_URL}
   file:
     storage:
       endpoint: ${OBJECT_STORAGE_ENDPOINT}
-      region: ${OBJECT_STORAGE_REGION:garage}
-      bucket: ${OBJECT_STORAGE_BUCKET:veds-files}
+      region: ${OBJECT_STORAGE_REGION}
+      bucket: ${OBJECT_STORAGE_BUCKET}
       access-key: ${OBJECT_STORAGE_ACCESS_KEY}
       secret-key: ${OBJECT_STORAGE_SECRET_KEY}
       upload-url-validity: 15m

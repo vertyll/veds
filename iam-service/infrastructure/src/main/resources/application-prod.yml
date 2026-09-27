@@ -48,4 +48,4 @@ server:
 veds:
   translation:
     client:
-      base-url: ${TRANSLATION_SERVICE_URL:http://translation-service:8087}
+      base-url: ${TRANSLATION_SERVICE_URL}
