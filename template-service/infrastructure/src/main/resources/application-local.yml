@@ -27,8 +27,10 @@ server:
 
 springdoc:
   api-docs:
+    enabled: true
     path: /api-docs
   swagger-ui:
+    enabled: true
     path: /swagger-ui.html
     disable-swagger-default-url: true
     url: /api-docs
