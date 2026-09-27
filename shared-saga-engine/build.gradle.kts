@@ -42,7 +42,6 @@ dependencyManagement {
     }
 }
 
-// This creates a JAR without a main class (library)
 tasks.bootJar {
     enabled = false
 }
@@ -60,16 +59,13 @@ dependencies {
     // straight to Kafka, so the engine drives the outbox processor.
     implementation("com.vertyll.veds:shared-messaging-kafka")
 
-    // --- Common ---
     implementation(libs.bundles.spring.boot.common)
 
-    // --- Exposed: services extend the base entities and repositories ---
+    // Exposed: services extend the base entities and repositories
     api(libs.bundles.saga.engine.api)
 
-    // --- Annotation Processors ---
     kapt(libs.spring.boot.configuration.processor)
 
-    // --- Testing ---
     testImplementation(libs.bundles.test.common)
 }
 
@@ -110,7 +106,6 @@ tasks.withType<Test> {
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
 
-// --- Dokka (KDoc -> HTML API docs) ---
 dokka {
     moduleName.set("shared-saga-engine")
     dokkaPublications.named("html") {

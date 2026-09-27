@@ -40,8 +40,6 @@ class SagaStateMachineTest {
         override fun self() = this
     }
 
-    // ── Saga ────────────────────────────────────────────────────────────
-
     @Test
     fun `completing a saga closes it and stamps when`() {
         val saga = TestSaga().markCompleted()
@@ -110,8 +108,6 @@ class SagaStateMachineTest {
             assertTrue(saga.updatedAt > Instant.EPOCH, "a transition left updatedAt untouched")
         }
     }
-
-    // ── Step ────────────────────────────────────────────────────────────
 
     @Test
     fun `completing a step stamps when it finished`() {

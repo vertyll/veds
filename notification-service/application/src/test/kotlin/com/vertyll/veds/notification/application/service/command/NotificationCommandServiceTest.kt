@@ -58,8 +58,6 @@ internal class NotificationCommandServiceTest {
         ),
     )
 
-    // ── Raising ─────────────────────────────────────────────────────────
-
     @Test
     fun `every recipient gets their own notification`() {
         assertEquals(2, raise(setOf(alice, bob)))
@@ -114,8 +112,6 @@ internal class NotificationCommandServiceTest {
         assertEquals(listOf(bob), notifications.stored.values.map { it.recipientId })
     }
 
-    // ── The e-mail channel ──────────────────────────────────────────────
-
     @Test
     fun `a type enabled for e-mail is also mailed to the recipient's address`() {
         recipients.given(RecipientRef(userId = alice, email = "alice@example.com"))
@@ -168,8 +164,6 @@ internal class NotificationCommandServiceTest {
 
         assertEquals(listOf("current@example.com:TASK_ASSIGNED"), mail.requested)
     }
-
-    // ── Marking read ────────────────────────────────────────────────────
 
     private fun givenNotification(
         recipientId: UUID = alice,
@@ -244,8 +238,6 @@ internal class NotificationCommandServiceTest {
         assertTrue(push.unreadCounts.isEmpty())
     }
 
-    // ── Dismissing ──────────────────────────────────────────────────────
-
     @Test
     fun `dismissing a notification takes it off the list and refreshes the badge`() {
         val mine = givenNotification()
@@ -295,8 +287,6 @@ internal class NotificationCommandServiceTest {
 
         assertTrue(push.unreadCounts.isEmpty())
     }
-
-    // ── Retiring ────────────────────────────────────────────────────────
 
     @Test
     fun `notifications about a vanished subject are retired`() {
@@ -356,8 +346,6 @@ internal class NotificationCommandServiceTest {
 
         assertEquals(emptyList(), mail.requested)
     }
-
-    // ── Settings ────────────────────────────────────────────────────────
 
     @Test
     fun `settings replace what the user had before`() {

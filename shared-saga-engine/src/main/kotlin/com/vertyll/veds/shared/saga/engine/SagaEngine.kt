@@ -58,8 +58,6 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(SagaEngine::class.java)
 
-    // ── Enum-typed convenience overloads ────────────────────────────────
-
     /**
      * Type-safe overload of [startSaga] that accepts the saga type as a
      * [SagaTypeValue] so callers cannot pass an arbitrary string.
@@ -81,8 +79,6 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         status: SagaStepStatus,
         payload: Any? = null,
     ): T = recordSagaStep(sagaId, stepName.value, status, payload)
-
-    // ── Core saga operations ────────────────────────────────────────────
 
     /**
      * Persists a new saga aggregate in [SagaStatus.STARTED] with a freshly
@@ -208,8 +204,6 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         scheduleCompensationAfterCommit(sagaId)
     }
 
-    // ── Explicit saga state transitions ─────────────────────────────────
-
     /**
      * Explicitly marks the saga as [SagaStatus.COMPLETED]. No-op (and
      * returns the existing aggregate) if the saga is already in a terminal
@@ -276,8 +270,6 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         return savedSaga
     }
 
-    // ── Compensation ────────────────────────────────────────────────────
-
     /**
      * Registers an after-commit hook that delegates to the proxied
      * [SagaCompensationRunner.runCompensation] (which opens a fresh
@@ -309,8 +301,6 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
     open fun runCompensation(sagaId: String) {
         compensationRunner.runCompensation(sagaId)
     }
-
-    // ── Helpers ─────────────────────────────────────────────────────────
 
     /**
      * Applies a status transition to a freshly-created step (one whose

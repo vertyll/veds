@@ -40,7 +40,6 @@ dependencyManagement {
     }
 }
 
-// This creates a JAR without a main class (library)
 tasks.bootJar {
     enabled = false
 }
@@ -100,7 +99,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// --- Dokka (KDoc -> HTML API docs) ---
 dokka {
     moduleName.set("shared-translation-client")
     dokkaPublications.named("html") {
