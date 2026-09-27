@@ -209,6 +209,7 @@ services:
       GARAGE_ADMIN_URL: http://object-storage:3903
       GARAGE_ADMIN_TOKEN: veds-local-admin-token
     entrypoint: ["/bin/sh", "-c", "apk add --no-cache curl jq >/dev/null && sh /bootstrap.sh"]
+    restart: "no"
     networks:
       - microservices-network
 
