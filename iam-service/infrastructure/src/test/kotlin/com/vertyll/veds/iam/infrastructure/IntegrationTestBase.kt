@@ -5,8 +5,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.kafka.KafkaContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
 @Tag("integration")
@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName
 @ActiveProfiles("test")
 abstract class IntegrationTestBase protected constructor() {
     companion object {
-        private val postgres: PostgreSQLContainer<*> =
+        private val postgres: PostgreSQLContainer =
             PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
                 .withDatabaseName("iam_service_test")
                 .withUsername("postgres")
