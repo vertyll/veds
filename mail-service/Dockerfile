@@ -1,13 +1,8 @@
-ARG GRADLE_VERSION=9.7.1
-ARG JAVA_VERSION=25
+ARG JDK_IMAGE=azul/zulu-openjdk:25-latest
+ARG JRE_IMAGE=azul/zulu-openjdk:25-jre-headless-latest
 
-# Build stage
-FROM gradle:${GRADLE_VERSION}-jdk${JAVA_VERSION}-alpine AS build
-WORKDIR /app
-
-# Copy the shared libraries first: each is a composite build included by the
-# service, so every one of them has to exist before Gradle configures - a
-# missing one fails the build outright, test-only libraries included.
+FROM ${JDK_IMAGE} AS build
+WORKDIR /workspace
 COPY shared-saga-api/ ./shared-saga-api/
 COPY shared-translation/ ./shared-translation/
 COPY shared-web/ ./shared-web/
@@ -18,52 +13,34 @@ COPY shared-authz-client/ ./shared-authz-client/
 COPY shared-saga-engine/ ./shared-saga-engine/
 COPY shared-messaging-kafka/ ./shared-messaging-kafka/
 COPY shared-archunit/ ./shared-archunit/
-
-# Copy Avro Published Language modules (DDD) + their schema sources.
 COPY contracts/ ./contracts/
 COPY iam-contracts/ ./iam-contracts/
 COPY mail-contracts/ ./mail-contracts/
-
-# Copy the service code
 COPY mail-service/ ./mail-service/
+WORKDIR /workspace/mail-service
+RUN --mount=type=cache,target=/root/.gradle ./gradlew --no-daemon bootJar
 
-WORKDIR /app/mail-service
+FROM ${JDK_IMAGE} AS extract
+WORKDIR /extract
+COPY --from=build /workspace/mail-service/infrastructure/build/libs/*.jar app.jar
+RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination layers
 
-# Build application JAR
-RUN ./gradlew bootJar --no-daemon
-
-# Production stage
-FROM azul/zulu-openjdk-alpine:${JAVA_VERSION}-jre AS production
+FROM ${JRE_IMAGE} AS runtime
 WORKDIR /app
+RUN groupadd --system --gid 1001 veds && useradd --system --uid 1001 --gid veds veds
 
-# Install system dependencies and create a non-root user
-RUN apk add --no-cache \
-    bash \
-    netcat-openbsd \
-    curl \
-    dos2unix \
-    postgresql-client && \
-    addgroup --system --gid 1001 appuser && \
-    adduser --system --uid 1001 --ingroup appuser appuser
+COPY --from=extract --chown=veds:veds /extract/layers/dependencies/ ./
+COPY --from=extract --chown=veds:veds /extract/layers/spring-boot-loader/ ./
+COPY --from=extract --chown=veds:veds /extract/layers/snapshot-dependencies/ ./
+COPY --from=extract --chown=veds:veds /extract/layers/application/ ./
 
-# Copy the built JAR from the build stage
-COPY --from=build /app/mail-service/infrastructure/build/libs/*.jar app.jar
-
-# Copy the entrypoint script and set permissions
-COPY mail-service/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN dos2unix /usr/local/bin/docker-entrypoint.sh && \
-    chmod +x /usr/local/bin/docker-entrypoint.sh
-
-USER appuser
-
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
-ENV SPRING_PROFILES_ACTIVE=prod
-ENV SERVER_PORT=8080
-
+USER veds
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+ENV SPRING_PROFILES_ACTIVE=prod \
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["java", "-jar", "app.jar"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /actuator/health/liveness HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]

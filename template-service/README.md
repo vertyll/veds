@@ -19,7 +19,7 @@ The reference service. Clone it when adding a bounded context; do not deploy it.
 2. Replace `TemplateError` with the real failures — CI fails if a key it can emit is not
    declared in the catalogue
 3. Replace the placeholder aggregate and its migration
-4. Assign a port and a database port, and add both to `docker-compose.yml`
+4. Assign a port and a database port, and add both to `docker-compose.local.yml`
 5. Add the service to the root `settings.gradle.kts`
 6. Delete what the context does not use — the saga and outbox tables are scaffolding, not a
    requirement. `translation-service` and `file-service` both removed the saga machinery

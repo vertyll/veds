@@ -1,6 +1,11 @@
 ### General ###
 HELP.md
 
+### JVM crash dumps ###
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
+
 ### Gradle ###
 .gradle
 build/

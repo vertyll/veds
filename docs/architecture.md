@@ -131,7 +131,7 @@ The system uses Kafka in KRaft mode (Kafka Raft), eliminating the need for Zooke
 | Aspect            | Implementation Details                                                                                        |
 |-------------------|---------------------------------------------------------------------------------------------------------------|
 | **Configuration** | Configuration is handled via `KAFKA_PROCESS_ROLES` (broker, controller) and `KAFKA_CONTROLLER_QUORUM_VOTERS`. |
-| **Setup**         | A static `CLUSTER_ID` is provided in `docker-compose.yml` for simplified setup.                               |
+| **Setup**         | A static `CLUSTER_ID` is provided in `docker-compose.local.yml` for simplified setup.                         |
 
 ### Shared Infrastructure
 

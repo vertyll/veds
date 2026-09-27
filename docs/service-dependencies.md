@@ -90,4 +90,4 @@ Only one ordering matters, and it is a convenience rather than a requirement: st
 a failed registration in the other services' logs. Registration failure is deliberately non-fatal and the keys are
 republished on the next restart.
 
-Everything else is `depends_on` in `docker-compose.yml`, which waits on health checks.
+Everything else is `depends_on` in `docker-compose.local.yml`, which waits on health checks.

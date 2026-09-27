@@ -15,15 +15,15 @@ git clone https://github.com/vertyll/veds.git
 cd veds
 ```
 
-There is nothing to configure. Local defaults live next to the thing that needs them — `docker-compose.yml` for the
+There is nothing to configure. Local defaults live next to the thing that needs them — `docker-compose.local.yml` for the
 infrastructure, `application-local.yml` for the gateway — so a fresh clone runs as-is.
 
 Only the `prod` profile demands real values, and it takes them from the environment with no fallback:
 
-| Variable                         | Used by                                                         |
-|----------------------------------|-----------------------------------------------------------------|
-| `REDIS_PASSWORD`                 | `application-prod.yml`, and `docker-compose.yml` as an override |
-| `GATEWAY_SESSION_ENCRYPTION_KEY` | `application-prod.yml` — must decode to 32 bytes                |
+| Variable                         | Used by                                                               |
+|----------------------------------|-----------------------------------------------------------------------|
+| `REDIS_PASSWORD`                 | `application-prod.yml`, and `docker-compose.local.yml` as an override |
+| `GATEWAY_SESSION_ENCRYPTION_KEY` | `application-prod.yml` — must decode to 32 bytes                      |
 
 ```bash
 openssl rand -base64 32   # GATEWAY_SESSION_ENCRYPTION_KEY
@@ -32,7 +32,7 @@ openssl rand -base64 32   # GATEWAY_SESSION_ENCRYPTION_KEY
 ## 2. Start the infrastructure
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.local.yml up -d
 ```
 
 Every `docker compose` command in this document works verbatim as `podman compose` — the
@@ -50,7 +50,7 @@ Terraform, `object-storage-init` through the Garage admin API.
 Wait for the health checks before moving on:
 
 ```bash
-docker compose ps
+docker compose -f docker-compose.local.yml ps
 ```
 
 ## 3. Register the Avro schemas

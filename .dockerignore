@@ -1,29 +1,44 @@
-# Global ignore
-**/.gradle
-**/build
-out/
-**/.idea
-**/.vscode
-**/.run
-**/.DS_Store
-*.swp
-*.log
-
-# Docker specific
-Dockerfile
-.dockerignore
-docker-compose.yml
-docker-compose.override.yml
-
-# Git / CI / docs
-.git
+### Global / Git ###
+.git/
 .gitignore
-.github
+.dockerignore
+.github/
 README.md
-screenshots/
-config/
+LICENSE
 
-# Project specific (Gradle wrapper must NOT be ignored)
-!gradle/
-!gradlew
-!gradlew.bat
+### Build outputs ###
+**/build/
+**/target/
+**/bin/
+**/out/
+**/*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+!**/gradle/
+**/*.war
+
+### Development & IDEs ###
+**/.idea/
+**/.vscode/
+**/.settings/
+**/*.iml
+**/*.ipr
+**/*.iws
+**/.project
+**/.classpath
+**/*.log
+**/logs/
+**/.env*
+
+### Cache & Package Managers ###
+**/.gradle/
+**/.m2/
+**/node_modules/
+
+### OS ###
+**/.DS_Store
+**/Thumbs.db
+
+### Docker ###
+**/Dockerfile
+**/docker-compose*.yml
+**/docker/
