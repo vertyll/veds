@@ -87,8 +87,6 @@ internal fun userRef(
     email: String = "member@example.com",
 ) = UserRef(userId = userId, email = email, firstName = "Grace", lastName = "Hopper")
 
-// ── Repositories ────────────────────────────────────────────────────────
-
 internal class InMemoryProjectRepository : ProjectRepository {
     val stored = linkedMapOf<UUID, Project>()
 

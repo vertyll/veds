@@ -55,7 +55,6 @@ dependencyManagement {
     }
 }
 
-// This creates a JAR without a main class (library)
 tasks.bootJar {
     enabled = false
 }
@@ -65,22 +64,18 @@ tasks.jar {
 }
 
 dependencies {
-    // --- Common ---
     implementation(libs.bundles.spring.boot.common)
 
-    // --- Exposed: services extend the base outbox entities and publish through them ---
+    // Exposed: services extend the base outbox entities and publish through them
     api(libs.bundles.messaging.api)
     api(libs.apache.avro)
     api(libs.confluent.kafka.avro.serializer)
 
-    // --- Annotation Processors ---
     kapt(libs.spring.boot.configuration.processor)
 
-    // --- Testing ---
     testImplementation(libs.bundles.test.common)
 }
 
-// Configure ktlint
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     debug.set(false)
     verbose.set(true)
@@ -122,7 +117,6 @@ tasks.withType<Test> {
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
 
-// --- Dokka (KDoc -> HTML API docs) ---
 dokka {
     moduleName.set("shared-messaging-kafka")
     dokkaPublications.named("html") {

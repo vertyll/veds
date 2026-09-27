@@ -63,8 +63,6 @@ internal class ProjectMembershipCommandServiceTest {
             .also { members.given(it) }
     }
 
-    // ── Changing a role ─────────────────────────────────────────────────
-
     @Test
     fun `a member's role can be changed by someone who manages members`() {
         val member = givenMember()
@@ -170,8 +168,6 @@ internal class ProjectMembershipCommandServiceTest {
         assertEquals(memberRole.id, members.findById(member.id)!!.roleId)
         assertTrue(events.published.isEmpty())
     }
-
-    // ── Removing ────────────────────────────────────────────────────────
 
     @Test
     fun `a member can be removed and their departure announced`() {

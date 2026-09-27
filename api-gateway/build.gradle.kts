@@ -52,22 +52,17 @@ dependencyManagement {
 dependencies {
     implementation("com.vertyll.veds:shared-web")
 
-    // --- Common ---
     implementation(libs.bundles.spring.boot.common)
 
-    // --- Gateway & Reactive ---
     implementation(libs.bundles.spring.boot.gateway)
     implementation(libs.bundles.gateway.kotlin)
 
-    // --- API Documentation ---
     implementation(libs.springdoc.openapi.starter.webflux.ui)
 
-    // --- Testing ---
     testImplementation(libs.bundles.test.common)
     testImplementation(libs.bundles.test.gateway)
 }
 
-// Configure ktlint
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     debug.set(false)
     verbose.set(true)

@@ -66,8 +66,6 @@ internal class ProjectCommandServiceTest {
             iconFileId = null,
         )
 
-    // ── Creating ────────────────────────────────────────────────────────
-
     @Test
     fun `a created project belongs to whoever created it`() {
         val response = service.createProject(createCommand(), creator)
@@ -147,8 +145,6 @@ internal class ProjectCommandServiceTest {
         assertEquals(ProjectError.ROLE_NOT_CONFIGURED, error.error)
     }
 
-    // ── Updating ────────────────────────────────────────────────────────
-
     private fun givenManagedProject(version: Long? = 0L) =
         project(ownerId = creator.id, version = version)
             .also {
@@ -205,8 +201,6 @@ internal class ProjectCommandServiceTest {
 
         assertEquals(ProjectError.PROJECT_NOT_FOUND, error.error, "a private project must not reveal that it exists")
     }
-
-    // ── Archiving ───────────────────────────────────────────────────────
 
     @Test
     fun `archiving deactivates the project and announces it`() {

@@ -59,8 +59,6 @@ internal class ProjectStatusCommandServiceTest {
     ) = ProjectStatus(projectId = projectId, color = FF0000, translations = complete, isActive = isActive, version = 0L)
         .also { statuses.given(it) }
 
-    // ── Creating ────────────────────────────────────────────────────────
-
     @Test
     fun `a status is stored against its project`() {
         val response = service.createStatus(existing.id, CreateStatusCommand(FF0000, complete), owner, ENGLISH)
@@ -113,8 +111,6 @@ internal class ProjectStatusCommandServiceTest {
         assertTrue(statuses.stored.isEmpty())
         assertTrue(events.published.isEmpty())
     }
-
-    // ── Updating ────────────────────────────────────────────────────────
 
     @Test
     fun `updating replaces the colour and the translations`() {
@@ -188,8 +184,6 @@ internal class ProjectStatusCommandServiceTest {
 
         assertEquals(ProjectError.STATUS_NOT_FOUND, error.error)
     }
-
-    // ── Deleting ────────────────────────────────────────────────────────
 
     @Test
     fun `deleting removes the status and tells other services it is gone`() {

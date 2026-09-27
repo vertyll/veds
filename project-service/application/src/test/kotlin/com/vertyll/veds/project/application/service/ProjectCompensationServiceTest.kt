@@ -22,8 +22,6 @@ internal class ProjectCompensationServiceTest {
 
     private val service = ProjectCompensationService(invitations, projects, SilentLogger)
 
-    // ── Revoking an invitation ──────────────────────────────────────────
-
     @Test
     fun `a pending invitation is expired`() {
         val invitation =
@@ -78,8 +76,6 @@ internal class ProjectCompensationServiceTest {
 
         assertTrue(invitations.stored.isEmpty())
     }
-
-    // ── Restoring a project ─────────────────────────────────────────────
 
     @Test
     fun `an archived project is brought back`() {

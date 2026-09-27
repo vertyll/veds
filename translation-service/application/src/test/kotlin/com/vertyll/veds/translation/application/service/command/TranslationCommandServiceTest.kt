@@ -57,8 +57,6 @@ internal class TranslationCommandServiceTest {
         vararg entries: CatalogueEntryCommand,
     ) = service.registerCatalogue(RegisterCatalogueCommand(sourceService, entries.toList()))
 
-    // ── Registering a catalogue ─────────────────────────────────────────
-
     @Test
     fun `a service's keys are registered under its own name`() {
         register(entries = arrayOf(entry()))
@@ -134,8 +132,6 @@ internal class TranslationCommandServiceTest {
         )
     }
 
-    // ── Overriding ──────────────────────────────────────────────────────
-
     private fun givenKey(key: String = PROJECT_NOT_FOUND_KEY) =
         TranslationKey(key = key, sourceService = PROJECT_SERVICE).also { keys.given(it) }
 
@@ -202,8 +198,6 @@ internal class TranslationCommandServiceTest {
         assertEquals(TranslationError.VERSION_MISMATCH, error.error)
     }
 
-    // ── Clearing an override ────────────────────────────────────────────
-
     @Test
     fun `clearing an override restores the shipped default`() {
         givenKey()
@@ -226,8 +220,6 @@ internal class TranslationCommandServiceTest {
 
         assertEquals(TranslationError.VALUE_NOT_FOUND, error.error)
     }
-
-    // ── Importing ───────────────────────────────────────────────────────
 
     private fun import(vararg rows: Triple<String, String, String>) =
         service.import(
@@ -294,8 +286,6 @@ internal class TranslationCommandServiceTest {
 
         assertTrue(report.missingAfterImport.isEmpty())
     }
-
-    // ── Argument drift ──────────────────────────────────────────────────
 
     @Test
     fun `an override keeping the default's arguments is accepted`() {

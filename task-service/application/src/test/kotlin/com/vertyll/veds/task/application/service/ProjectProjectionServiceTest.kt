@@ -26,8 +26,6 @@ internal class ProjectProjectionServiceTest {
 
     private val projectId = Uuid.generateV7().toJavaUuid()
 
-    // ── The project itself ──────────────────────────────────────────────
-
     @Test
     fun `a project change is recorded locally`() {
         service.projectChanged(projectRef(projectId, name = "Apollo"))
@@ -60,8 +58,6 @@ internal class ProjectProjectionServiceTest {
 
         assertTrue(directory.projects.isEmpty())
     }
-
-    // ── Categories ──────────────────────────────────────────────────────
 
     @Test
     fun `a category change is recorded locally`() {
@@ -107,8 +103,6 @@ internal class ProjectProjectionServiceTest {
         assertEquals(untouched, tasks.findById(untouched.id))
     }
 
-    // ── Statuses ────────────────────────────────────────────────────────
-
     @Test
     fun `a status change is recorded locally`() {
         val status = statusRef(projectId, name = "In progress")
@@ -140,8 +134,6 @@ internal class ProjectProjectionServiceTest {
 
         assertNull(tasks.findById(sitting.id)!!.statusId)
     }
-
-    // ── Memberships ─────────────────────────────────────────────────────
 
     @Test
     fun `a member joining is recorded locally`() {

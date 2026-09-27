@@ -74,8 +74,6 @@ abstract class VedsArchitectureTest(
     @DisplayName("adapters live in infrastructure")
     fun adaptersLiveInInfrastructure() = VedsArchitectureRules.adaptersLiveInInfrastructure(basePackage).check(classes)
 
-    // --- ArchUnit's own general coding rules ---
-
     @Test
     @DisplayName("nothing writes to standard streams")
     fun nothingWritesToStandardStreams() = NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS.check(classes)

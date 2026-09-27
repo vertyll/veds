@@ -57,8 +57,6 @@ internal class WorkLogCommandServiceTest {
 
     private val day = LocalDate.of(2026, 9, 1)
 
-    // ── Logging ─────────────────────────────────────────────────────────
-
     @Test
     fun `an entry is stored against its task, author and day`() {
         val response = service.logWork(existingTask.id, LogWorkCommand(90, day, "Pair session"), author)
@@ -99,8 +97,6 @@ internal class WorkLogCommandServiceTest {
             service.logWork(existingTask.id, LogWorkCommand(WorkLogEntry.MAX_MINUTES_PER_ENTRY + 1, day), author)
         }
     }
-
-    // ── Editing ─────────────────────────────────────────────────────────
 
     @Test
     fun `editing an entry refreshes the task total`() {
@@ -151,8 +147,6 @@ internal class WorkLogCommandServiceTest {
 
         assertEquals(TaskError.VERSION_MISMATCH, error.error)
     }
-
-    // ── Deleting ────────────────────────────────────────────────────────
 
     @Test
     fun `deleting an entry takes its minutes off the task`() {

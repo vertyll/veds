@@ -66,8 +66,6 @@ internal class ProjectInvitationCommandServiceTest {
         roleId: UUID? = null,
     ) = service.invite(existing.id, InviteMemberCommand(email = email, roleId = roleId), owner)
 
-    // ── Inviting ────────────────────────────────────────────────────────
-
     @Test
     fun `an invitation is stored as pending against the project`() {
         val response = invite()
@@ -200,8 +198,6 @@ internal class ProjectInvitationCommandServiceTest {
         assertTrue(saga.trail.last().startsWith("failed("))
     }
 
-    // ── Accepting ───────────────────────────────────────────────────────
-
     private fun givenPendingInvitation(
         email: String = NEW_EXAMPLE_COM,
         roleId: UUID = memberRole.id,
@@ -312,8 +308,6 @@ internal class ProjectInvitationCommandServiceTest {
         assertEquals(1, members.stored.size)
     }
 
-    // ── Rejecting ───────────────────────────────────────────────────────
-
     @Test
     fun `rejecting closes the invitation without granting access`() {
         val invitation = givenPendingInvitation()
@@ -335,8 +329,6 @@ internal class ProjectInvitationCommandServiceTest {
 
         assertEquals(ProjectError.INVITATION_NOT_ADDRESSED_TO_CALLER, error.error)
     }
-
-    // ── Expiring ────────────────────────────────────────────────────────
 
     @Test
     fun `overdue invitations are expired in bulk`() {

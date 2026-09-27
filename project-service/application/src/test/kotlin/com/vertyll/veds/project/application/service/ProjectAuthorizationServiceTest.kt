@@ -120,8 +120,6 @@ internal class ProjectAuthorizationServiceTest {
         assertEquals(ProjectError.PROJECT_NOT_FOUND, error.error)
     }
 
-    // ── Effective permissions ───────────────────────────────────────────
-
     @Test
     fun `an owner's effective permissions cover everything`() {
         val existing = project(ownerId = owner).also { projects.given(it) }

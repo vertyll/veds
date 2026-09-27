@@ -40,7 +40,6 @@ dependencyManagement {
     }
 }
 
-// This creates a JAR without a main class (library)
 tasks.bootJar {
     enabled = false
 }
@@ -50,39 +49,35 @@ tasks.jar {
 }
 
 dependencies {
-    // --- Common ---
     implementation(libs.spring.boot.starter)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlin.logging)
 
-    // --- Security, part of this module's public surface ---
+    // Security, part of this module's public surface
     api("com.vertyll.veds:shared-authz")
     api("com.vertyll.veds:shared-error")
     api(libs.bundles.web.api)
     api(libs.springframework.tx)
 
-    // --- OpenAPI: only contributes a bean when the service already brings springdoc ---
+    // OpenAPI: only contributes a bean when the service already brings springdoc
     compileOnly(libs.swagger.core.models)
 
-    // --- Serializing a problem document needs the container's mapper, which the service brings ---
+    // Serializing a problem document needs the container's mapper, which the service brings
     compileOnly("io.projectreactor:reactor-core")
     compileOnly(libs.jackson.databind)
     compileOnly(libs.jakarta.servlet.api)
     testImplementation(libs.swagger.core.models)
     testImplementation(libs.jackson.databind)
 
-    // --- Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it
+    // Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it
     testImplementation("io.projectreactor:reactor-core")
 
-    // --- Annotation Processors ---
     kapt(libs.spring.boot.configuration.processor)
 
-    // --- Testing ---
     testImplementation(libs.bundles.test.common)
 }
 
-// Configure ktlint
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     debug.set(false)
     verbose.set(true)
@@ -120,7 +115,6 @@ tasks.withType<Test> {
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
 
-// --- Dokka (KDoc -> HTML API docs) ---
 dokka {
     moduleName.set("shared-web")
     dokkaPublications.named("html") {

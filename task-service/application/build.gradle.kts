@@ -14,19 +14,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-/**
- * Fails the build if a framework reaches the application layer.
- *
- * The hexagonal dependency rule is only worth stating if something enforces it.
- * Without this check the layer stays clean exactly until the first person adds
- * `implementation(libs.bundles.spring.boot.common)` to fix a compile error, and
- * nothing objects.
- *
- * The check reads the resolved `compileClasspath`, not the declared
- * dependencies, so a framework arriving transitively is caught too. That path is
- * the easy one to miss: importing a single enum from a Spring-bound module puts
- * the whole framework on this layer's classpath.
- */
+/** Fails the build if a framework reaches the application layer. */
 val forbiddenOnApplicationClasspath =
     listOf(
         "org.springframework",

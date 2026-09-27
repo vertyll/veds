@@ -59,8 +59,6 @@ internal class ProjectCategoryCommandServiceTest {
     ) = ProjectCategory(projectId = projectId, color = FF0000, translations = complete, isActive = isActive, version = 0L)
         .also { categories.given(it) }
 
-    // ── Creating ────────────────────────────────────────────────────────
-
     @Test
     fun `a category is stored against its project`() {
         val response = service.createCategory(existing.id, CreateCategoryCommand(FF0000, complete), owner, ENGLISH)
@@ -108,8 +106,6 @@ internal class ProjectCategoryCommandServiceTest {
         assertTrue(categories.stored.isEmpty())
         assertTrue(events.published.isEmpty())
     }
-
-    // ── Updating ────────────────────────────────────────────────────────
 
     @Test
     fun `updating replaces the colour and the translations`() {
@@ -183,8 +179,6 @@ internal class ProjectCategoryCommandServiceTest {
 
         assertEquals(ProjectError.CATEGORY_NOT_FOUND, error.error)
     }
-
-    // ── Deleting ────────────────────────────────────────────────────────
 
     @Test
     fun `deleting removes the category and tells other services it is gone`() {

@@ -64,7 +64,6 @@ tasks.named("check") {
     dependsOn("detekt")
 }
 
-// --- Dokka (KDoc -> HTML API docs) ---
 dokka {
     moduleName.set("shared-saga-api")
     dokkaPublications.named("html") {

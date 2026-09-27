@@ -62,8 +62,6 @@ internal class TaskCommentCommandServiceTest {
         TaskComment(taskId = existingTask.id, authorId = authorId, content = "Working on it", version = 0L)
             .also { comments.given(it) }
 
-    // ── Adding ──────────────────────────────────────────────────────────
-
     @Test
     fun `a comment is stored against its task and author`() {
         val response = service.addComment(existingTask.id, CreateCommentCommand(LOOKS_GOOD, emptySet()), author)
@@ -107,8 +105,6 @@ internal class TaskCommentCommandServiceTest {
         assertTrue(events.published.isEmpty())
     }
 
-    // ── Editing ─────────────────────────────────────────────────────────
-
     @Test
     fun `the author may edit their own comment`() {
         val comment = givenComment()
@@ -145,8 +141,6 @@ internal class TaskCommentCommandServiceTest {
 
         assertEquals(TaskError.COMMENT_NOT_FOUND, error.error)
     }
-
-    // ── Deleting ────────────────────────────────────────────────────────
 
     @Test
     fun `the author may delete their own comment`() {

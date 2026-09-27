@@ -97,8 +97,6 @@ internal class TaskCommandServiceTest {
         attachmentIds = emptySet(),
     )
 
-    // ── Creating ────────────────────────────────────────────────────────
-
     @Test
     fun `a task is stored against its project and creator`() {
         val response = service.createTask(createCommand(), actor)
@@ -142,8 +140,6 @@ internal class TaskCommandServiceTest {
         assertTrue(tasks.stored.isEmpty())
         assertTrue(events.published.isEmpty())
     }
-
-    // ── Updating ────────────────────────────────────────────────────────
 
     private fun givenTask(
         statusId: UUID? = null,
@@ -217,8 +213,6 @@ internal class TaskCommandServiceTest {
         assertEquals(TaskError.ASSIGNEE_NOT_A_MEMBER, error.error)
     }
 
-    // ── Moving on the board ─────────────────────────────────────────────
-
     @Test
     fun `changing the status moves the task and announces it`() {
         val existing = givenTask(statusId = todo.statusId)
@@ -247,8 +241,6 @@ internal class TaskCommandServiceTest {
 
         assertEquals(todo.statusId, tasks.findById(existing.id)!!.statusId)
     }
-
-    // ── Archiving ───────────────────────────────────────────────────────
 
     @Test
     fun `archiving deactivates the task, drops its comments and announces it`() {
@@ -280,8 +272,6 @@ internal class TaskCommandServiceTest {
 
         assertTrue(tasks.findById(existing.id)!!.isActive)
     }
-
-    // ── Archiving a batch ───────────────────────────────────────────────
 
     @Test
     fun `a batch archives every task and announces each one`() {

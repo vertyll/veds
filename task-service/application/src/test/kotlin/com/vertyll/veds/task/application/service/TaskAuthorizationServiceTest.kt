@@ -39,8 +39,6 @@ internal class TaskAuthorizationServiceTest {
         directory.saveMembership(membership(projectId, userId, roleCode))
     }
 
-    // ── Project-level ───────────────────────────────────────────────────
-
     @Test
     fun `a manager may manage tasks`() {
         givenRole("MANAGER")
@@ -98,8 +96,6 @@ internal class TaskAuthorizationServiceTest {
         val error = assertFailsWith<ApiException> { service.requireProjectPermission(projectId, actor, TaskPermission.MANAGE_TASKS) }
         assertEquals(TaskError.PROJECT_ARCHIVED, error.error)
     }
-
-    // ── Task-level ──────────────────────────────────────────────────────
 
     @Test
     fun `a member may open a task on their own board`() {
@@ -178,8 +174,6 @@ internal class TaskAuthorizationServiceTest {
         val error = assertFailsWith<ApiException> { service.requireTaskPermission(archived.id, actor, TaskPermission.MANAGE_TASKS) }
         assertEquals(TaskError.TASK_ARCHIVED, error.error)
     }
-
-    // ── Effective permissions ───────────────────────────────────────────
 
     @Test
     fun `a manager's effective permissions cover everything`() {
