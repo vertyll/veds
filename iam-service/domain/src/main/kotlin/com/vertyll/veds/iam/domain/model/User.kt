@@ -24,12 +24,6 @@ data class User(
     val permissions: Set<Permission>
         get() = roles.flatMap { it.permissions }.toSet()
 
-    fun withEmail(newEmail: String): User =
-        copy(
-            email = newEmail,
-            updatedAt = Instant.now(),
-        )
-
     fun withProfile(
         firstName: String,
         lastName: String,
