@@ -46,7 +46,7 @@ Three one-shot jobs run automatically and then exit — they are supposed to:
 - **`object-storage-init`** gives Garage its cluster layout, bucket, access key and CORS rules
 
 None of this can be expressed in a configuration file: it is cluster state. `topics-init` applies it with
-Terraform, `schemas-init` with `scripts/schema_registry/register_schemas.py`, `object-storage-init` through the
+OpenTofu, `schemas-init` with `scripts/schema_registry/register_schemas.py`, `object-storage-init` through the
 Garage admin API.
 
 Wait for the health checks before moving on:

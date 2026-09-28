@@ -1,32 +1,35 @@
-# Kafka Topics IaC (Terraform)
+# Kafka Topics IaC (OpenTofu)
 
-This module automates the provisioning of Kafka topics (both Business and DLT) using the [Mongey/kafka](https://registry.terraform.io/providers/Mongey/kafka/latest) Terraform provider.
+This module automates the provisioning of Kafka topics (both Business and DLT) using the [Mongey/kafka](https://search.opentofu.org/provider/mongey/kafka/latest) provider.
 
 ## Requirements
 
 | Prerequisite      | Version / Details                                                 |
 |:------------------|:------------------------------------------------------------------|
-| **Terraform**     | `>= 1.6.0`                                                        |
+| **OpenTofu**      | `>= 1.6.0`                                                        |
 | **Kafka Cluster** | Accessible broker (e.g., `localhost:29092` for local development) |
 
 ## Usage
 
-Navigate to the module directory and initialize Terraform to download the required providers:
+Navigate to the module directory and initialize OpenTofu to download the required providers:
 
 ```bash
 cd infra/kafka
-terraform init
+tofu init
 ```
 
 Apply the configuration. By default, it uses `["localhost:29092"]` as the broker address:
 
 ```bash
-terraform apply
+tofu apply
 ```
 
 > [!IMPORTANT]
 > If you need to target a different environment, override the `bootstrap_servers` variable. Since it expects a `list(string)`, use the following syntax:
 >
 > ```bash
-> terraform apply -var='bootstrap_servers=["kafka.production.internal:9092"]'
+> tofu apply -var='bootstrap_servers=["kafka.production.internal:9092"]'
 > ```
+
+The state written by Terraform before the switch needs no migration: `tofu init` reads it as is and rewrites the
+provider address to `registry.opentofu.org` on the next apply.

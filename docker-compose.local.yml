@@ -291,7 +291,7 @@ services:
       start_period: 30s
 
   topics-init:
-    image: docker.io/hashicorp/terraform:1.16.4
+    image: ghcr.io/opentofu/opentofu:1.12.6
     depends_on:
       kafka:
         condition: service_healthy
@@ -299,8 +299,8 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - >
-        terraform init -input=false -no-color &&
-        terraform apply -auto-approve -input=false -no-color
+        tofu init -input=false -no-color &&
+        tofu apply -auto-approve -input=false -no-color
         -var='bootstrap_servers=["kafka:9092"]'
         -var=replication_factor=1
         -var=partitions=1

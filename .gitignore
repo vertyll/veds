@@ -62,9 +62,8 @@ logs/
 ### Compiled class files ###
 *.class
 
-### Terraform ###
+### OpenTofu ###
 infra/**/.terraform/
-infra/**/.terraform.lock.hcl
 infra/**/terraform.tfstate
 infra/**/terraform.tfstate.*
 infra/**/*.tfstate.backup

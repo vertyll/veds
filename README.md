@@ -5,7 +5,7 @@
     <img alt="" src="https://img.shields.io/badge/Keycloak-00b8e3?style=for-the-badge&logo=keycloak&logoColor=4D4D4D">
     <img alt="" src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white">
     <img alt="" src="https://img.shields.io/badge/Apache_Avro-30638E?style=for-the-badge&logo=apacheavro&logoColor=white">
-    <img alt="" src="https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white">
+    <img alt="" src="https://img.shields.io/badge/OpenTofu-FFDA18?style=for-the-badge&logo=opentofu&logoColor=black">
 </p>
 
 ## Project Assumptions
@@ -36,7 +36,7 @@ A microservices-based architecture following principles:
 - **Testing**: JUnit, Testcontainers.
 - **Static Analysis**: ktlint, Detekt.
 - **Documentation**: Dokka for code docs.
-- **Infrastructure as Code**: Terraform for Kafka topic provisioning.
+- **Infrastructure as Code**: OpenTofu for Kafka topic provisioning.
 - **Build and Dependency Management**: Gradle with composite builds for modularization.
 - **Schema Management**: Apache Avro with Schema Registry for versioning and compatibility.
 
