@@ -49,7 +49,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@Suppress("TooManyFunctions", "LongParameterList")
+@Suppress("TooManyFunctions", "LongParameterList", "kotlin:S107")
 internal class ApplicationBeansConfig {
     private companion object {
         private val ALL_METHODS: (String) -> Boolean = { true }

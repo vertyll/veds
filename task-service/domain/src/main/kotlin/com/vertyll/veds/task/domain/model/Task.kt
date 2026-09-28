@@ -92,7 +92,7 @@ data class Task(
         if (statusId == removedStatusId) copy(statusId = null, updatedAt = Instant.now()) else this
 
     companion object {
-        @Suppress("LongParameterList")
+        @Suppress("LongParameterList", "kotlin:S107")
         fun create(
             projectId: UUID,
             number: Int,
