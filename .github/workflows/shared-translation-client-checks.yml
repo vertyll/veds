@@ -1,4 +1,4 @@
-name: Shared Translation Client Checks
+name: Shared Translation Client
 
 on:
   push:
@@ -28,6 +28,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-translation-client

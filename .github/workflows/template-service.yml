@@ -1,4 +1,4 @@
-name: "Checks: Template Service"
+name: Template Service
 
 on:
   push:
@@ -46,6 +46,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: template-service

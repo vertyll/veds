@@ -1,4 +1,4 @@
-name: Shared Error Checks
+name: Shared Error
 
 on:
   push:
@@ -26,6 +26,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-error

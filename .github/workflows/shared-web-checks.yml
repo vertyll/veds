@@ -1,4 +1,4 @@
-name: Shared Web Checks
+name: Shared Web
 
 on:
   push:
@@ -30,6 +30,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-web

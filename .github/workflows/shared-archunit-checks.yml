@@ -1,4 +1,4 @@
-name: Shared ArchUnit Checks
+name: Shared ArchUnit
 
 on:
   push:
@@ -26,6 +26,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-archunit

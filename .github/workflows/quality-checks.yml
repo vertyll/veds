@@ -1,4 +1,4 @@
-name: Quality Checks
+name: Quality
 
 on:
   workflow_call:
@@ -93,7 +93,7 @@ jobs:
           if-no-files-found: ignore
 
   test:
-    name: test
+    name: Test
     runs-on: ${{ inputs.runner }}
 
     steps:
@@ -127,7 +127,7 @@ jobs:
             ${{ inputs.service }}/*/build/reports/tests/
           if-no-files-found: ignore
   hexagonal:
-    name: hexagonal
+    name: Hexagonal
     if: ${{ inputs.hexagonal }}
     runs-on: ${{ inputs.runner }}
 

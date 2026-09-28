@@ -1,4 +1,4 @@
-name: Shared Authz Client Checks
+name: Shared Authz Client
 
 on:
   push:
@@ -28,6 +28,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-authz-client

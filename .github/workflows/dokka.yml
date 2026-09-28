@@ -1,4 +1,4 @@
-name: Publish KDoc
+name: KDoc
 
 on:
   push:
@@ -28,6 +28,7 @@ concurrency:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-24.04
 
     steps:
@@ -58,6 +59,7 @@ jobs:
           path: docs/dokka
 
   deploy:
+    name: Deploy
     needs: build
     runs-on: ubuntu-24.04
 

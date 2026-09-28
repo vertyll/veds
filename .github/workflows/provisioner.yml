@@ -1,4 +1,4 @@
-name: Build and Publish Provisioner
+name: Provisioner
 
 on:
   push:
@@ -35,7 +35,8 @@ env:
   IMAGE_NAME: vertyll/veds-provisioner
 
 jobs:
-  build-and-push:
+  image:
+    name: Image
     if: github.event_name != 'push' || github.ref_type == 'tag'
     runs-on: ubuntu-24.04-arm
 
@@ -66,7 +67,7 @@ jobs:
           username: ${{ secrets.ZOT_USERNAME }}
           password: ${{ secrets.ZOT_PASSWORD }}
 
-      - name: Build and push Provisioner
+      - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: .
