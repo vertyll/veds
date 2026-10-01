@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.sonarqube)
 }
 
 group = "com.vertyll.veds"
@@ -126,4 +127,15 @@ tasks.withType<JacocoReport>().configureEach {
 
 tasks.named("test") {
     finalizedBy("jacocoTestReport")
+}
+
+tasks.named("sonar") {
+    dependsOn("jacocoTestReport")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "veds-shared-translation-client")
+        property("sonar.projectName", "veds shared-translation-client")
+    }
 }

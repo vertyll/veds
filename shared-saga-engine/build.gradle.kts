@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.sonarqube)
 }
 
 group = "com.vertyll.veds"
@@ -133,4 +134,18 @@ tasks.withType<JacocoReport>().configureEach {
 
 tasks.named("test") {
     finalizedBy("jacocoTestReport")
+}
+
+tasks.named("sonar") {
+    dependsOn("jacocoTestReport")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "veds-shared-saga-engine")
+        property("sonar.projectName", "veds shared-saga-engine")
+        property("sonar.issue.ignore.multicriteria", "tests")
+        property("sonar.issue.ignore.multicriteria.tests.ruleKey", "kotlin:S107")
+        property("sonar.issue.ignore.multicriteria.tests.resourceKey", "**/src/test/**/*.kt")
+    }
 }

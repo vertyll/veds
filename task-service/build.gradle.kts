@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.spring.dependency.management) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.sonarqube)
+    `jacoco-report-aggregation`
 }
 
 group = "com.vertyll.veds"
@@ -122,5 +124,61 @@ listOf("build", "clean").forEach { taskName ->
         group = "build"
         description = "Aggregates :$taskName across all subprojects"
         dependsOn(subprojects.map { "${it.path}:$taskName" })
+    }
+}
+
+dependencies {
+    jacocoAggregation(platform(libs.spring.boot.dependencies))
+    subprojects.forEach { jacocoAggregation(it) }
+}
+
+reporting {
+    reports {
+        register<JacocoCoverageReport>("testCodeCoverageReport") {
+            testSuiteName = "test"
+        }
+    }
+}
+
+val aggregatedCoverage = layout.buildDirectory.file("reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml")
+
+tasks.named<JacocoReport>("testCodeCoverageReport") {
+    reports {
+        xml.required = true
+    }
+}
+
+subprojects {
+    sonar {
+        properties {
+            property("sonar.coverage.jacoco.xmlReportPaths", aggregatedCoverage.get().asFile.path)
+        }
+    }
+}
+
+tasks.named("sonar") {
+    dependsOn("testCodeCoverageReport")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "veds-task-service")
+        property("sonar.projectName", "veds task-service")
+        property("sonar.issue.ignore.multicriteria", "dto,command,domainModel,beans,tests,repository,entity")
+        property("sonar.issue.ignore.multicriteria.dto.ruleKey", "kotlin:S107")
+        property("sonar.issue.ignore.multicriteria.dto.resourceKey", "**/dto/*.kt")
+        property("sonar.issue.ignore.multicriteria.command.ruleKey", "kotlin:S107")
+        property("sonar.issue.ignore.multicriteria.command.resourceKey", "**/command/*.kt")
+        property("sonar.issue.ignore.multicriteria.domainModel.ruleKey", "kotlin:S107")
+        property("sonar.issue.ignore.multicriteria.domainModel.resourceKey", "**/domain/model/*.kt")
+        property("sonar.issue.ignore.multicriteria.beans.ruleKey", "kotlin:S107")
+        property("sonar.issue.ignore.multicriteria.beans.resourceKey", "**/config/ApplicationBeansConfig.kt")
+        property("sonar.issue.ignore.multicriteria.tests.ruleKey", "kotlin:S107")
+        property("sonar.issue.ignore.multicriteria.tests.resourceKey", "**/src/test/**/*.kt")
+        property("sonar.issue.ignore.multicriteria.repository.ruleKey", "kotlin:S6517")
+        property("sonar.issue.ignore.multicriteria.repository.resourceKey", "**/persistence/repository/*.kt")
+        property("sonar.issue.ignore.multicriteria.entity.ruleKey", "kotlin:S6524")
+        property("sonar.issue.ignore.multicriteria.entity.resourceKey", "**/persistence/entity/*.kt")
+        property("sonar.cpd.exclusions", "**/config/TranslationCatalogueConfig.kt")
     }
 }
