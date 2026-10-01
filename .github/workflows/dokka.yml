@@ -35,7 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up JDK 25
+      - name: Set up Java 25
         uses: actions/setup-java@v6
         with:
           distribution: zulu
@@ -43,9 +43,6 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-
-      - name: Make Gradle wrappers executable
-        run: chmod +x ./gradlew shared-*/gradlew
 
       - name: Generate Dokka HTML
         run: ./gradlew --no-daemon docs
