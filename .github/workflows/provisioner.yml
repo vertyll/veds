@@ -12,6 +12,7 @@ on:
       - "contracts/**"
       - "scripts/schema_registry/**"
       - ".github/workflows/provisioner.yml"
+      - ".github/workflows/_image.yml"
   pull_request:
     branches:
       - main
@@ -21,6 +22,7 @@ on:
       - "contracts/**"
       - "scripts/schema_registry/**"
       - ".github/workflows/provisioner.yml"
+      - ".github/workflows/_image.yml"
   workflow_dispatch:
 
 permissions:
@@ -30,52 +32,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  REGISTRY: zot.vertyll.dev
-  IMAGE_NAME: vertyll/veds-provisioner
-
 jobs:
   image:
     name: Image
     if: github.event_name != 'push' || github.ref_type == 'tag'
-    runs-on: ubuntu-24.04-arm
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Derive image version
-        id: vars
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            echo "version=pr-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-          else
-            echo "version=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to Zot
-        if: github.ref_type == 'tag'
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.ZOT_USERNAME }}
-          password: ${{ secrets.ZOT_PASSWORD }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./infra/provisioner/Dockerfile
-          platforms: linux/arm64
-          push: ${{ github.ref_type == 'tag' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.version }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha,scope=provisioner
-          cache-to: type=gha,mode=max,scope=provisioner
+    uses: ./.github/workflows/_image.yml
+    with:
+      context: .
+      dockerfile: ./infra/provisioner/Dockerfile
+      image-name: vertyll/veds-provisioner
+      tag-prefix: v
+    secrets: inherit
