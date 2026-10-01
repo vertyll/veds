@@ -57,6 +57,7 @@ jobs:
     with:
       service: iam-service
       hexagonal: true
+    secrets: inherit
 
   image:
     name: Image

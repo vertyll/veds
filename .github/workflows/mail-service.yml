@@ -63,6 +63,7 @@ jobs:
     with:
       service: mail-service
       hexagonal: true
+    secrets: inherit
 
   image:
     name: Image

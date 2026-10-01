@@ -53,6 +53,7 @@ jobs:
     with:
       service: file-service
       hexagonal: true
+    secrets: inherit
 
   image:
     name: Image

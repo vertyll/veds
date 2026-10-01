@@ -32,3 +32,4 @@ jobs:
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-authz-client
+    secrets: inherit

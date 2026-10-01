@@ -51,3 +51,4 @@ jobs:
     with:
       service: template-service
       hexagonal: true
+    secrets: inherit

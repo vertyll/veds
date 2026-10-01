@@ -61,6 +61,7 @@ jobs:
     with:
       service: task-service
       hexagonal: true
+    secrets: inherit
 
   image:
     name: Image

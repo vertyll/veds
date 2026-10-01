@@ -53,6 +53,7 @@ jobs:
     with:
       service: translation-service
       hexagonal: true
+    secrets: inherit
 
   image:
     name: Image

@@ -34,3 +34,4 @@ jobs:
     uses: ./.github/workflows/quality-checks.yml
     with:
       service: shared-saga-engine
+    secrets: inherit
