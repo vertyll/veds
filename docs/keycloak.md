@@ -23,6 +23,13 @@ Docker Compose volume mount. You do **not** need to configure Keycloak manually.
 | Client                       | `veds-service-account` | Service account for IAM backend admin operations                 |
 | Protocol mapper (predefined) | `roles mapper`         | Puts realm roles into `realm_access.roles` claim in access token |
 | Protocol mapper (predefined) | `email mapper`         | Puts `email` claim in access token                               |
+| Required action (default)    | `TERMS_AND_CONDITIONS` | A new account accepts the terms before its first sign-in ends    |
+| User profile attribute       | `terms_and_conditions` | When the terms were accepted; admins only                        |
+
+The terms text (`termsTitle`, `termsText`, Polish and English) links FastDo's `/terms` and `/privacy-policy` pages, and
+Keycloak stores the time of acceptance in `terms_and_conditions`. The attribute is declared in the user profile, because
+Keycloak 26 drops attributes the profile does not declare. The realm also sets a password policy (`length(8)`, not the
+e-mail, not the username) and offers its pages in Polish and English.
 
 ## Authentication Flow — Token Handler (BFF) with Authorization Code + PKCE
 
@@ -124,8 +131,9 @@ those. A refresh that still fails re-reads the session first, and drops it only 
 | Concern                                               | Owner           |
 |-------------------------------------------------------|-----------------|
 | Passwords, sessions, MFA, token issuance, realm roles | **Keycloak**    |
+| Acceptance of the terms                               | **Keycloak**    |
 | Browser session ↔ token mapping                       | **api-gateway** |
-| Profile, terms consent, settings, role mirror         | **iam-service** |
+| Profile, settings, role mirror                        | **iam-service** |
 
 Profile data is deliberately *not* stored in Keycloak user attributes: it is not an application database and querying it
 is painful. The Admin API stays, in the narrower role of provisioning users at registration and syncing roles.
