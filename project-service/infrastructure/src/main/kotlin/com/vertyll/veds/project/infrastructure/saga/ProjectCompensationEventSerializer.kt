@@ -18,19 +18,21 @@ internal class ProjectCompensationEventSerializer(
     ): ByteArray {
         val action: Any =
             when (command) {
-                is ProjectCompensationCommand.RevokeInvitation ->
+                is ProjectCompensationCommand.RevokeInvitation -> {
                     RevokeInvitationAction
                         .newBuilder()
                         .setInvitationId(command.invitationId)
                         .setReason(command.reason)
                         .build()
+                }
 
-                is ProjectCompensationCommand.RestoreProject ->
+                is ProjectCompensationCommand.RestoreProject -> {
                     RestoreProjectAction
                         .newBuilder()
                         .setProjectId(command.projectId)
                         .setReason(command.reason)
                         .build()
+                }
             }
         val record =
             SagaCompensationEvent

@@ -16,14 +16,19 @@ internal class AvroTemplateCompensationCommandTranslator(
         val record = avroPayloadDeserializer.deserialize(topic, payload) as SagaCompensationEvent
         val command =
             when (val action = record.action) {
-                is DeleteTemplateAction ->
+                is DeleteTemplateAction -> {
                     TemplateCompensationCommand.DeleteTemplate(templateId = action.templateId.toString())
-                is LogTemplateCompensationAction ->
+                }
+
+                is LogTemplateCompensationAction -> {
                     TemplateCompensationCommand.LogTemplateCompensation(templateId = action.templateId.toString())
-                else ->
+                }
+
+                else -> {
                     error(
                         "Unknown compensation action type on saga-compensation-template: ${action?.javaClass?.name}",
                     )
+                }
             }
         return DecodedCompensationEvent(
             sagaId = record.sagaId.toString(),

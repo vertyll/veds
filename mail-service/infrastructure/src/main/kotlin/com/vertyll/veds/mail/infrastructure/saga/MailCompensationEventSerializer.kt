@@ -19,22 +19,27 @@ internal class MailCompensationEventSerializer(
     ): ByteArray {
         val action: Any =
             when (command) {
-                is MailCompensationCommand.LogEmailCompensation ->
+                is MailCompensationCommand.LogEmailCompensation -> {
                     LogEmailCompensationAction
                         .newBuilder()
                         .setEmailId(command.emailId)
                         .setTo(command.to)
                         .build()
-                is MailCompensationCommand.DeleteEmailLog ->
+                }
+
+                is MailCompensationCommand.DeleteEmailLog -> {
                     DeleteEmailLogAction
                         .newBuilder()
                         .setLogId(command.logId)
                         .build()
-                is MailCompensationCommand.LogTemplateCompensation ->
+                }
+
+                is MailCompensationCommand.LogTemplateCompensation -> {
                     LogTemplateCompensationAction
                         .newBuilder()
                         .setTemplateName(command.templateName)
                         .build()
+                }
             }
         val record =
             SagaCompensationEvent

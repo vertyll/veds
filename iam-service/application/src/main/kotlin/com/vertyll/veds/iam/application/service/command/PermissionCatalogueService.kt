@@ -48,10 +48,11 @@ class PermissionCatalogueService(
                     firstSeen += declaration.name
                 }
 
-                existing.description != declaration.description || existing.scope != declaration.scope ->
+                existing.description != declaration.description || existing.scope != declaration.scope -> {
                     permissionRepository.save(
                         existing.copy(description = declaration.description, scope = declaration.scope),
                     )
+                }
             }
         }
 

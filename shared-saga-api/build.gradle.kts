@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
+val kotlinVersion = libs.versions.kotlin.get()
+
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "Framework-free saga vocabulary shared by the application layers"
@@ -41,7 +43,19 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
+configurations.matching { it.name.startsWith("ktlint") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion(kotlinVersion)
+        }
+    }
+}
+
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set(
+        libs.versions.ktlint.engine
+            .get(),
+    )
     debug.set(false)
     verbose.set(true)
     android.set(false)
@@ -94,6 +108,7 @@ tasks.named("test") {
 }
 
 tasks.withType<Test> {
+    jvmArgs("-Xshare:off")
     useJUnitPlatform()
 }
 

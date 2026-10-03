@@ -12,6 +12,11 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
+val kotlinVersion =
+    libs.versions.kotlin
+        .asProvider()
+        .get()
+
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "API Gateway Microservice"
@@ -69,7 +74,19 @@ dependencies {
     testImplementation(libs.bundles.test.gateway)
 }
 
+configurations.matching { it.name.startsWith("ktlint") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion(kotlinVersion)
+        }
+    }
+}
+
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set(
+        libs.versions.ktlint.engine
+            .get(),
+    )
     debug.set(false)
     verbose.set(true)
     android.set(false)
@@ -102,6 +119,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.withType<Test> {
+    jvmArgs("-Xshare:off")
     useJUnitPlatform()
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }

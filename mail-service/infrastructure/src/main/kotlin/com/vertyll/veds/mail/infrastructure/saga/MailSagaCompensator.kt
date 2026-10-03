@@ -25,18 +25,21 @@ internal class MailSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaE
                         to = requireNotNull(p["to"]?.toString()) { "Missing 'to' in step ${step.id}" },
                     )
                 }
+
                 SagaStepNames.RECORD_EMAIL_LOG.value -> {
                     val p = context.readStepPayload(step.payload)
                     MailCompensationCommand.DeleteEmailLog(
                         logId = (requireNotNull(p["logId"]) { "Missing 'logId' in step ${step.id}" } as Number).toLong(),
                     )
                 }
+
                 SagaStepNames.TEMPLATE_UPDATE.value -> {
                     val p = context.readStepPayload(step.payload)
                     MailCompensationCommand.LogTemplateCompensation(
                         templateName = requireNotNull(p["templateName"]?.toString()) { "Missing 'templateName' in step ${step.id}" },
                     )
                 }
+
                 else -> {
                     logger.warn("No compensation defined for step '{}' on saga '{}'", step.stepName, saga.id)
                     return

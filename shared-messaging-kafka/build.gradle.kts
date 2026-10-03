@@ -15,6 +15,11 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
+val kotlinVersion =
+    libs.versions.kotlin
+        .asProvider()
+        .get()
+
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "Transactional outbox, idempotent consumption and Avro serialisation over Kafka"
@@ -77,7 +82,19 @@ dependencies {
     testImplementation(libs.bundles.test.common)
 }
 
+configurations.matching { it.name.startsWith("ktlint") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion(kotlinVersion)
+        }
+    }
+}
+
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set(
+        libs.versions.ktlint.engine
+            .get(),
+    )
     debug.set(false)
     verbose.set(true)
     android.set(false)
@@ -110,6 +127,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.withType<Test> {
+    jvmArgs("-Xshare:off")
     useJUnitPlatform {
         if (!project.hasProperty("integrationTests")) {
             excludeTags("integration")

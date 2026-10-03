@@ -54,6 +54,7 @@ subprojects {
         }
 
         tasks.withType<Test> {
+            jvmArgs("-Xshare:off")
             useJUnitPlatform {
                 if (!project.hasProperty("integrationTests")) {
                     excludeTags("integration")
@@ -63,7 +64,16 @@ subprojects {
         }
     }
 
+    configurations.matching { it.name.startsWith("ktlint") }.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion(kotlinVersion)
+            }
+        }
+    }
+
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set(rootProject.libs.versions.ktlint.engine.get())
         debug.set(false)
         verbose.set(true)
         android.set(false)
@@ -129,7 +139,7 @@ listOf("build", "clean").forEach { taskName ->
 
 dependencies {
     jacocoAggregation(platform(libs.spring.boot.dependencies))
-    subprojects.forEach { jacocoAggregation(it) }
+    subprojects.forEach { jacocoAggregation(project(it.path)) }
 }
 
 reporting {

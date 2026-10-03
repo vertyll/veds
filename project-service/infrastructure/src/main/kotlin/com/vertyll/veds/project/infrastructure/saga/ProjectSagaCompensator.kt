@@ -25,17 +25,19 @@ internal class ProjectSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJ
     ) {
         val command =
             when (step.stepName) {
-                SagaStepNames.PERSIST_INVITATION.value ->
+                SagaStepNames.PERSIST_INVITATION.value -> {
                     ProjectCompensationCommand.RevokeInvitation(
                         invitationId = readKey(context, step, INVITATION_ID_KEY),
                         reason = MAIL_FAILED_REASON,
                     )
+                }
 
-                SagaStepNames.ARCHIVE_PROJECT.value ->
+                SagaStepNames.ARCHIVE_PROJECT.value -> {
                     ProjectCompensationCommand.RestoreProject(
                         projectId = readKey(context, step, PROJECT_ID_KEY),
                         reason = ARCHIVAL_FAILED_REASON,
                     )
+                }
 
                 SagaStepNames.REQUEST_INVITATION_MAIL.value,
                 SagaStepNames.PUBLISH_PROJECT_ARCHIVED.value,

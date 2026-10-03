@@ -9,6 +9,11 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
+val kotlinVersion =
+    libs.versions.kotlin
+        .asProvider()
+        .get()
+
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
 description = "Declaration of the permissions a service enforces, and the role projection it authorizes from"
@@ -35,10 +40,23 @@ dependencies {
 }
 
 tasks.withType<Test> {
+    jvmArgs("-Xshare:off")
     useJUnitPlatform()
 }
 
+configurations.matching { it.name.startsWith("ktlint") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion(kotlinVersion)
+        }
+    }
+}
+
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set(
+        libs.versions.ktlint.engine
+            .get(),
+    )
     debug.set(false)
     verbose.set(true)
     android.set(false)

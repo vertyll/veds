@@ -48,7 +48,7 @@ class PermissionCatalogueRegistrationRunner(
             return
         }
 
-        logger.warn(
+        logger.info(
             "{} catalogue(s) not registered yet; retrying in {}s",
             pending.size,
             properties.registrationRetryInterval.seconds,
@@ -66,7 +66,7 @@ class PermissionCatalogueRegistrationRunner(
             logger.info("Registered {} permissions for module {}", catalogue.definitions.size, catalogue.module)
             true
         } catch (e: Exception) {
-            logger.error("Could not register the permission catalogue for {}: {}", catalogue.module, e.message)
+            logger.warn("Could not register the permission catalogue for {} yet: {}", catalogue.module, e.message)
             false
         }
 }

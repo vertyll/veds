@@ -18,10 +18,14 @@ internal class TemplateSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStep
     ) {
         val command =
             when (step.stepName) {
-                SagaStepNames.PERSIST_TEMPLATE.value ->
+                SagaStepNames.PERSIST_TEMPLATE.value -> {
                     TemplateCompensationCommand.DeleteTemplate(readTemplateId(context, step))
-                SagaStepNames.PUBLISH_TEMPLATE_EVENT.value ->
+                }
+
+                SagaStepNames.PUBLISH_TEMPLATE_EVENT.value -> {
                     TemplateCompensationCommand.LogTemplateCompensation(readTemplateId(context, step))
+                }
+
                 SagaStepNames.PROCESS_TEMPLATE.value -> {
                     logger.info(
                         "No compensation needed for step '{}' on saga '{}' (effect not externally observable)",
@@ -30,6 +34,7 @@ internal class TemplateSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStep
                     )
                     return
                 }
+
                 else -> {
                     logger.warn("No compensation defined for step '{}' on saga '{}'", step.stepName, saga.id)
                     return

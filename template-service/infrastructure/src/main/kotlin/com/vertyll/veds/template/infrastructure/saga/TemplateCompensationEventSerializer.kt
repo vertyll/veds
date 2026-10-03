@@ -18,10 +18,13 @@ internal class TemplateCompensationEventSerializer(
     ): ByteArray {
         val action: Any =
             when (command) {
-                is TemplateCompensationCommand.DeleteTemplate ->
+                is TemplateCompensationCommand.DeleteTemplate -> {
                     DeleteTemplateAction.newBuilder().setTemplateId(command.templateId).build()
-                is TemplateCompensationCommand.LogTemplateCompensation ->
+                }
+
+                is TemplateCompensationCommand.LogTemplateCompensation -> {
                     LogTemplateCompensationAction.newBuilder().setTemplateId(command.templateId).build()
+                }
             }
         val record =
             SagaCompensationEvent

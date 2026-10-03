@@ -37,9 +37,13 @@ class ProjectAuthorizationService(
         }
 
         return when (val decision = ProjectAccessPolicy.permits(project, actorId, member, role, permission)) {
-            is AccessDecision.Permit -> project
-            is AccessDecision.Deny ->
+            is AccessDecision.Permit -> {
+                project
+            }
+
+            is AccessDecision.Deny -> {
                 throw ApiException(decision.reason, mapOf(PROJECT_ID_PARAM to projectId.toString()))
+            }
         }
     }
 

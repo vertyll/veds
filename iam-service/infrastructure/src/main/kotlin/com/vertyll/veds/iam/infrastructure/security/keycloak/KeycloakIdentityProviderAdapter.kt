@@ -74,10 +74,12 @@ internal class KeycloakIdentityProviderAdapter(
                 assignRole(keycloakUserId.toString(), roleName)
                 keycloakUserId
             }
+
             HttpStatus.CONFLICT.value() -> {
                 logger.warn("User already exists in Keycloak: {}", email)
                 throw ApiException(IamError.USER_ALREADY_EXISTS, mapOf("email" to email))
             }
+
             else -> {
                 logger.error("Failed to create Keycloak user: {} - status: {}", email, response.status)
                 throw ApiException(

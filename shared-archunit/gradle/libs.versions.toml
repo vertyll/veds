@@ -2,6 +2,7 @@
 sonarqube = "7.5.0.8588"
 java = "25"
 ktlint-plugin = "14.2.0"
+ktlint-engine = "1.8.0"
 detekt-plugin = "2.0.0-alpha.6"
 kotlin = "2.4.10"
 archunit = "1.5.1"

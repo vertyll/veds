@@ -16,22 +16,25 @@ internal class AvroProjectCompensationCommandTranslator(
         val record = avroPayloadDeserializer.deserialize(topic, payload) as SagaCompensationEvent
         val command =
             when (val action = record.action) {
-                is RevokeInvitationAction ->
+                is RevokeInvitationAction -> {
                     ProjectCompensationCommand.RevokeInvitation(
                         invitationId = action.invitationId.toString(),
                         reason = action.reason.toString(),
                     )
+                }
 
-                is RestoreProjectAction ->
+                is RestoreProjectAction -> {
                     ProjectCompensationCommand.RestoreProject(
                         projectId = action.projectId.toString(),
                         reason = action.reason.toString(),
                     )
+                }
 
-                else ->
+                else -> {
                     error(
                         "Unknown compensation action type on saga-compensation-project: ${action?.javaClass?.name}",
                     )
+                }
             }
         return DecodedCompensationEvent(
             sagaId = record.sagaId.toString(),
