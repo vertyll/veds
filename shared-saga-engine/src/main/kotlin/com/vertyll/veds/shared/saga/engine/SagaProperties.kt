@@ -9,7 +9,7 @@ import java.time.Duration
 /**
  * Externalized configuration for the saga engine and its watchdog.
  *
- * Bound from `veds.saga.*`.
+ * Bound from `application.saga.*`.
  *
  * Example:
  * ```yaml
@@ -20,7 +20,7 @@ import java.time.Duration
  *     compensation-retry-cooldown: 5m
  * ```
  */
-@ConfigurationProperties(prefix = "veds.saga")
+@ConfigurationProperties(prefix = "application.saga")
 data class SagaProperties(
     /**
      * After a saga has been in

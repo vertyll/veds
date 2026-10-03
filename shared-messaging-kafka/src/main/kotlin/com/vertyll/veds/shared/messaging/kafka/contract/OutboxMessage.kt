@@ -42,10 +42,10 @@ interface OutboxMessage {
     /** Instant of the most recent dispatch attempt (success or failure). */
     val processedAt: Instant?
 
-    /** Number of publishing attempts already made. Compared against `veds.outbox.max-retries`. */
+    /** Number of publishing attempts already made. Compared against `application.outbox.max-retries`. */
     val retryCount: Int
 
-    /** Instant of the most recent retry; used together with `veds.outbox.retry-cooldown` to throttle redelivery. */
+    /** Instant of the most recent retry; used together with `application.outbox.retry-cooldown` to throttle redelivery. */
     val lastRetryAt: Instant?
 
     /** Optional saga correlation id (`Saga.id`) so saga-related outbox rows can be located quickly. */

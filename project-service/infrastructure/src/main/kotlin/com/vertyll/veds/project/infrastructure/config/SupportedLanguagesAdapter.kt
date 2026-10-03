@@ -12,7 +12,7 @@ internal class SupportedLanguagesAdapter(
         properties.supportedLanguages
             .map { LanguageTag.of(it) }
             .toSet()
-            .also { check(it.isNotEmpty()) { "veds.translation.supported-languages must not be empty" } }
+            .also { check(it.isNotEmpty()) { "application.translation.supported-languages must not be empty" } }
 
     override fun supported(): Set<LanguageTag> = languages
 }

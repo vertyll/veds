@@ -36,6 +36,11 @@ springdoc:
     url: /api-docs
     config-url: /api-docs/swagger-config
 
+application:
+  authz:
+    client:
+      base-url: http://localhost:8082
+
 logging:
   level:
     ROOT: INFO
@@ -43,8 +48,3 @@ logging:
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
-veds:
-  authz:
-    client:
-      base-url: http://localhost:8082

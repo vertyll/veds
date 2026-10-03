@@ -36,6 +36,11 @@ springdoc:
     url: /api-docs
     config-url: /api-docs/swagger-config
 
+application:
+  translation:
+    client:
+      base-url: http://localhost:8087
+
 logging:
   level:
     ROOT: INFO
@@ -44,8 +49,3 @@ logging:
     org.springframework.kafka: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
-veds:
-  translation:
-    client:
-      base-url: http://localhost:8087

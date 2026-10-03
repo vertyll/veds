@@ -57,7 +57,7 @@ val catalogue = translations("project-service") {
 ```
 
 At start-up the service registers this with `translation-service`. Registration runs off the
-start-up thread and retries every `veds.translation.client.registration-retry-interval` until it is
+start-up thread and retries every `application.translation.client.registration-retry-interval` until it is
 accepted, so boot order does not matter: a key that never registered renders as the key itself to
 every reader, which is too visible a failure to leave until the next restart.
 

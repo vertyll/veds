@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration
 
 /**
  * Autoconfiguration that registers [SharedKeycloakProperties] so the
- * `veds.shared.*` namespace (Keycloak server URL, realm, admin client,
+ * `application.shared.*` namespace (Keycloak server URL, realm, admin client,
  * cookie settings, …) is available to every microservice via constructor
  * injection without each service having to declare
  * `@EnableConfigurationProperties` itself.

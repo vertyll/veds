@@ -43,11 +43,28 @@ spring:
           timeout: 3000
           writetimeout: 5000
 
+server:
+  port: ${SERVER_PORT:8083}
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    bundle: ${SERVER_SSL_BUNDLE:}
+
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
+
+application:
+  mail:
+    from: ${MAIL_FROM}
+  authz:
+    client:
+      base-url: ${IAM_SERVICE_URL}
+  translation:
+    client:
+      base-url: ${TRANSLATION_SERVICE_URL}
 
 logging:
   level:
@@ -58,22 +75,3 @@ logging:
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: INFO
     org.springframework.mail: INFO
-
-server:
-  port: ${SERVER_PORT:8083}
-  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
-  ssl:
-    enabled: ${SERVER_SSL_ENABLED:false}
-    bundle: ${SERVER_SSL_BUNDLE:}
-
-veds:
-  authz:
-    client:
-      base-url: ${IAM_SERVICE_URL}
-  translation:
-    client:
-      base-url: ${TRANSLATION_SERVICE_URL}
-
-application:
-  mail:
-    from: ${MAIL_FROM}

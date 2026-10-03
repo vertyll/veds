@@ -14,7 +14,7 @@ spring:
     properties:
       schema.registry.url: mock://task-service-test
 
-veds:
+application:
   authz:
     client:
       base-url: http://localhost:1

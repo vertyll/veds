@@ -36,6 +36,15 @@ springdoc:
   swagger-ui:
     enabled: false
 
+application:
+  authz:
+    client:
+      base-url: ${IAM_SERVICE_URL}
+  translation:
+    client:
+      base-url: ${TRANSLATION_SERVICE_URL}
+    supported-languages: ${SUPPORTED_LANGUAGES:pl,en}
+
 logging:
   level:
     ROOT: WARN
@@ -44,12 +53,3 @@ logging:
     org.springframework.kafka: INFO
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: INFO
-
-veds:
-  authz:
-    client:
-      base-url: ${IAM_SERVICE_URL}
-  translation:
-    client:
-      base-url: ${TRANSLATION_SERVICE_URL}
-    supported-languages: ${SUPPORTED_LANGUAGES:pl,en}

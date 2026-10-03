@@ -30,10 +30,10 @@ internal class SessionCipher(
                 try {
                     decoder.decode(properties.encryptionKey)
                 } catch (e: IllegalArgumentException) {
-                    throw IllegalStateException("veds.gateway.session.encryption-key is not valid base64", e)
+                    throw IllegalStateException("application.gateway.session.encryption-key is not valid base64", e)
                 }
             check(decoded.size == AES_256_KEY_BYTES) {
-                "veds.gateway.session.encryption-key must decode to $AES_256_KEY_BYTES bytes " +
+                "application.gateway.session.encryption-key must decode to $AES_256_KEY_BYTES bytes " +
                     "(AES-256), got ${decoded.size}"
             }
             SecretKeySpec(decoded, ALGORITHM)

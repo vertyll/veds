@@ -39,24 +39,16 @@ spring:
               predicates:
                 - Path=/notifications/**, /ws/notifications/**
 
+server:
+  port: 8080
+
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
 
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    com.vertyll.veds: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-    reactor.netty.http.client: DEBUG
-
-veds:
+application:
   gateway:
     cors:
       allowed-origins:
@@ -67,3 +59,11 @@ veds:
     oauth:
       redirect-uri: http://localhost:8080/auth/callback
       post-login-redirect-uri: "http://localhost:4200/"
+
+logging:
+  level:
+    root: INFO
+    com.vertyll.veds: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    reactor.netty.http.client: DEBUG

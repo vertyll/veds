@@ -23,11 +23,23 @@ spring:
     consumer:
       group-id: iam-service-group
 
+server:
+  port: ${SERVER_PORT:8082}
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    bundle: ${SERVER_SSL_BUNDLE:}
+
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
+
+application:
+  translation:
+    client:
+      base-url: ${TRANSLATION_SERVICE_URL}
 
 logging:
   level:
@@ -37,15 +49,3 @@ logging:
     org.springframework.kafka: INFO
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: INFO
-
-server:
-  port: ${SERVER_PORT:8082}
-  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
-  ssl:
-    enabled: ${SERVER_SSL_ENABLED:false}
-    bundle: ${SERVER_SSL_BUNDLE:}
-
-veds:
-  translation:
-    client:
-      base-url: ${TRANSLATION_SERVICE_URL}

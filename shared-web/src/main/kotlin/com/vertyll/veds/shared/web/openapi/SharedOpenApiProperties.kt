@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 /**
  * Externalized configuration for the generated OpenAPI document.
  *
- * Bound from `veds.shared.openapi.*`. Every value has a default, so a service that says
+ * Bound from `application.shared.openapi.*`. Every value has a default, so a service that says
  * nothing still publishes a document named after itself — [title] falls back to
  * `spring.application.name`.
  *
@@ -18,7 +18,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  *       version: 1.4.0
  * ```
  */
-@ConfigurationProperties(prefix = "veds.shared.openapi")
+@ConfigurationProperties(prefix = "application.shared.openapi")
 data class SharedOpenApiProperties(
     /** Document title. Falls back to `spring.application.name` when unset. */
     val title: String? = null,

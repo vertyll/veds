@@ -32,16 +32,7 @@ springdoc:
   swagger-ui:
     enabled: false
 
-logging:
-  level:
-    ROOT: WARN
-    com.vertyll.veds: INFO
-    org.springframework.security: INFO
-    org.springframework.kafka: INFO
-    org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
-
-veds:
+application:
   translation:
     client:
       base-url: ${TRANSLATION_SERVICE_URL}
@@ -54,3 +45,12 @@ veds:
       secret-key: ${OBJECT_STORAGE_SECRET_KEY}
       upload-url-validity: 15m
       download-url-validity: 5m
+
+logging:
+  level:
+    ROOT: WARN
+    com.vertyll.veds: INFO
+    org.springframework.security: INFO
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO

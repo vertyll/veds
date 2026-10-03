@@ -5,7 +5,8 @@ spring:
         jwt:
           issuer-uri: http://localhost:9000/realms/veds
           jwk-set-uri: http://localhost:9000/realms/veds/protocol/openid-connect/certs
-veds:
+
+application:
   shared:
     keycloak:
       server-url: http://localhost:9000

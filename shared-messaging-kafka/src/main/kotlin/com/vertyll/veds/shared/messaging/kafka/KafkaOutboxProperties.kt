@@ -7,7 +7,7 @@ import java.time.Duration
 /**
  * Externalized configuration for the Kafka transactional outbox.
  *
- * Bound from `veds.outbox.*` and consumed by [KafkaOutboxProcessor]. All
+ * Bound from `application.outbox.*` and consumed by [KafkaOutboxProcessor]. All
  * values have sane defaults so the outbox works out-of-the-box without any
  * configuration.
  *
@@ -22,7 +22,7 @@ import java.time.Duration
  *     stuck-threshold: 5m
  * ```
  */
-@ConfigurationProperties(prefix = "veds.outbox")
+@ConfigurationProperties(prefix = "application.outbox")
 data class KafkaOutboxProperties(
     /** Scheduled poller interval (also used for the stuck-message reaper). */
     val pollInterval: Duration = Duration.ofSeconds(DEFAULT_POLL_INTERVAL_SECONDS),

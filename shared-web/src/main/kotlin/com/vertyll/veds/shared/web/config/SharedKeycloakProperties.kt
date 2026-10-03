@@ -5,17 +5,17 @@ import com.vertyll.veds.shared.web.security.KeycloakJwtAuthenticationConverter
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
- * Type-safe binding for the `veds.shared.keycloak.*` namespace, whose defaults ship in
+ * Type-safe binding for the `application.shared.keycloak.*` namespace, whose defaults ship in
  * `shared-web-config.yml` and are loaded by [SharedConfigEnvironmentPostProcessor].
  *
  * Carries the cross-service identity settings consumed by the security and Keycloak-admin
  * layers — notably [KeycloakJwtAuthenticationConverter] and its reactive counterpart.
  *
- * The prefix names Keycloak rather than stopping at `veds.shared`, so that it sits alongside
+ * The prefix names Keycloak rather than stopping at `application.shared`, so that it sits alongside
  * [SharedOpenApiProperties] as a sibling instead of enclosing it. Two classes binding nested
  * prefixes both work, but only until one of them grows a field named after the other.
  */
-@ConfigurationProperties(prefix = "veds.shared.keycloak")
+@ConfigurationProperties(prefix = "application.shared.keycloak")
 data class SharedKeycloakProperties(
     /** Base URL of the Keycloak server. */
     val serverUrl: String,

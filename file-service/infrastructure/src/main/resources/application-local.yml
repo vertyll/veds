@@ -36,16 +36,7 @@ springdoc:
     url: /api-docs
     config-url: /api-docs/swagger-config
 
-logging:
-  level:
-    ROOT: INFO
-    com.vertyll.veds: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.kafka: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
-veds:
+application:
   translation:
     client:
       base-url: http://localhost:8087
@@ -58,3 +49,12 @@ veds:
       secret-key: ${OBJECT_STORAGE_SECRET_KEY:4f8a1c6e9b2d5307a8e1f4c7b0d3a6e92c5f8b1d4a7e0c3f6b9d2a5e8c1f4b7d}
       upload-url-validity: 15m
       download-url-validity: 5m
+
+logging:
+  level:
+    ROOT: INFO
+    com.vertyll.veds: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

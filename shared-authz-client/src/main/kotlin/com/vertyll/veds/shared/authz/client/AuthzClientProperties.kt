@@ -21,7 +21,7 @@ import java.time.Duration
  *       registration-retry-interval: 15s
  * ```
  */
-@ConfigurationProperties(prefix = "veds.authz.client")
+@ConfigurationProperties(prefix = "application.authz.client")
 data class AuthzClientProperties(
     val baseUrl: String,
     val registrationRetryInterval: Duration = DEFAULT_REGISTRATION_RETRY_INTERVAL,

@@ -38,7 +38,7 @@ reason the translation catalogue uses it: a rejected catalogue is a deployment
 mistake and belongs in the log of the service that made it.
 
 Registration never blocks a start-up and never gives up: it runs off the start-up
-thread and retries every `veds.authz.client.registration-retry-interval` until
+thread and retries every `application.authz.client.registration-retry-interval` until
 iam-service accepts it. Order of boot therefore does not matter — a service that
 comes up first joins on its own once iam-service answers.
 
@@ -116,7 +116,7 @@ joins it.
 ## Adding a module
 
 1. Declare a `PermissionCatalogue` bean naming the module's permissions and their scope.
-2. Depend on `shared-authz` and `shared-authz-client`, scan `com.vertyll.veds.shared.authz.client`, set `veds.authz.client.base-url`.
+2. Depend on `shared-authz` and `shared-authz-client`, scan `com.vertyll.veds.shared.authz.client`, set `application.authz.client.base-url`.
 3. Keep a `role_permission_projection` table and a consumer of `role-permissions-changed`, filtered to the scope the module's permissions use.
 4. Expose a `RolePermissionsSource` reading that projection.
 5. Guard endpoints with `@PreAuthorize("@authz.has('…')")`.

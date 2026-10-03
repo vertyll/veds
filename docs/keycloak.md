@@ -244,7 +244,7 @@ gateway; flip `SERVER_SSL_ENABLED` when a process holds the certificate itself.
 | Gateway → Redis           | `spring.data.redis.ssl.enabled=true`, `REDIS_SSL_BUNDLE`                                         |
 | Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                    |
 | Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                    |
-| Cookie flag               | `veds.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                          |
+| Cookie flag               | `application.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                   |
 
 Two choices worth stating:
 

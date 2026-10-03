@@ -14,7 +14,7 @@ spring:
           audiences:
             - veds-api
 
-veds:
+application:
   shared:
     keycloak:
       server-url: ${KEYCLOAK_SERVER_URL}

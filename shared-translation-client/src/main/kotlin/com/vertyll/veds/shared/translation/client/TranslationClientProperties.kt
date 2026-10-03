@@ -21,7 +21,7 @@ import java.time.Duration
  *       registration-retry-interval: 15s
  * ```
  */
-@ConfigurationProperties(prefix = "veds.translation.client")
+@ConfigurationProperties(prefix = "application.translation.client")
 data class TranslationClientProperties(
     val baseUrl: String,
     val registrationRetryInterval: Duration = DEFAULT_REGISTRATION_RETRY_INTERVAL,

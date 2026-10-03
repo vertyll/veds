@@ -32,6 +32,11 @@ springdoc:
   swagger-ui:
     enabled: false
 
+application:
+  authz:
+    client:
+      base-url: ${IAM_SERVICE_URL}
+
 logging:
   level:
     ROOT: WARN
@@ -39,8 +44,3 @@ logging:
     org.springframework.security: INFO
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: INFO
-
-veds:
-  authz:
-    client:
-      base-url: ${IAM_SERVICE_URL}
