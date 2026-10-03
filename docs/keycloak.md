@@ -23,6 +23,7 @@ Docker Compose volume mount. You do **not** need to configure Keycloak manually.
 | Client                       | `veds-service-account` | Service account for IAM backend admin operations                 |
 | Protocol mapper (predefined) | `roles mapper`         | Puts realm roles into `realm_access.roles` claim in access token |
 | Protocol mapper (predefined) | `email mapper`         | Puts `email` claim in access token                               |
+| Protocol mapper              | `veds-api-audience`    | Puts `veds-api` in the `aud` claim of gateway access tokens      |
 | Required action (default)    | `TERMS_AND_CONDITIONS` | A new account accepts the terms before its first sign-in ends    |
 | User profile attribute       | `terms_and_conditions` | When the terms were accepted; admins only                        |
 
@@ -137,6 +138,14 @@ those. A refresh that still fails re-reads the session first, and drops it only 
 
 Profile data is deliberately *not* stored in Keycloak user attributes: it is not an application database and querying it
 is painful. The Admin API stays, in the narrower role of provisioning users at registration and syncing roles.
+
+### Tokens are accepted only by the API they were issued for
+
+The `veds-api-gateway` client carries an audience mapper that puts `veds-api` in every access token it receives, and
+every service — the gateway included — requires it (`spring.security.oauth2.resourceserver.jwt.audiences` in
+`shared-web-config.yml`). A token Keycloak issued to another client of the realm, `veds-service-account` included, is
+refused even though its signature and issuer are valid. Access tokens live five minutes and refresh tokens rotate on
+every use (`revokeRefreshToken`, `refreshTokenMaxReuse: 0`), so revoking access needs no deny list.
 
 ### Second Factors
 
