@@ -28,3 +28,7 @@ management:
         enabled: true
     metrics:
       access: read-only
+
+application:
+  redis:
+    key-prefix: veds

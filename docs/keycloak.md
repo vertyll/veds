@@ -120,7 +120,7 @@ That makes concurrent refreshes destructive rather than merely wasteful. A page 
 would have them all read the same session, all call the token endpoint with the same refresh token, and all but one
 replay it — killing the session the winner had just refreshed, roughly every `accessTokenLifespan`.
 
-`SessionTokenRelayFilter` therefore claims a short-lived Redis lock (`gateway:refresh-lock:<sessionId>`) before
+`SessionTokenRelayFilter` therefore claims a short-lived Redis lock (`veds:refresh-lock:<sessionId>`) before
 refreshing. Only the claimant calls Keycloak; the others poll the session store until the new tokens appear and use
 those. A refresh that still fails re-reads the session first, and drops it only when nobody else has replaced it.
 

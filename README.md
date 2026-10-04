@@ -55,8 +55,8 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 - **Pattern**: BFF. The API gateway signs users in with the authorization code flow and PKCE and is the only component
   that holds tokens; the browser holds only the `VEDS_SESSION` cookie (`HttpOnly`, `SameSite=Strict`, `Secure` in
   production). No token reaches JavaScript.
-- **Session store**: Redis, encrypted by the gateway; a refresh lock in Redis keeps one refresh per session across
-  replicas.
+- **Session store**: Redis, encrypted by the gateway (`veds:session` namespace); a refresh lock in Redis
+  (`veds:refresh-lock`) keeps one refresh per session across replicas.
 - **JWT**: the gateway forwards the access token, and every service is a stateless OAuth2 resource server verifying
   signature, issuer, expiry and audience (`veds-api`).
 - **State**: every service is stateless: each request is authorized by the JWT alone. The only state is the gateway's
