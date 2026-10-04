@@ -17,7 +17,7 @@ internal class RedisSessionStore(
     private val objectMapper: ObjectMapper,
     private val sessionCipher: SessionCipher,
     private val properties: GatewaySessionProperties,
-    private val redisKeys: RedisKeyProperties,
+    private val redisKeyProperties: RedisKeyProperties,
 ) : SessionStore {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -66,11 +66,11 @@ internal class RedisSessionStore(
     override fun claimRefresh(
         sessionId: String,
         ttl: Duration,
-    ): Mono<Boolean> = redis.opsForValue().setIfAbsent("${redisKeys.keyPrefix}:refresh-lock:$sessionId", "1", ttl)
+    ): Mono<Boolean> = redis.opsForValue().setIfAbsent("${redisKeyProperties.keyPrefix}:refresh-lock:$sessionId", "1", ttl)
 
     private fun seal(session: AuthSession): String = sessionCipher.encrypt(objectMapper.writeValueAsString(session))
 
     private fun open(payload: String): AuthSession = objectMapper.readValue(sessionCipher.decrypt(payload), AuthSession::class.java)
 
-    private fun key(sessionId: String) = "${redisKeys.keyPrefix}:session:$sessionId"
+    private fun key(sessionId: String) = "${redisKeyProperties.keyPrefix}:session:$sessionId"
 }
