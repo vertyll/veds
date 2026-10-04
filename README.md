@@ -49,14 +49,22 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
 ### Authentication:
 
-- Keycloak (realm `veds`) handles sign-up, sign-in, email verification, password reset, two-factor authentication
-  and acceptance of the terms of use.
-- The API gateway is the BFF: it signs users in with the authorization code flow and PKCE, keeps the tokens in an
-  encrypted session in Redis and gives the browser only an `HttpOnly` cookie. No token reaches JavaScript.
-- Every service is a stateless OAuth2 resource server that verifies the token's signature, issuer, expiry and audience
-  (`veds-api`). Permissions are granted to roles, never to people.
-- Locally, `docker-compose.local.yml` runs every database, Kafka, Schema Registry, Redis, RedisInsight (`:5540`,
-  connected to Redis), Garage, Keycloak on `:9000` (admin/admin) and maildev.
+- **Identity provider**: Keycloak (realm `veds`) owns every page that touches a credential: sign-up, sign-in, email
+  verification, password reset, two-factor authentication and acceptance of the terms of use. The application never sees
+  a password.
+- **Pattern**: BFF. The API gateway signs users in with the authorization code flow and PKCE and is the only component
+  that holds tokens; the browser holds only the `VEDS_SESSION` cookie (`HttpOnly`, `SameSite=Strict`, `Secure` in
+  production). No token reaches JavaScript.
+- **Session store**: Redis, encrypted by the gateway; a refresh lock in Redis keeps one refresh per session across
+  replicas.
+- **JWT**: the gateway forwards the access token, and every service is a stateless OAuth2 resource server verifying
+  signature, issuer, expiry and audience (`veds-api`).
+- **Token lifecycle**: access tokens live five minutes; every refresh returns a new refresh token and invalidates the
+  old one, and concurrent requests of one session share a single refresh. Signing out revokes the refresh token at
+  Keycloak.
+- **Authorization**: permissions are granted to roles, never to people; iam-service announces what every role grants
+  through Kafka and each service decides from its local projection.
+- **Accounts**: iam-service creates the account in PostgreSQL at the first sign-in.
 
 ### Core back-end:
 
