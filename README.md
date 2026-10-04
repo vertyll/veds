@@ -59,6 +59,8 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
   replicas.
 - **JWT**: the gateway forwards the access token, and every service is a stateless OAuth2 resource server verifying
   signature, issuer, expiry and audience (`veds-api`).
+- **State**: every service is stateless: each request is authorized by the JWT alone. The only state is the gateway's
+  session, and it lives in Redis, so gateway instances are interchangeable too.
 - **Token lifecycle**: access tokens live five minutes; every refresh returns a new refresh token and invalidates the
   old one, and concurrent requests of one session share a single refresh. Signing out revokes the refresh token at
   Keycloak.
