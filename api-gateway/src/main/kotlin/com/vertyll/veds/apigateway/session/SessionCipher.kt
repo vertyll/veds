@@ -21,7 +21,6 @@ internal class SessionCipher(
     }
 
     private val random = SecureRandom()
-    private val encoder: Base64.Encoder = Base64.getEncoder()
     private val decoder: Base64.Decoder = Base64.getDecoder()
 
     private val key: SecretKeySpec =
@@ -39,27 +38,19 @@ internal class SessionCipher(
             SecretKeySpec(decoded, ALGORITHM)
         }
 
-    fun encrypt(plaintext: String): String {
+    fun encrypt(plaintext: ByteArray): ByteArray {
         val nonce = ByteArray(NONCE_BYTES).also(random::nextBytes)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_BITS, nonce))
-        val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
-        return encoder.encodeToString(nonce + ciphertext)
+        return nonce + cipher.doFinal(plaintext)
     }
 
-    fun decrypt(payload: String): String {
-        val raw =
-            try {
-                decoder.decode(payload)
-            } catch (e: IllegalArgumentException) {
-                throw GeneralSecurityException("stored session payload is not valid base64", e)
-            }
-        if (raw.size <= NONCE_BYTES) {
-            throw GeneralSecurityException("stored session payload is too short to contain a nonce")
+    fun decrypt(payload: ByteArray): ByteArray {
+        if (payload.size <= NONCE_BYTES) {
+            throw GeneralSecurityException("stored payload is too short to contain a nonce")
         }
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, raw, 0, NONCE_BYTES))
-        val plaintext = cipher.doFinal(raw, NONCE_BYTES, raw.size - NONCE_BYTES)
-        return String(plaintext, Charsets.UTF_8)
+        cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, payload, 0, NONCE_BYTES))
+        return cipher.doFinal(payload, NONCE_BYTES, payload.size - NONCE_BYTES)
     }
 }

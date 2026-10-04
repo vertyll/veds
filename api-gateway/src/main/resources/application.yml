@@ -8,6 +8,12 @@ spring:
   main:
     web-application-type: reactive
 
+  session:
+    timeout: ${GATEWAY_SESSION_TTL:7d}
+    data:
+      redis:
+        namespace: ${application.redis.key-prefix}:session
+
   cloud:
     config:
       enabled: false
@@ -16,6 +22,17 @@ spring:
     service-registry:
       auto-registration:
         enabled: false
+
+server:
+  reactive:
+    session:
+      cookie:
+        name: VEDS_SESSION
+        http-only: true
+        same-site: strict
+        secure: ${application.shared.keycloak.cookie.secure}
+        path: /
+        max-age: ${GATEWAY_SESSION_TTL:7d}
 
 management:
   endpoints:
@@ -32,3 +49,13 @@ management:
 application:
   redis:
     key-prefix: veds
+  gateway:
+    oauth:
+      service-audiences:
+        - veds-iam-service
+        - veds-mail-service
+        - veds-project-service
+        - veds-task-service
+        - veds-translation-service
+        - veds-file-service
+        - veds-notification-service

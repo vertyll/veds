@@ -23,6 +23,8 @@ spring-boot-starter-jackson = { module = "org.springframework.boot:spring-boot-s
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-data-redis-reactive = { module = "org.springframework.boot:spring-boot-starter-data-redis-reactive" }
+spring-boot-starter-session-data-redis = { module = "org.springframework.boot:spring-boot-starter-session-data-redis" }
+spring-boot-starter-security-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-security-oauth2-client" }
 
 spring-cloud-gateway-server-webflux = { module = "org.springframework.cloud:spring-cloud-gateway-server-webflux" }
 spring-cloud-starter-netflix-eureka-client = { module = "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client" }
@@ -86,6 +88,8 @@ spring-boot-gateway = [
     "spring-boot-starter-actuator",
     "spring-boot-starter-security",
     "spring-boot-starter-data-redis-reactive",
+    "spring-boot-starter-session-data-redis",
+    "spring-boot-starter-security-oauth2-client",
     "caffeine"
 ]
 

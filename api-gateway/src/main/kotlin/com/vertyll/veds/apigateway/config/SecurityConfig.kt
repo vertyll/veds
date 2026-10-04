@@ -1,12 +1,22 @@
 package com.vertyll.veds.apigateway.config
 
+import com.vertyll.veds.apigateway.security.CookieAuthorizationRequestRepository
+import com.vertyll.veds.apigateway.security.HostedSignInRequests
 import com.vertyll.veds.apigateway.security.JsonAuthenticationEntryPoint
+import com.vertyll.veds.apigateway.security.SessionAccessTokenFilter
+import com.vertyll.veds.apigateway.security.SignInRedirects
 import com.vertyll.veds.shared.web.security.ReactiveKeycloakJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
@@ -18,6 +28,8 @@ internal class SecurityConfig(
     private val reactiveKeycloakJwtConverter: ReactiveKeycloakJwtAuthenticationConverter,
 ) {
     companion object {
+        private const val CALLBACK_PATH = "/auth/callback"
+
         private val PUBLIC_AUTH_ENDPOINTS =
             arrayOf(
                 "/auth/authorize",
@@ -83,7 +95,16 @@ internal class SecurityConfig(
     }
 
     @Bean
-    fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain =
+    @Suppress("LongParameterList")
+    fun springSecurityFilterChain(
+        http: ServerHttpSecurity,
+        clientRegistrations: ReactiveClientRegistrationRepository,
+        authorizedClients: ServerOAuth2AuthorizedClientRepository,
+        authorizedClientManager: ReactiveOAuth2AuthorizedClientManager,
+        authorizationRequests: CookieAuthorizationRequestRepository,
+        signInRedirects: SignInRedirects,
+        accessTokens: ReactiveJwtDecoder,
+    ): SecurityWebFilterChain =
         http
             .csrf { it.disable() }
             .formLogin { it.disable() }
@@ -122,11 +143,22 @@ internal class SecurityConfig(
                     .authenticated()
                     .anyExchange()
                     .authenticated()
+            }.oauth2Login { login ->
+                login
+                    .authorizationRequestResolver(HostedSignInRequests(clientRegistrations))
+                    .authorizationRequestRepository(authorizationRequests)
+                    .authenticationMatcher(PathPatternParserServerWebExchangeMatcher(CALLBACK_PATH))
+                    .authorizedClientRepository(authorizedClients)
+                    .authenticationSuccessHandler(signInRedirects)
+                    .authenticationFailureHandler(signInRedirects)
             }.oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt.jwtAuthenticationConverter(reactiveKeycloakJwtConverter)
                 }
-            }.build()
+            }.addFilterBefore(
+                SessionAccessTokenFilter(authorizedClientManager, accessTokens, reactiveKeycloakJwtConverter),
+                SecurityWebFiltersOrder.EXCEPTION_TRANSLATION,
+            ).build()
 
     @Bean
     fun corsConfigurationSource(properties: GatewayCorsProperties): CorsConfigurationSource {

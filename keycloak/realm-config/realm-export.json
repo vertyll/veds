@@ -885,7 +885,7 @@
         "id.token.as.detached.signature": "false",
         "client.secret.creation.time": "1772899401",
         "client.introspection.response.allow.jwt.claim.enabled": "false",
-        "standard.token.exchange.enabled": "false",
+        "standard.token.exchange.enabled": "true",
         "client.use.lightweight.access.token.enabled": "false",
         "request.object.required": "not required",
         "access.token.header.type.rfc9068": "false",
@@ -931,12 +931,12 @@
           }
         },
         {
-          "name": "veds-api-audience",
+          "name": "veds-api-gateway-audience",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.custom.audience": "veds-api",
+            "included.client.audience": "veds-api-gateway",
             "id.token.claim": "false",
             "access.token.claim": "true",
             "introspection.token.claim": "true",
@@ -958,7 +958,14 @@
         "phone",
         "offline_access",
         "organization",
-        "microprofile-jwt"
+        "microprofile-jwt",
+        "veds-iam-service-audience",
+        "veds-mail-service-audience",
+        "veds-project-service-audience",
+        "veds-task-service-audience",
+        "veds-translation-service-audience",
+        "veds-file-service-audience",
+        "veds-notification-service-audience"
       ]
     },
     {
@@ -1024,6 +1031,181 @@
         "organization",
         "microprofile-jwt"
       ]
+    },
+    {
+      "id": "73336439-3a59-5d21-a0fe-1b2ea52f714a",
+      "clientId": "veds-iam-service",
+      "name": "VEDS iam service",
+      "description": "Audience of tokens the gateway exchanges for iam-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "id": "aaeb2d53-77bf-5fc8-9b03-7d14001176ea",
+      "clientId": "veds-mail-service",
+      "name": "VEDS mail service",
+      "description": "Audience of tokens the gateway exchanges for mail-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "id": "41f11018-e536-5cb7-875c-b791b88e30bd",
+      "clientId": "veds-project-service",
+      "name": "VEDS project service",
+      "description": "Audience of tokens the gateway exchanges for project-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "id": "ae161775-646b-538f-84a3-e0bec3c1b696",
+      "clientId": "veds-task-service",
+      "name": "VEDS task service",
+      "description": "Audience of tokens the gateway exchanges for task-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "id": "db0b444f-ecc7-596d-a4c1-ded7fb83edd9",
+      "clientId": "veds-translation-service",
+      "name": "VEDS translation service",
+      "description": "Audience of tokens the gateway exchanges for translation-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "id": "66e78dd4-b057-5cc5-8120-5a0cd2ed8c41",
+      "clientId": "veds-file-service",
+      "name": "VEDS file service",
+      "description": "Audience of tokens the gateway exchanges for file-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
+    },
+    {
+      "id": "3ab75152-951b-5d1f-adf5-a64b54adb47c",
+      "clientId": "veds-notification-service",
+      "name": "VEDS notification service",
+      "description": "Audience of tokens the gateway exchanges for notification-service; no flow of its own",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      },
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [],
+      "optionalClientScopes": []
     }
   ],
   "clientScopes": [
@@ -1708,6 +1890,188 @@
             "access.token.claim": "true",
             "claim.name": "groups",
             "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0e8046c-0d93-5ee8-abc4-2661d9540269",
+      "name": "veds-iam-service-audience",
+      "description": "Adds veds-iam-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "acf7c5d6-cf30-5a63-a75f-716505ff7b92",
+          "name": "veds-iam-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-iam-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "id": "01cf3c1c-a08e-5d56-8507-37bfbb823517",
+      "name": "veds-mail-service-audience",
+      "description": "Adds veds-mail-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "53cb1fae-d25d-5e1b-8eb8-0cf2c1b2580d",
+          "name": "veds-mail-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-mail-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "id": "888c36e1-26fe-5240-90f0-b67930d461e1",
+      "name": "veds-project-service-audience",
+      "description": "Adds veds-project-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "f119559c-29ca-52cf-a9a8-d758c91e783b",
+          "name": "veds-project-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-project-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "id": "7867cc7f-930c-5dab-8345-82378181dfbc",
+      "name": "veds-task-service-audience",
+      "description": "Adds veds-task-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "dce108fc-9976-5eef-a4d2-3525eb8016c7",
+          "name": "veds-task-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-task-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "id": "f1fa93f6-a610-59f9-96ad-a2dc08a6c300",
+      "name": "veds-translation-service-audience",
+      "description": "Adds veds-translation-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "7a6d5766-1172-5444-996e-9bc03243bbfc",
+          "name": "veds-translation-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-translation-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "id": "201233a8-6228-5638-8fd5-c4414b6b11b5",
+      "name": "veds-file-service-audience",
+      "description": "Adds veds-file-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "ec74f3b0-e045-55be-8d59-3b8c2b47e153",
+          "name": "veds-file-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-file-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3ea469d0-fbb4-5c67-a00c-490f41aed24c",
+      "name": "veds-notification-service-audience",
+      "description": "Adds veds-notification-service to the audience of a token exchanged for it",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "8d681dac-8bcd-5e68-a803-0d5398062d62",
+          "name": "veds-notification-service audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "veds-notification-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
           }
         }
       ]
