@@ -170,8 +170,17 @@ services:
   redisinsight:
     image: docker.io/redis/redisinsight:3.8.0
     restart: unless-stopped
+    environment:
+      RI_ACCEPT_TERMS_AND_CONDITIONS: "true"
+      RI_REDIS_HOST: gateway-session-store
+      RI_REDIS_PORT: "6379"
+      RI_REDIS_PASSWORD: ${REDIS_PASSWORD:-local-redis-password}
+      RI_REDIS_ALIAS: veds (local)
     ports:
-      - "127.0.0.1:8001:5540"
+      - "127.0.0.1:5540:5540"
+    depends_on:
+      gateway-session-store:
+        condition: service_healthy
     networks:
       - microservices-network
 
