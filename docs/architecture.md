@@ -161,13 +161,13 @@ Provides shared engines, event definitions, and utilities for all microservices.
 
 Responsible for user profile management, authorization, and account operations.
 
-| Feature               | Details                                                                                                                      |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------|
-| **Authentication**    | Fully delegated to Keycloak via the `IdentityProviderPort` outbound port.                                                    |
-| **Admin Integration** | Uses Keycloak Admin API via a service account for user provisioning and role sync.                                           |
-| **Database Stores**   | User profiles, role definitions and permissions. No credentials, no verification tokens, no saga log.                        |
-| **Endpoints**         | The signed-in person's profile and permissions, plus user and role administration. Registration belongs to Keycloak.         |
-| **Outbound messages** | Publishes `user-registered`, `user-profile-updated` and `role-permissions-changed` through `AuthEventPublisherPort`.         |
+| Feature               | Details                                                                                                              |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------|
+| **Authentication**    | Fully delegated to Keycloak via the `IdentityProviderPort` outbound port.                                            |
+| **Admin Integration** | Uses Keycloak Admin API via a service account for user provisioning and role sync.                                   |
+| **Database Stores**   | User profiles, role definitions and permissions. No credentials, no verification tokens, no saga log.                |
+| **Endpoints**         | The signed-in person's profile and permissions, plus user and role administration. Registration belongs to Keycloak. |
+| **Outbound messages** | Publishes `user-registered`, `user-profile-updated` and `role-permissions-changed` through `AuthEventPublisherPort`. |
 
 ### Mail Service
 

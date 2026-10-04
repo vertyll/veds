@@ -39,9 +39,9 @@ Category and status names are written by users, in whichever languages they need
 
 ## Reads bypass the domain model
 
-`ProjectQueryPort` returns view models straight from the database. `getProjectDetails` used to
-load five aggregates to flatten them into one DTO; the list query counted members with one
-statement per row. See [CQRS](../docs/cqrs.md).
+`ProjectQueryPort` returns view models straight from the database: `getProjectDetails` loads no
+aggregate to flatten into a DTO, and the list query counts members in the same statement. See
+[CQRS](../docs/cqrs.md).
 
 ## Identity
 

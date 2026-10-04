@@ -47,10 +47,10 @@ the wording belongs to `mail-service`. See [Translations](./translations.md).
 
 ## Compensation
 
-| Topic                            | Service              |
-|----------------------------------|----------------------|
-| `saga-compensation-mail`         | mail-service         |
-| `saga-compensation-project`      | project-service      |
+| Topic                       | Service         |
+|-----------------------------|-----------------|
+| `saga-compensation-mail`    | mail-service    |
+| `saga-compensation-project` | project-service |
 
 Internal to one service: a compensation event is how a saga undoes its own steps, never a message another context reacts
 to. See [Eventual Consistency](./eventual-consistency.md).

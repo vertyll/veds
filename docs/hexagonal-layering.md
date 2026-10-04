@@ -97,9 +97,9 @@ A use case takes the domain's own `PageRequest` and returns a `PageResult`; the 
 
 ### Spring configuration out of the use cases
 
-`EmailService` was injected with mail-service's whole `@ConfigurationProperties` object to read a single field. It now
-takes a `SenderAddress` value object, and `MailProperties` moved to infrastructure — SMTP host, port and password are no
-longer in reach of code that has no business knowing them.
+`EmailService` takes a `SenderAddress` value object rather than mail-service's `@ConfigurationProperties` object, and
+`MailProperties` lives in infrastructure — SMTP host, port and password stay out of reach of code that has no business
+knowing them.
 
 ## Status
 

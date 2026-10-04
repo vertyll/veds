@@ -4,12 +4,12 @@ Answers: who decides what a person may do, and where that decision is made.
 
 ## The split
 
-| Concern                          | Owner                     | Where it lives                                     |
-|----------------------------------|---------------------------|----------------------------------------------------|
-| Who the person is                | Keycloak                  | the access token, `realm_access.roles`             |
-| Which permissions exist          | the service enforcing one | its `PermissionCatalogue`, declared in code        |
-| What a role grants               | iam-service               | `role`, `permission`, `role_permission_mapping`    |
-| Whether this request is allowed  | the service handling it   | its own projection, no call to iam                 |
+| Concern                         | Owner                     | Where it lives                                  |
+|---------------------------------|---------------------------|-------------------------------------------------|
+| Who the person is               | Keycloak                  | the access token, `realm_access.roles`          |
+| Which permissions exist         | the service enforcing one | its `PermissionCatalogue`, declared in code     |
+| What a role grants              | iam-service               | `role`, `permission`, `role_permission_mapping` |
+| Whether this request is allowed | the service handling it   | its own projection, no call to iam              |
 
 Keycloak is the identity provider, not the authorization system. It says who is
 calling and which platform-wide roles they hold; it never says what those roles

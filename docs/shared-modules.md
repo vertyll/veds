@@ -38,14 +38,14 @@ Kotlin standard library only. Safe to name from an application layer.
 
 ### Spring
 
-| Module                      | Responsibility                                                                                              |
-|-----------------------------|-------------------------------------------------------------------------------------------------------------|
-| `shared-web`                | Keycloak JWT converters (servlet and reactive), the error-to-HTTP mapping, ETag helpers, config defaults    |
-| `shared-messaging-kafka`    | Transactional outbox and inbox — contract, JPA mapping and adapters — plus Avro and Schema Registry wiring  |
-| `shared-saga-engine`        | One service's local saga: the state machine, compensation, the watchdog, and the JPA flavour of its ports   |
-| `shared-translation-client` | Start-up registration of a service's translation keys with `translation-service`                            |
-| `shared-authz-client`       | Start-up registration of a service's permission catalogue with `iam-service`                                |
-| `shared-archunit`           | The architecture rules every service is checked against, as executable tests                                |
+| Module                      | Responsibility                                                                                             |
+|-----------------------------|------------------------------------------------------------------------------------------------------------|
+| `shared-web`                | Keycloak JWT converters (servlet and reactive), the error-to-HTTP mapping, ETag helpers, config defaults   |
+| `shared-messaging-kafka`    | Transactional outbox and inbox — contract, JPA mapping and adapters — plus Avro and Schema Registry wiring |
+| `shared-saga-engine`        | One service's local saga: the state machine, compensation, the watchdog, and the JPA flavour of its ports  |
+| `shared-translation-client` | Start-up registration of a service's translation keys with `translation-service`                           |
+| `shared-authz-client`       | Start-up registration of a service's permission catalogue with `iam-service`                               |
+| `shared-archunit`           | The architecture rules every service is checked against, as executable tests                               |
 
 ## The dependency graph
 
@@ -85,14 +85,14 @@ library the gateway takes, so anything heavier added to it is added to the gatew
 Every service takes the same four: `shared-web`, `shared-error`, `shared-translation` and
 `shared-messaging-kafka`, plus `shared-archunit` on the test classpath. What differs is the rest.
 
-| Service                                | Beyond those four                                                    |
-|----------------------------------------|----------------------------------------------------------------------|
-| api-gateway                            | none — and none of the four either, only `shared-web`                |
-| translation-service                    | `shared-authz`, `shared-authz-client`                                |
-| file, task, notification               | `shared-translation-client`                                          |
-| template-service                       | `shared-translation-client`, `shared-saga-api`, `shared-saga-engine` |
-| iam-service                            | `shared-translation-client`, `shared-authz`                          |
-| mail, project                          | everything                                                           |
+| Service                  | Beyond those four                                                    |
+|--------------------------|----------------------------------------------------------------------|
+| api-gateway              | none — and none of the four either, only `shared-web`                |
+| translation-service      | `shared-authz`, `shared-authz-client`                                |
+| file, task, notification | `shared-translation-client`                                          |
+| template-service         | `shared-translation-client`, `shared-saga-api`, `shared-saga-engine` |
+| iam-service              | `shared-translation-client`, `shared-authz`                          |
+| mail, project            | everything                                                           |
 
 Three of these are worth reading as evidence that the boundaries are real rather than decorative:
 

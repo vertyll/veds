@@ -56,14 +56,14 @@ read has no invariants to enforce.
 `ProjectQueryPort` returns view models; `ProjectQueryAdapter` builds them with JPQL tuple queries and native reads for
 the element-collection tables. Nothing on that path is reconstituted into a domain object.
 
-What that changed:
+What it costs compared with loading aggregates:
 
-| Operation           | Before                                      | After                                         |
+| Operation           | Through aggregates                          | Through the read model                        |
 |---------------------|---------------------------------------------|-----------------------------------------------|
 | `getProjectDetails` | 5 repository calls, every aggregate rebuilt | 1 authorization load + 4 flat projections     |
 | `searchProjects`    | page query + one member-count query per row | one statement, count as a correlated subquery |
 
-The deeper point is not the query count: the read model is now free to have a shape the write model does not, so queries
+The deeper point is not the query count: the read model is free to have a shape the write model does not, so queries
 stop being constrained by aggregate boundaries. That coupling is what CQRS exists to remove.
 
 **Authorization still runs on the read path**, through the same `ProjectAccessPolicy` as writes. CQRS separates models,

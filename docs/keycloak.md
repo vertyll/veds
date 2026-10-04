@@ -104,10 +104,11 @@ login-flow cookies must be `Lax` — they are read on the callback, which *is* a
 
 > [!IMPORTANT]
 >
-> **`POST /auth/token` (ROPC) and `POST /auth/refresh-token` are gone.** ROPC is removed in
-> OAuth 2.1 and required the gateway to receive the user's plaintext password, ruling out MFA,
-> WebAuthn and identity brokering. `directAccessGrantsEnabled` is now `false` on the realm
-> client. The refresh endpoint existed only to hand the browser a token — there is none.
+> **The gateway has no password grant and no refresh endpoint.** ROPC is removed in OAuth 2.1
+> and would require the gateway to receive the user's plaintext password, ruling out MFA,
+> WebAuthn and identity brokering, so `directAccessGrantsEnabled` is `false` on the realm
+> client. A refresh endpoint would exist only to hand the browser a token — and the browser
+> never holds one.
 
 ### Refreshing a token is single-flight, per session
 
