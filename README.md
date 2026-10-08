@@ -50,24 +50,12 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
 ### Authentication:
 
-- **Identity provider**: Keycloak (realm `veds`) owns every page that touches a credential: sign-up, sign-in, email
-  verification, password reset, two-factor authentication and acceptance of the terms of use. The application never sees
-  a password.
-- **Pattern**: BFF with Spring Security's OAuth2 client. The API gateway signs users in with the authorization code flow
-  and PKCE and is the only component that holds tokens; the browser holds only the `VEDS_SESSION` cookie (`HttpOnly`,
-  `SameSite=Strict`, `Secure` in production). No token reaches JavaScript.
-- **Session store**: Redis (Spring Session, `veds:session` namespace), every attribute encrypted by the gateway.
-- **JWT**: on the way to a service the gateway exchanges the person's token at Keycloak (token exchange, RFC 8693) for
-  one whose only audience is that service, and every service is a stateless OAuth2 resource server verifying signature,
-  issuer, expiry and its own audience (`veds-<name>-service`). A token leaked from one service opens no other.
-- **State**: every service is stateless: each request is authorized by the JWT alone. The only state is the gateway's
-  session, and it lives in Redis, so gateway instances are interchangeable too.
-- **Token lifecycle**: access tokens live five minutes; every refresh returns a new refresh token and invalidates the
-  old one, and concurrent requests of one session share a single refresh, across replicas too (a lock in Redis). Signing
-  out revokes the refresh token at Keycloak.
-- **Authorization**: permissions are granted to roles, never to people; iam-service announces what every role grants
-  through Kafka and each service decides from its local projection.
-- **Accounts**: iam-service creates the account in PostgreSQL at the first sign-in.
+- **Identity provider**: Keycloak (realm `veds`); the application never sees a password.
+- **Pattern**: BFF; only the API gateway holds tokens, the browser holds only a session cookie.
+- **Session store**: Redis (Spring Session), every attribute encrypted by the gateway.
+- **JWT**: exchanged per service (RFC 8693), so a token leaked from one service opens no other.
+- **Authorization**: permissions are granted to roles; each service decides from its own projection.
+- **Details**: [Keycloak](./docs/keycloak.md) and [Authorization](./docs/authorization.md).
 
 ### Core back-end:
 
