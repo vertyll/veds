@@ -42,23 +42,26 @@ refresh tokens in its session in Redis and, on the way through to a microservice
 token exchanged for that service alone. The OAuth2 work — state, PKCE, the code exchange, the ID token check, the
 refresh and the token exchange — is Spring Security's OAuth2 client.
 
-```text
-Browser (SPA)              API Gateway (BFF)                Keycloak            Microservices
-     |                            |                             |                     |
-     |-- 1. GET /auth/authorize ->|                             |                     |
-     |                            |-- 302, PKCE challenge ----->|                     |
-     |<------------- Keycloak login page (user types password) -|                     |
-     |                            |                             |                     |
-     |-- 2. GET /auth/callback -->|                             |                     |
-     |       ?code&state          |-- 3. code + verifier ------>|                     |
-     |                            |<--- access + refresh token -|                     |
-     |<-- 4. Set-Cookie: VEDS_SESSION (opaque id, HttpOnly, SameSite=Strict)          |
-     |                            |    tokens stored in Redis   |                     |
-     |                            |                             |                     |
-     |-- 5. GET /projects ------->|                             |                     |
-     |       + cookie             |-- 6. token exchange ------->|                     |
-     |                            |<--- token, aud = veds-project-service             |
-     |                            |-- 7. + Bearer <exchanged JWT> -------------------->|
+```mermaid
+sequenceDiagram
+    participant B as Browser (SPA)
+    participant G as API Gateway (BFF)
+    participant K as Keycloak
+    participant S as Microservice
+
+    B->>G: GET /auth/authorize
+    G-->>B: 302 to Keycloak, with the PKCE challenge
+    B->>K: sign in on Keycloak's page
+    K-->>B: 302 to /auth/callback?code&state
+    B->>G: GET /auth/callback?code&state
+    G->>K: code + client secret + PKCE verifier
+    K-->>G: access, refresh and ID token
+    Note over G: tokens kept in the session, in Redis
+    G-->>B: Set-Cookie VEDS_SESSION (opaque, HttpOnly, SameSite=Strict)
+    B->>G: GET /projects + cookie
+    G->>K: token exchange (RFC 8693)
+    K-->>G: token with aud = veds-project-service
+    G->>S: GET /projects + Bearer exchanged token
 ```
 
 1. **`GET /auth/authorize`** — Spring builds the authorization request (`state`, `nonce`, `code_verifier`), keeps it in
