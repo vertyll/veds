@@ -1,6 +1,7 @@
 # Kafka Topics IaC (OpenTofu)
 
-This module automates the provisioning of Kafka topics (both Business and DLT) using the [Mongey/kafka](https://search.opentofu.org/provider/mongey/kafka/latest) provider.
+This module automates the provisioning of Kafka topics (both Business and DLT) using the
+[Mongey/kafka](https://search.opentofu.org/provider/mongey/kafka/latest) provider.
 
 ## Requirements
 
@@ -25,7 +26,9 @@ tofu apply
 ```
 
 > [!IMPORTANT]
-> If you need to target a different environment, override the `bootstrap_servers` variable. Since it expects a `list(string)`, use the following syntax:
+>
+> If you need to target a different environment, override the `bootstrap_servers` variable. Since it expects a
+> `list(string)`, use the following syntax:
 >
 > ```bash
 > tofu apply -var='bootstrap_servers=["kafka.production.internal:9092"]'

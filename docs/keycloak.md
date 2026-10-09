@@ -117,9 +117,9 @@ Redis, so a copy of the data reveals no token; a value that no longer decrypts r
 out.
 
 **CSRF.** Once authentication travels in a cookie the browser attaches automatically, CSRF becomes a live concern that a
-`Bearer` header did not have. `VEDS_SESSION` is `SameSite=Strict`, so it is never sent on a cross-site request. The pending
-authorization request therefore lives in its own cookie, which must be `Lax` — it is read on the callback, which *is* a
-cross-site redirect — and is encrypted like the session.
+`Bearer` header did not have. `VEDS_SESSION` is `SameSite=Strict`, so it is never sent on a cross-site request. The
+pending authorization request therefore lives in its own cookie, which must be `Lax` — it is read on the callback, which
+*is* a cross-site redirect — and is encrypted like the session.
 
 | Cookie                  | SameSite | Lifetime | Why                                                                 |
 |-------------------------|----------|----------|---------------------------------------------------------------------|
@@ -151,6 +151,7 @@ calls Keycloak and leaves the new tokens under `veds:refresh-result:<sha256>`, a
 refresh Keycloak refuses ends the session; when Redis is unreachable a replica refreshes on its own.
 
 > [!WARNING]
+>
 > Turning `revokeRefreshToken` off would make the symptom disappear and remove the replay detection that catches a
 > stolen refresh token. The lock is the fix; the realm setting is not the problem.
 

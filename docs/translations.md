@@ -25,6 +25,7 @@ A data label has no key — a category is a UUID somebody named — so there is 
 resolves it against `X-Lang` and returns `statusName`, already readable.
 
 > [!WARNING]
+>
 > A service that starts returning finished sentences for system messages breaks this. The client then has no key to
 > branch on, and the response language is fixed at whatever the server guessed.
 
@@ -174,6 +175,7 @@ Because the subject is presentation copy rather than a domain fact, it lives at 
 `NotificationType`. The enum carries only the key its in-app notification renders with.
 
 > [!WARNING]
+>
 > A template name is `EmailTemplate.<NAME>`, upper case, matching the file. A producer that sends any other spelling
 > gets no error at the call site: `mail-service` logs `Invalid template name` and drops the message.
 
@@ -217,6 +219,7 @@ not read it — under ICU `{{count}}` renders as `{5}`, braces included. One dia
 that from being a per-key accident.
 
 > [!NOTE]
+>
 > `environment.availableLanguages` is a constant list in the front end, while `GET /translations/languages` exists and
 > answers the same question. A language seeded in the back end therefore needs a front-end release to become
 > selectable.
