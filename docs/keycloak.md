@@ -11,8 +11,9 @@ Keycloak is the identity provider (IdP) for the application. It handles:
 > [!IMPORTANT]
 >
 > The realm JSON export: `keycloak/realm-config/realm-export.json` is automatically imported **on first startup** via
-Docker Compose volume mount. You do **not** need to configure Keycloak manually. An existing realm is never
-re-imported: to load a changed export locally, remove the `veds_keycloak-postgres-data` volume and start Keycloak again.
+> Docker Compose volume mount. You do **not** need to configure Keycloak manually. An existing realm is never
+> re-imported: to load a changed export locally, remove the `veds_keycloak-postgres-data` volume and start Keycloak
+> again.
 
 ## What the Realm Export Creates
 
@@ -238,9 +239,9 @@ Role names are owned by **two places only**:
 > [!NOTE]
 >
 > What stays in `shared-web/security/` is **only** the technical JWT → `Authentication` adapter
-(`KeycloakJwtAuthenticationConverter` / `ReactiveKeycloakJwtAuthenticationConverter`). It is role-name-agnostic — it
-maps *whatever* strings sit in the configured claim path onto `ROLE_*` authorities. Each service then decides which of
-those it cares about, in its own `SecurityConfig`.
+> (`KeycloakJwtAuthenticationConverter` / `ReactiveKeycloakJwtAuthenticationConverter`). It is role-name-agnostic — it
+> maps *whatever* strings sit in the configured claim path onto `ROLE_*` authorities. Each service then decides which of
+> those it cares about, in its own `SecurityConfig`.
 
 ## Useful Keycloak URLs (Local Dev)
 

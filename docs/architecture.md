@@ -89,9 +89,8 @@ one without the others: the gateway takes `shared-web` alone, file-service takes
 > [!NOTE]
 >
 > Each microservice follows Hexagonal Architecture principles with a three-layer structure and has its own PostgreSQL
-database. Services communicate with each other
-> asynchronously via Apache Kafka (event-driven, choreography-based), with the Transactional Outbox pattern guaranteeing
-reliable event publication.
+> database. Services communicate with each other asynchronously via Apache Kafka (event-driven, choreography-based),
+> with the Transactional Outbox pattern guaranteeing reliable event publication.
 
 ### Identifiers
 

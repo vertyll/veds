@@ -158,7 +158,7 @@ Services communicate asynchronously through Kafka events. Integration events are
 > [!NOTE]
 >
 > All publishing goes through the Outbox (`KafkaOutboxProcessor`); all consumption goes through `ProcessedEventGuard`
-for idempotency.
+> for idempotency.
 
 | Event                                 | Publisher              | Consumer          | Details                                                                                                                                                                                                |
 |---------------------------------------|------------------------|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
