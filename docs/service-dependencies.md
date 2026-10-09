@@ -72,7 +72,7 @@ request path:
 |---------------|---------------------|---------------------------------------------------|-----------------------------------|
 | every service | translation-service | once at start-up, to publish its translation keys | logged; the service starts anyway |
 
-Everything else travels through Kafka. See the [Event Catalog](./events.md) for who publishes and who consumes what.
+Everything else travels through Kafka. See the [Event Catalog](events.md) for who publishes and who consumes what.
 
 ## What that buys, and what it costs
 

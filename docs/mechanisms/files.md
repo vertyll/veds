@@ -49,7 +49,7 @@ Two consequences worth knowing:
 ## CORS is required, and is not optional
 
 The browser `PUT`s to the store from the SPA's origin, so the bucket must allow it; the rule and why it does not open
-the bucket are in [infra/garage](../infra/garage/README.md#cors-is-required).
+the bucket are in [infra/garage](../../infra/garage/README.md#cors-is-required).
 
 Two interceptors are scoped to the application's own API for the same reason: `withCredentials`
 would leak the session cookie to a third-party origin (and a CORS response cannot both allow credentials and use a
@@ -59,7 +59,7 @@ allow.
 ## Local storage: Garage
 
 Locally the store is Garage. Its bootstrap, the CORS rule it applies, its version constraint and the
-`response-content-disposition` caveat are in [infra/garage](../infra/garage/README.md).
+`response-content-disposition` caveat are in [infra/garage](../../infra/garage/README.md).
 
 `pathStyleAccessEnabled(true)` is set in `ObjectStorageConfig` because Garage does not serve virtual-host style buckets
 without wildcard DNS, which a compose file does not have.

@@ -84,7 +84,7 @@ The framework-free modules exist so that a service's **application layer can ref
 Spring on its compile classpath**. The Spring-bound modules are split by capability, and only where some consumer takes
 one without the others: the gateway takes `shared-web` alone, file-service takes the outbox without the saga engine.
 
-[Shared Modules](./shared-modules.md) is the canonical reference for what each one holds and why.
+[Shared Modules](shared-modules.md) is the canonical reference for what each one holds and why.
 
 > [!NOTE]
 >
@@ -276,7 +276,7 @@ The platform level is plain RBAC, deliberately. There is no resource attribute a
 on — editing translations is not something one can be allowed to do inside one project and not another.
 
 Both levels draw from one registry of permissions, and a permission names the level it belongs to. See
-[Authorization](./authorization.md) for how a service learns what a role grants.
+[Authorization](authorization.md) for how a service learns what a role grants.
 
 ### Permissions belong to roles
 
@@ -289,7 +289,7 @@ administration screen could only ever show half the picture. `User.permissions` 
 read time and never stored, so a grant cannot drift from the role that justifies it.
 
 Credentials and sessions belong to Keycloak, not here. The schema holds a profile joined to Keycloak by `keycloak_id`,
-and carries no password column and no refresh-token table — see [Keycloak](./keycloak.md).
+and carries no password column and no refresh-token table — see [Keycloak](keycloak.md).
 
 This also matters for what comes next. With several organizations, per-user permissions are unauditable — nobody could
 say who holds a given right, or why. The organization level, when it arrives, is a copy of the project pattern one floor

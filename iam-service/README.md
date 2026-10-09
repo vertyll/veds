@@ -23,12 +23,14 @@ authorization model. Password hashes are not stored here.
 
 Signing up, signing in, resetting a password and changing one all happen on Keycloak's own pages,
 reached through the gateway. This service learns of a person on their first authenticated call and
-provisions them from the token — see [Keycloak](../docs/keycloak.md).
+provisions them from the token — see [User provisioning](docs/mechanisms/user-provisioning.md).
 
 That leaves one answer to every identity question instead of two that can disagree, and no saga:
 there is nothing here to undo when a mail fails, because this service sends none.
 
-## Second factor
+## Mechanisms
 
-Configured on Keycloak's pages, never through this service; how enabling, disabling and reading the status work is in
-[Keycloak](../docs/keycloak.md#second-factors).
+- [Second factor](docs/mechanisms/second-factor.md) – How a person enables and disables a second factor without a secret
+  passing through the application.
+- [User provisioning](docs/mechanisms/user-provisioning.md) – How iam-service learns about a person Keycloak already
+  knows.

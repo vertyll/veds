@@ -11,6 +11,6 @@ The translation catalog: keys, languages and their text.
 
 No outbox and no saga tables: it is a catalog other services read and an administrator edits.
 
-How keys are declared and registered, why defaults and overrides are separate columns, why rendering uses ICU4J,
-what a missing key renders as, and the cacheable public endpoint are in [Translations](../docs/translations.md), which
-covers every service's part.
+How keys are declared and registered, why defaults and overrides are separate columns, why rendering uses ICU4J, what a
+missing key renders as, and the cacheable public endpoint are in [Translations](../docs/mechanisms/translations.md),
+which covers every service's part.

@@ -98,7 +98,7 @@ cd <service-name>
 >
 > **Start `translation-service` first.** Every other service registers its keys with it at start-up; started later,
 > the others log a failed registration and recover on their next restart
-> ([Service Dependencies](./service-dependencies.md)).
+> ([Service Dependencies](service-dependencies.md)).
 
 | Service                | Port |
 |------------------------|------|
@@ -156,7 +156,7 @@ The flag widens what each build runs; every included build takes part either way
 integration tests of its own, so narrowing by name would silently skip them.
 
 Under Podman they also need `DOCKER_HOST` and `TESTCONTAINERS_RYUK_DISABLED` — see
-[Testing](./testing.md).
+[Testing](testing.md).
 
 ## API documentation
 
@@ -184,7 +184,7 @@ Every service exposes Spring Boot Actuator at `/actuator/health`.
 ```
 
 `check` additionally runs `checkHexagonalDependencies`, which fails the build if a framework reaches a service's
-application layer. See [Hexagonal Layering](./hexagonal-layering.md).
+application layer. See [Hexagonal Layering](hexagonal-layering.md).
 
 ## Troubleshooting
 

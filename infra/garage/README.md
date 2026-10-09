@@ -58,4 +58,4 @@ file under its original name. That is an S3 feature a compatible store may not i
 is ignored the download still works — the file is named after the object key — so this degrades
 rather than fails.
 
-See [Files](../../docs/files.md).
+See [Files](../../docs/mechanisms/files.md).

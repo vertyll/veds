@@ -43,7 +43,7 @@ it — means a producer change at the moment a consumer is already waiting.
 | `mail-requested` | mail-service | iam-service, notification-service |
 
 `mail-requested` names a template and its variables; it carries no subject and no prose, because
-the wording belongs to `mail-service`. See [Translations](./translations.md).
+the wording belongs to `mail-service`. See [Translations](mechanisms/translations.md).
 
 ## Compensation
 
@@ -53,7 +53,7 @@ the wording belongs to `mail-service`. See [Translations](./translations.md).
 | `saga-compensation-project` | project-service |
 
 Internal to one service: a compensation event is how a saga undoes its own steps, never a message another context reacts
-to. See [Eventual Consistency](./eventual-consistency.md).
+to. See [Eventual Consistency](eventual-consistency.md).
 
 `iam-service`, `task-service`, `notification-service`, `translation-service` and `file-service` have no compensation
 topic — none of them starts a saga or owns a step of one. They react to events other contexts publish, and a consumer

@@ -55,7 +55,7 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 - **Session store**: Redis (Spring Session), every attribute encrypted by the gateway.
 - **JWT**: exchanged per service (RFC 8693), so a token leaked from one service opens no other.
 - **Authorization**: permissions are granted to roles; each service decides from its own projection.
-- **Details**: [Keycloak](./docs/keycloak.md) and [Authorization](./docs/authorization.md).
+- **Details**: [Keycloak](docs/keycloak.md) and [Authorization](docs/authorization.md).
 
 ### Core back-end:
 
@@ -80,25 +80,6 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
 ## Documentation
 
-Start with [Development Setup](./docs/development-setup.md), then [Architecture](./docs/architecture.md).
-
-- [Glossary](./GLOSSARY.md) – every term the docs use, and where it is explained.
-- [Standards](./STANDARDS.md) – the RFCs and specifications the code implements or depends on.
-- [Development Setup](./docs/development-setup.md) – running the whole system locally.
-- [Testing](./docs/testing.md) – the two test tiers and the architecture check.
-- [Architecture](./docs/architecture.md) – components and design principles.
-- [Hexagonal Layering](./docs/hexagonal-layering.md) – the dependency rule and how it is enforced.
-- [Shared Modules](./docs/shared-modules.md) – what each shared library is responsible for.
-- [Service Dependencies](./docs/service-dependencies.md) – what each service needs to build and to run.
-- [CQRS](./docs/cqrs.md) – where command/query separation is applied, and why.
-- [Eventual Consistency](./docs/eventual-consistency.md) – outbox, inbox and sagas.
-- [Event Catalog](./docs/events.md) – every topic, its owner and its consumers.
-- [Concurrency Control](./docs/concurrency.md) – optimistic locking, ETags, saga and outbox concurrency.
-- [Keycloak Configuration](./docs/keycloak.md) – realm setup, authentication flow, role management.
-- [Authorization](./docs/authorization.md) – permissions, roles and how services check them.
-- [Files](./docs/files.md) – pre-signed uploads, a private bucket and the two sweeps.
-- [Translations](./docs/translations.md) – key ownership and ICU.
-
-Every service and shared module has its own README with the decisions behind it, for example
-[api-gateway](./api-gateway/README.md), [iam-service](./iam-service/README.md) and
-[shared-messaging-kafka](./shared-messaging-kafka/README.md).
+- [Contents](CONTENTS.md) – every document in the repository, the module it belongs to, and what it covers.
+- [Glossary](GLOSSARY.md) – every term the docs use, and where it is explained.
+- [Standards](STANDARDS.md) – the RFCs and specifications the code implements or depends on.

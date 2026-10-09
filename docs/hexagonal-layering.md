@@ -64,7 +64,7 @@ degrade quietly.
 
 `TransactionalUseCaseFactory` takes no list of read-only method *names*. A query port is read-only in its entirety and
 a command port is not, so the caller passes a constant. Nothing hand-maintained can drift out of step with a rename —
-see [CQRS](./cqrs.md).
+see [CQRS](mechanisms/cqrs.md).
 
 ### Bean validation → the web adapter
 

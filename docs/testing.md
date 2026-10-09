@@ -10,7 +10,7 @@ Two tiers, split by what they can actually prove.
 ## Domain and application tests
 
 No Spring, no database, no containers — a direct consequence of the framework-free application layer
-(see [Hexagonal Layering](./hexagonal-layering.md)). They use JUnit 5 plus
+(see [Hexagonal Layering](hexagonal-layering.md)). They use JUnit 5 plus
 `kotlin-test`, deliberately **not** `spring-boot-starter-test`: pulling that in would put Spring on the module's
 classpath and the architecture check would fail the build.
 

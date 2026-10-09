@@ -80,19 +80,15 @@ Each microservice still validates the JWT independently against Keycloak's JWKS 
 session ever existed — and accepts only a token whose audience is its own client, `veds-${spring.application.name}`
 (`shared-web-config.yml`).
 
-### Each service gets a token for itself alone
+### Mechanisms
 
-The person's own token has the gateway as its only audience, and it never leaves the gateway. Every route carries
-`TokenRelay=veds-<name>-service`: the gateway exchanges the person's token at Keycloak (standard token exchange,
-RFC 8693) for one whose `aud` is that service alone, and relays that. A token leaked from one service — through a log,
-a dump, a bug — opens no other service, and a service cannot replay what it received against its neighbors.
-
-- The exchange asks for `audience=veds-<name>-service` and the optional scope `veds-<name>-service-audience`; the
-  realm grants nothing more, so the exchanged token keeps the person's identity and realm roles and gains one audience.
-- Exchanged tokens are kept in the session next to the person's tokens and reused until they expire, so a service
-  costs one call to Keycloak per five minutes per session, not one per request.
-- A caller with its own token (`Authorization: Bearer`, audience `veds-api-gateway`) gets the same exchange on every
-  request and no session.
+| Mechanism                                                                | Where it runs |
+|--------------------------------------------------------------------------|---------------|
+| [Session](../api-gateway/docs/mechanisms/session.md)                     | api-gateway   |
+| [Token exchange](../api-gateway/docs/mechanisms/token-exchange.md)       | api-gateway   |
+| [Token refresh](../api-gateway/docs/mechanisms/token-refresh.md)         | api-gateway   |
+| [User provisioning](../iam-service/docs/mechanisms/user-provisioning.md) | iam-service   |
+| [Second factor](../iam-service/docs/mechanisms/second-factor.md)         | iam-service   |
 
 ### Why the full Token Handler, not just PKCE plus a token in the response
 
@@ -106,59 +102,6 @@ JavaScript memory.
 | Revoking a session takes effect           | when the token expires | immediately — delete the Redis record    |
 | SPA implements a refresh loop             | yes                    | no — the gateway refreshes transparently |
 
-### Implementation notes
-
-**Filter ordering.** `SessionAccessTokenFilter` runs inside Spring Security's chain, after authentication: it turns the
-signed-in session into the person's access token, refreshing it when needed, and makes that JWT the request's
-authentication. Authorization and the routes therefore see a JWT whether the caller has a session or a token of its
-own, and `TokenRelay` exchanges that JWT on the way to the service.
-
-**Session store: Spring Session in Redis, encrypted.** Keycloak's tokens exceed the 4 KB cookie budget once encrypted,
-refresh-token rotation would mean rewriting the cookie on every proxied request, and a server-side record is what makes
-logout genuinely revoke access. It also lets any gateway replica serve any session. Sessions live under
-`veds:session:*`, and every attribute is sealed with AES-GCM (`GATEWAY_SESSION_ENCRYPTION_KEY`) before it reaches
-Redis, so a copy of the data reveals no token; a value that no longer decrypts reads as absent and signs that browser
-out.
-
-**CSRF.** Once authentication travels in a cookie the browser attaches automatically, CSRF becomes a live concern that a
-`Bearer` header did not have. `VEDS_SESSION` is `SameSite=Strict`, so it is never sent on a cross-site request. The
-pending authorization request therefore lives in its own cookie, which must be `Lax` — it is read on the callback, which
-*is* a cross-site redirect — and is encrypted like the session.
-
-| Cookie                  | SameSite | Lifetime | Why                                                                 |
-|-------------------------|----------|----------|---------------------------------------------------------------------|
-| `VEDS_SESSION`          | `Strict` | 7 days   | The only cookie the SPA relies on; CSRF defense                     |
-| `KEYCLOAK_AUTH_REQUEST` | `Lax`    | 10 min   | State, nonce and PKCE verifier; survives the redirect from Keycloak |
-
-> [!IMPORTANT]
->
-> **The gateway has no password grant and no refresh endpoint.** ROPC is removed in OAuth 2.1
-> and would require the gateway to receive the user's plaintext password, ruling out MFA,
-> WebAuthn and identity brokering, so `directAccessGrantsEnabled` is `false` on the realm
-> client. A refresh endpoint would exist only to hand the browser a token — and the browser
-> never holds one.
-
-### Refreshing a token is single-flight, per refresh token
-
-The realm sets `revokeRefreshToken: true` with `refreshTokenMaxReuse: 0`, so a refresh token is strictly
-single-use. Presenting a spent one is treated as replay and **revokes the whole SSO session** — not just the
-rejected request.
-
-That makes concurrent refreshes destructive rather than merely wasteful. A page issuing several API calls at once
-would have them all read the same session, all call the token endpoint with the same refresh token, and all but one
-replay it — killing the session the winner had just refreshed, roughly every `accessTokenLifespan`.
-
-`SingleFlightRefreshTokenProvider` therefore wraps Spring's refresh: requests of one replica holding the same refresh
-token share one refresh, and for thirty seconds a request still holding the old token receives the same result.
-`SharedRefreshes` extends that to every replica: the one that claims `veds:refresh-lock:<sha256 of the refresh token>`
-calls Keycloak and leaves the new tokens under `veds:refresh-result:<sha256>`, and the others take them from there. A
-refresh Keycloak refuses ends the session; when Redis is unreachable a replica refreshes on its own.
-
-> [!WARNING]
->
-> Turning `revokeRefreshToken` off would make the symptom disappear and remove the replay detection that catches a
-> stolen refresh token. The lock is the fix; the realm setting is not the problem.
-
 ### What lives where
 
 | Concern                                               | Owner           |
@@ -170,45 +113,6 @@ refresh Keycloak refuses ends the session; when Redis is unreachable a replica r
 
 Profile data is deliberately *not* stored in Keycloak user attributes: it is not an application database and querying it
 is painful. The Admin API stays, in the narrower role of provisioning users at registration and syncing roles.
-
-### Tokens are accepted only by the component they were issued for
-
-Every component requires its own client in the token's `aud` (`spring.security.oauth2.resourceserver.jwt.audiences` in
-`shared-web-config.yml`, `veds-${spring.application.name}`): the gateway accepts `veds-api-gateway`, which the gateway
-client's audience mapper puts in the person's token, and each service accepts only the token the gateway exchanged for
-it. A token Keycloak issued to another client of the realm, `veds-service-account` included, is refused even though its
-signature and issuer are valid. Access tokens live five minutes and refresh tokens rotate on
-every use (`revokeRefreshToken`, `refreshTokenMaxReuse: 0`), so revoking access needs no deny list.
-
-### Second Factors
-
-Enabling a second factor happens on Keycloak's own pages, reached through the gateway with
-`kc_action=CONFIGURE_TOTP`, so no TOTP secret ever passes through iam-service. Disabling has no secret to
-handle, so `DELETE /auth/me/security/two-factor` does it directly. Credential types are read from Keycloak
-rather than mirrored locally: a copy would be a second answer to the same question, wrong the moment somebody
-configures a factor on Keycloak's pages.
-
-Every endpoint under `/auth/me/security` acts on the caller's own account — the subject comes from the token,
-never from a path, so there is no way to phrase a request about somebody else.
-
-### How iam-service Learns About a User
-
-Keycloak owns registration, so a user can reach the system without iam-service ever having heard of them — an
-identity created in the admin console, imported with the realm, or federated from another provider. iam-service
-therefore provisions the local user on first contact: `GET /auth/me` calls `ProvisionCurrentUserUseCase`, which
-records the identity from the JWT claims, assigns the default `USER` role, and publishes `user-registered` so the
-other services build their `user_ref` projections exactly as they would after a registration.
-
-Two consequences follow:
-
-| Consequence                                                            | Why                                                                            |
-|------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| A user exists in iam-service only after their first authenticated call | Nothing observes Keycloak; the identity arrives on the request that carries it |
-| `GET /auth/me` writes                                                  | It is the session-establishment call, so it is where first contact happens     |
-
-Provisioning is idempotent: an identity already known to iam-service is left untouched and announces nothing. A
-missing default role is refused rather than provisioned around — a role-less account looks signed in and silently
-cannot do anything.
 
 ## Configuration
 
