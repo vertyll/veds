@@ -12,15 +12,26 @@ which is exactly what a pre-signed URL encodes.
 
 ## The exchange
 
-| Step | Who                  | What                                                                        |
-|------|----------------------|-----------------------------------------------------------------------------|
-| 1    | SPA → file-service   | `POST /files/upload-ticket` — record created `PENDING`, signed URL returned |
-| 2    | SPA → object storage | `PUT` to the signed URL                                                     |
-| 3    | SPA → file-service   | `POST /files/{id}/confirm` — size read back from storage                    |
+```mermaid
+sequenceDiagram
+    participant B as Browser (SPA)
+    participant F as file-service
+    participant S as Object storage
 
-Three steps by necessity. The record has to exist before step 2, or something could be written to storage that this
-service never allowed. And step 3 has to verify against storage, because the client saying "done" is a claim while a
-reported object size is evidence.
+    B->>F: POST /files/upload-ticket
+    Note over F: record created PENDING
+    F-->>B: pre-signed PUT URL
+    B->>S: PUT the bytes to the signed URL
+    B->>F: POST /files/{id}/confirm
+    F->>S: HEAD the object
+    S-->>F: its size
+    Note over F: record confirmed, file-confirmed published
+    F-->>B: the file id
+```
+
+Three steps by necessity. The record has to exist before the `PUT`, or something could be written to storage that this
+service never allowed. And the confirmation has to verify against storage, because the client saying "done" is a claim
+while a reported object size is evidence.
 
 ## The bucket is private
 
