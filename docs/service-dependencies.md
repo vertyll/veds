@@ -37,10 +37,10 @@ only when some consumer takes it without the rest.
 | `shared-saga-engine`        | Spring    | 6        | One service's local saga: state machine, compensation, watchdog, JPA entities |
 | `shared-translation-client` | Spring    | 7        | Start-up registration of a service's translation keys                         |
 
-`shared-saga-api` exists because the application layer of the services that own a saga step speaks saga vocabulary and must never see a
-framework — the module boundary turns that rule into a compile error instead of a check. There is deliberately no
-`shared-messaging-api`: nothing in any application layer imports the outbox types, so an api/engine split there would
-produce a module with exactly the same consumers as the engine.
+`shared-saga-api` exists because the application layer of the services that own a saga step speaks saga vocabulary and
+must never see a framework — the module boundary turns that rule into a compile error instead of a check. There is
+deliberately no `shared-messaging-api`: nothing in any application layer imports the outbox types, so an api/engine
+split there would produce a module with exactly the same consumers as the engine.
 
 `shared-web` is the only library the gateway takes. It is reactive and has no database, so it must not inherit JPA —
 which a library carrying persistence would force on it.

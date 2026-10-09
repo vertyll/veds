@@ -12,7 +12,8 @@ python scripts/schema_registry/register_schemas.py --registry-url http://localho
 
 > [!IMPORTANT]
 >
-> By default, the script enforces **BACKWARD** compatibility for each subject before registering a new schema version. You can override this using the `--compatibility` flag.
+> By default, the script enforces **BACKWARD** compatibility for each subject before registering a new schema version.
+> You can override this using the `--compatibility` flag.
 
 ---
 

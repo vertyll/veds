@@ -116,8 +116,10 @@ joins it.
 ## Adding a module
 
 1. Declare a `PermissionCatalogue` bean naming the module's permissions and their scope.
-2. Depend on `shared-authz` and `shared-authz-client`, scan `com.vertyll.veds.shared.authz.client`, set `application.authz.client.base-url`.
-3. Keep a `role_permission_projection` table and a consumer of `role-permissions-changed`, filtered to the scope the module's permissions use.
+2. Depend on `shared-authz` and `shared-authz-client`, scan `com.vertyll.veds.shared.authz.client`, set
+   `application.authz.client.base-url`.
+3. Keep a `role_permission_projection` table and a consumer of `role-permissions-changed`, filtered to the scope the
+   module's permissions use.
 4. Expose a `RolePermissionsSource` reading that projection.
 5. Guard endpoints with `@PreAuthorize("@authz.has('…')")`.
 

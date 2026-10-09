@@ -45,7 +45,8 @@ does.
 
 ## Canonical Building Blocks
 
-All building blocks live in `shared-messaging-kafka` and `shared-saga-engine`, and provide the foundation for robust asynchronous processing.
+All building blocks live in `shared-messaging-kafka` and `shared-saga-engine`, and provide the foundation for robust
+asynchronous processing.
 
 ### Transactional Outbox
 

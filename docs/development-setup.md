@@ -15,8 +15,8 @@ git clone https://github.com/vertyll/veds.git
 cd veds
 ```
 
-There is nothing to configure. Local defaults live next to the thing that needs them — `docker-compose.local.yml` for the
-infrastructure, `application-local.yml` for the gateway — so a fresh clone runs as-is.
+There is nothing to configure. Local defaults live next to the thing that needs them — `docker-compose.local.yml` for
+the infrastructure, `application-local.yml` for the gateway — so a fresh clone runs as-is.
 
 Only the `prod` profile demands real values, and it takes them from the environment with no fallback:
 
