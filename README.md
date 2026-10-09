@@ -82,7 +82,8 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
 Start with [Development Setup](./docs/development-setup.md), then [Architecture](./docs/architecture.md).
 
-- [Glossary](./GLOSSARY.md) – the terms, the standards they come from, and where each is explained.
+- [Glossary](./GLOSSARY.md) – every term the docs use, and where it is explained.
+- [Standards](./STANDARDS.md) – the RFCs and specifications the code implements or depends on.
 - [Development Setup](./docs/development-setup.md) – running the whole system locally.
 - [Testing](./docs/testing.md) – the two test tiers and the architecture check.
 - [Architecture](./docs/architecture.md) – components and design principles.
