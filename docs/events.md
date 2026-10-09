@@ -1,4 +1,4 @@
-# Event Catalogue
+# Event Catalog
 
 Every topic in the system, who owns it and who reads it. Schemas live in `contracts/`; this page is the map.
 

@@ -19,7 +19,7 @@ token expired.
 
 ## A permission is declared where it is enforced
 
-A permission is real only where some code checks it, so the catalogue is code:
+A permission is real only where some code checks it, so the catalog is code:
 
 ```kotlin
 @Bean
@@ -32,9 +32,9 @@ fun taskPermissionCatalogue(): PermissionCatalogue =
     }
 ```
 
-Each service registers its catalogue with iam-service at start-up over HTTP
+Each service registers its catalog with iam-service at start-up over HTTP
 (`POST /internal/authz/catalogue`). HTTP rather than an event, for the same
-reason the translation catalogue uses it: a rejected catalogue is a deployment
+reason the translation catalog uses it: a rejected catalog is a deployment
 mistake and belongs in the log of the service that made it.
 
 Registration never blocks a start-up and never gives up: it runs off the start-up
@@ -47,11 +47,11 @@ iam-service announce every role, which is how a projection is filled in the firs
 place; a service that never registered would fail closed on every permission it
 checks.
 
-| Rule                                                 | Why                                                                        |
-|------------------------------------------------------|----------------------------------------------------------------------------|
-| the module that enforces a permission declares it    | a name nobody checks is a lie in the administration panel                  |
-| a permission the module stops declaring is withdrawn | roles holding it are updated and announced, so nothing grants a dead name  |
-| a permission names the scope it can be held in       | a project role granted `USERS_MANAGE` would grant something nobody honours |
+| Rule                                                 | Why                                                                       |
+|------------------------------------------------------|---------------------------------------------------------------------------|
+| the module that enforces a permission declares it    | a name nobody checks is a lie in the administration panel                 |
+| a permission the module stops declaring is withdrawn | roles holding it are updated and announced, so nothing grants a dead name |
+| a permission names the scope it can be held in       | a project role granted `USERS_MANAGE` would grant something nobody honors |
 
 ## Scope
 
@@ -86,7 +86,7 @@ handwritten row in the database.
 
 `role-permissions-changed` carries what a role grants. Every service that
 enforces permissions keeps a projection of it, claimed through the inbox like any
-other event, and keeps only the names its own catalogue declares — a permission
+other event, and keeps only the names its own catalog declares — a permission
 another module enforces means nothing locally.
 
 ```kotlin

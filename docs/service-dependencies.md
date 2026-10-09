@@ -33,7 +33,7 @@ only when some consumer takes it without the rest.
 | `shared-saga-api`           | none      | 6        | `Saga`, `SagaStep`, `SagaStatus`, `SagaStepStatus`, `SagaTypeValue`           |
 | `shared-translation`        | none      | 7        | Key-declaration DSL and the ICU message renderer                              |
 | `shared-web`                | Spring    | **9**    | Keycloak JWT converters (servlet + reactive), ETag/optimistic-locking helpers |
-| `shared-messaging-kafka`    | Spring    | 7        | Transactional outbox, idempotent consumption, Avro serialisation              |
+| `shared-messaging-kafka`    | Spring    | 7        | Transactional outbox, idempotent consumption, Avro serialization              |
 | `shared-saga-engine`        | Spring    | 6        | One service's local saga: state machine, compensation, watchdog, JPA entities |
 | `shared-translation-client` | Spring    | 7        | Start-up registration of a service's translation keys                         |
 
@@ -72,7 +72,7 @@ request path:
 |---------------|---------------------|---------------------------------------------------|-----------------------------------|
 | every service | translation-service | once at start-up, to publish its translation keys | logged; the service starts anyway |
 
-Everything else travels through Kafka. See the [Event Catalogue](./events.md) for who publishes and who consumes what.
+Everything else travels through Kafka. See the [Event Catalog](./events.md) for who publishes and who consumes what.
 
 ## What that buys, and what it costs
 

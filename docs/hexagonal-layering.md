@@ -105,12 +105,12 @@ knowing them.
 
 Every service's application layer is framework-free, and `checkHexagonalDependencies` fails the build if a framework
 reaches its resolved compile classpath. `template-service` carries the shape a new service starts from: the error
-catalogue, the logging port, the transactional decorator, the bean configuration and the CQRS port split.
+catalog, the logging port, the transactional decorator, the bean configuration and the CQRS port split.
 
 What an application layer may import from outside its own service is the framework-free shared modules —
 `shared-saga-api`, `shared-error`, `shared-translation` — plus `java.time`, `java.util` and `kotlin.uuid`.
 
-## Error catalogues
+## Error catalogs
 
 Each context owns one: `<Context>Error` in its `domain/error/`, e.g. `ProjectError` or `IamError`. A message key is
 declared there and nowhere else.

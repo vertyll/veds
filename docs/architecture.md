@@ -26,7 +26,7 @@ The project is split into the following components:
 6. **Project Service** – Owns projects, project types, categories, statuses, project roles and memberships.
 7. **Task Service** – Owns tasks, comments and the board.
 8. **Notification Service** – Owns in-app notifications, delivery settings and the STOMP push transport.
-9. **Translation Service** – Owns the translation catalogue: keys, languages and their text.
+9. **Translation Service** – Owns the translation catalog: keys, languages and their text.
 10. **File Service** – Owns file metadata and issues pre-signed URLs; the bytes live in object storage.
 11. **Template Service** – Baseline configuration for future microservices.
 
@@ -50,7 +50,7 @@ Each service documents its own decisions in its `README.md`; this page covers wh
 | `PermissionAuthorizer` with no source   | Falling back to the token's role turns a service with no projection into one that trusts the token                          |
 | `TranslationServiceApplication` filters | Dropping the outbox exclusion makes a consume-only service demand outbox tables it never writes                             |
 | `RolePermissionsAnnouncer`              | Announcing only on change leaves a service that joined later with an empty projection, granting none                        |
-| `Permission.scope`                      | Allowing a role to hold either scope grants names the enforcing service will never honour                                   |
+| `Permission.scope`                      | Allowing a role to hold either scope grants names the enforcing service will never honor                                    |
 | `Task.moveTo`                           | "Fixing" the `this` return makes every board drag notify every watcher                                                      |
 | `TranslationValue.withSeededDefault`    | Merging the two columns makes each redeploy revert administrators' edits                                                    |
 | `FileCommandService.delete`             | Deleting the object first loses the key on a rollback                                                                       |
@@ -63,8 +63,8 @@ Each service documents its own decisions in its `README.md`; this page covers wh
 | `HostedSignInRequests` `kc_action`      | Forwarding the value as given lets a caller push any user into any Keycloak flow, credentials included                      |
 | `AuthController.session`                | Answering `401` instead of `204` is indistinguishable from an unreachable session store, and signs the reader out on a blip |
 | `ObjectStoragePort` presigned `PUT`     | A presigned URL is signed over key and content type only, so a size limit written here would not hold                       |
-| `LanguageSeeder` order                  | Registering a catalogue before its languages exist writes the keys, drops every value, and never repairs them               |
-| `LogWorkRequest.workedOn` nullable      | Making it non-null moves the refusal from the catalogue key to Jackson's own message                                        |
+| `LanguageSeeder` order                  | Registering a catalog before its languages exist writes the keys, drops every value, and never repairs them                 |
+| `LogWorkRequest.workedOn` nullable      | Making it non-null moves the refusal from the catalog key to Jackson's own message                                          |
 | `EmailTemplate.subject`                 | Moving it to the producer makes a service that only asks for mail write prose about sending it                              |
 
 Anything that is merely *interesting* goes in a README instead.
@@ -76,7 +76,7 @@ Anything that is merely *interesting* goes in a README instead.
 | `shared-saga-api`           | Saga vocabulary (`Saga`, `SagaStep`, `SagaStatus`, `SagaStepStatus`, `SagaTypeValue`) | Kotlin stdlib only               |
 | `shared-translation`        | Translation key DSL, ICU renderer, pattern validation                                 | ICU4J                            |
 | `shared-web`                | Keycloak JWT converters, ETag and optimistic-locking helpers                          | Spring Security                  |
-| `shared-messaging-kafka`    | Outbox, idempotent consumption, Avro serialisation                                    | Spring, Kafka, JPA               |
+| `shared-messaging-kafka`    | Outbox, idempotent consumption, Avro serialization                                    | Spring, Kafka, JPA               |
 | `shared-saga-engine`        | One service's local saga: state machine, compensation, watchdog, JPA entities         | `shared-saga-api`, Spring, JPA   |
 | `shared-translation-client` | Start-up registration of a service's translation keys                                 | `shared-translation`, Spring Web |
 

@@ -82,6 +82,7 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
 Start with [Development Setup](./docs/development-setup.md), then [Architecture](./docs/architecture.md).
 
+- [Glossary](./GLOSSARY.md) – the terms, the standards they come from, and where each is explained.
 - [Development Setup](./docs/development-setup.md) – running the whole system locally.
 - [Testing](./docs/testing.md) – the two test tiers and the architecture check.
 - [Architecture](./docs/architecture.md) – components and design principles.
@@ -90,7 +91,7 @@ Start with [Development Setup](./docs/development-setup.md), then [Architecture]
 - [Service Dependencies](./docs/service-dependencies.md) – what each service needs to build and to run.
 - [CQRS](./docs/cqrs.md) – where command/query separation is applied, and why.
 - [Eventual Consistency](./docs/eventual-consistency.md) – outbox, inbox and sagas.
-- [Event Catalogue](./docs/events.md) – every topic, its owner and its consumers.
+- [Event Catalog](./docs/events.md) – every topic, its owner and its consumers.
 - [Concurrency Control](./docs/concurrency.md) – optimistic locking, ETags, saga and outbox concurrency.
 - [Keycloak Configuration](./docs/keycloak.md) – realm setup, authentication flow, role management.
 - [Authorization](./docs/authorization.md) – permissions, roles and how services check them.

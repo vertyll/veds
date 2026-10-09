@@ -1,6 +1,6 @@
 # translation-service
 
-The translation catalogue: keys, languages and their text.
+The translation catalog: keys, languages and their text.
 
 | Property  | Value   |
 |-----------|---------|
@@ -9,7 +9,7 @@ The translation catalogue: keys, languages and their text.
 | Publishes | nothing |
 | Consumes  | nothing |
 
-No outbox and no saga tables: it is a catalogue other services read and an administrator edits.
+No outbox and no saga tables: it is a catalog other services read and an administrator edits.
 
 How keys are declared and registered, why defaults and overrides are separate columns, why rendering uses ICU4J,
 what a missing key renders as, and the cacheable public endpoint are in [Translations](../docs/translations.md), which

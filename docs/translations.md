@@ -18,7 +18,7 @@ The split above decides **where** a string becomes readable, and the two halves 
 | Data labels     | finished text            | the server  | `X-Lang` on the request       |
 
 A system message is a contract: `{"code": "project.invitation.expired", "params": {}}` names a condition, and the
-condition is the same in every language. Rendering it at the edge means one catalogue serves the web client, a future
+condition is the same in every language. Rendering it at the edge means one catalog serves the web client, a future
 mobile client and a support tool alike, and a corrected wording reaches all of them without a redeployment.
 
 A data label has no key — a category is a UUID somebody named — so there is nothing for a client to look up. The server
@@ -79,8 +79,8 @@ renders it rather than with the service that asked for the message: a producer n
 message to send, and `mail-service` owns how it reads. That is why `mail-requested` carries a
 template name and its variables, and no subject line.
 
-Localisation stops at the screen. The interface — in-app notifications included — is rendered from
-this catalogue in whichever language the reader has selected, carried on every request as `X-Lang`.
+Localization stops at the screen. The interface — in-app notifications included — is rendered from
+this catalog in whichever language the reader has selected, carried on every request as `X-Lang`.
 An e-mail has no request and no reader present to ask, so it does not try to guess one.
 
 ### Where `common.*` lives
@@ -88,11 +88,11 @@ An e-mail has no request and no reader present to ask, so it does not try to gue
 Declared once, in `translation-service`, not in every service. Registration refuses a key another service already owns —
 deliberately, since two contexts claiming the same message means whichever deploys last silently wins. Every service
 declaring its own `common.version_mismatch`
-would hit exactly that rule, so the platform catalogue owns the platform's keys.
+would hit exactly that rule, so the platform catalog owns the platform's keys.
 
 ### Registration failure does not stop a service
 
-A catalogue that could not be published is a degraded state: clients use whatever the catalogue already holds, and a
+A catalog that could not be published is a degraded state: clients use whatever the catalog already holds, and a
 genuinely missing key renders as the key. Refusing to start would mean a brief `translation-service` outage takes every
 service down with it. Registration is retried on the next restart.
 
@@ -102,10 +102,10 @@ Seeded from code, same as keys. A language is data, never an enum: with a fixed 
 aggregate would owe a value for each one, so adding a language would invalidate every stored row and the next write to
 it would throw.
 
-A tag is a `LanguageTag` value class: BCP 47, normalized to lower case. Normalisation is not cosmetic — without it
+A tag is a `LanguageTag` value class: BCP 47, normalized to lower case. Normalization is not cosmetic — without it
 `pl`, `PL` and `pl-PL` become three languages nobody ever reconciles.
 
-Completeness of a *submitted* label is enforced in the application layer against the seeded catalogue, so a caller still
+Completeness of a *submitted* label is enforced in the application layer against the seeded catalog, so a caller still
 cannot save a category naming itself in only one of the configured languages.
 
 ## ICU, and why not `java.text.MessageFormat`
@@ -162,7 +162,7 @@ Outgoing mail is English, and nothing in the translation machinery touches it.
 | Subject         | a literal at the producer, chosen per message type                |
 | Template choice | `templateName` on `MailRequestedCommand`, an `EmailTemplate` name |
 
-`mail-service` registers its own catalogue, but only for the error keys its API returns. It resolves nothing for the
+`mail-service` registers its own catalog, but only for the error keys its API returns. It resolves nothing for the
 messages it sends.
 
 The reason is that no language is available at the point of sending. `MailRequestedCommand` carries no language, a
@@ -181,22 +181,22 @@ Because the subject is presentation copy rather than a domain fact, it lives at 
 
 ## The front end
 
-Angular offers two unrelated ways to translate, and only one of them can read a catalogue that an administrator edits.
+Angular offers two unrelated ways to translate, and only one of them can read a catalog that an administrator edits.
 
-| Property                | `@angular/localize`   | `ngx-translate`             |
-|-------------------------|-----------------------|-----------------------------|
-| Resolved                | at build time         | at run time                 |
-| ICU plurals             | built in              | needs a `TranslateCompiler` |
-| Changing language       | one bundle per locale | no rebuild                  |
-| Catalogue from a server | not possible          | the normal case             |
+| Property              | `@angular/localize`   | `ngx-translate`             |
+|-----------------------|-----------------------|-----------------------------|
+| Resolved              | at build time         | at run time                 |
+| ICU plurals           | built in              | needs a `TranslateCompiler` |
+| Changing language     | one bundle per locale | no rebuild                  |
+| Catalog from a server | not possible          | the normal case             |
 
-`@angular/localize` compiles messages into the bundle, so the catalogue is frozen at build time and an administrator's
+`@angular/localize` compiles messages into the bundle, so the catalog is frozen at build time and an administrator's
 correction would never reach anybody. The front end uses `ngx-translate` for that reason alone, and pays for it by
 having to add ICU back. Its default parser substitutes `{{param}}` and does nothing else — no plural rules, no
 select — so `ngx-translate-messageformat-compiler` is registered as the `TranslateCompiler`. Without it Polish
 `few`/`many` do not work on the client and every plural collapses to one form.
 
-`BackendCatalogueLoader` merges two sources into the catalogue `ngx-translate` holds:
+`BackendCatalogueLoader` merges two sources into the catalog `ngx-translate` holds:
 
 ```typescript
 forkJoin({
@@ -211,10 +211,10 @@ static file and the interface loses its labels, drop the request and **every** b
 what a user sees as `project.invitation.expired` in a toast.
 
 The back end wins on a collision, because it owns the keys it declares. A failed request falls back to an empty
-catalogue rather than an error, so `translation-service` being briefly unreachable costs the back-end messages, not the
+catalog rather than an error, so `translation-service` being briefly unreachable costs the back-end messages, not the
 whole interface.
 
-Both catalogues are ICU, single brace. `{{param}}` is `ngx-translate`'s own interpolation syntax and the compiler does
+Both catalogs are ICU, single brace. `{{param}}` is `ngx-translate`'s own interpolation syntax and the compiler does
 not read it — under ICU `{{count}}` renders as `{5}`, braces included. One dialect across both sources is what keeps
 that from being a per-key accident.
 

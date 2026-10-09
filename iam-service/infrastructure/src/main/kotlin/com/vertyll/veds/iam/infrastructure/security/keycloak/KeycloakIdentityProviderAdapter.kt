@@ -190,27 +190,4 @@ internal class KeycloakIdentityProviderAdapter(
             .filter { it.type?.equals(credentialType, ignoreCase = true) == true }
             .forEach { credential -> credential.id?.let { userResource.removeCredential(it) } }
     }
-
-    override fun validatePassword(
-        email: String,
-        password: String,
-    ): Boolean =
-        try {
-            val tokenKeycloak =
-                KeycloakBuilder
-                    .builder()
-                    .serverUrl(sharedConfig.serverUrl)
-                    .realm(sharedConfig.realm)
-                    .clientId(sharedConfig.gatewayClientId)
-                    .clientSecret(sharedConfig.gatewayClientSecret)
-                    .username(email)
-                    .password(password)
-                    .grantType("password")
-                    .build()
-            tokenKeycloak.tokenManager().accessToken
-            true
-        } catch (_: Exception) {
-            logger.debug("Password validation failed for user: {}", email)
-            false
-        }
 }

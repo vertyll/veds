@@ -4,8 +4,7 @@ Keycloak authentication, HTTP concurrency helpers and the shared configuration d
 
 This is the only shared library `api-gateway` takes. The gateway is reactive and has no
 database, so this module deliberately carries no JPA, no Kafka and no Avro — pulling those in
-is what forced the gateway to disable Hibernate autoconfiguration before the shared libraries
-were split.
+would force the gateway to switch off Hibernate's autoconfiguration.
 
 See [Shared Modules](../docs/shared-modules.md) for how this module relates to the others.
 
@@ -13,7 +12,7 @@ See [Shared Modules](../docs/shared-modules.md) for how this module relates to t
 
 | Type                                         | Role                                                                   |
 |----------------------------------------------|------------------------------------------------------------------------|
-| `KeycloakJwtAuthenticationConverter`         | Realm roles to Spring authorities, servlet flavour                     |
+| `KeycloakJwtAuthenticationConverter`         | Realm roles to Spring authorities, servlet flavor                      |
 | `ReactiveKeycloakJwtAuthenticationConverter` | The same mapping for the reactive gateway                              |
 | `ETagUtils`                                  | Builds and parses the weak `ETag` exposed from a JPA `@Version` column |
 | `OptimisticLockingValidatorUtils`            | Verifies a client-supplied `If-Match` version before a write           |

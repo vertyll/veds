@@ -34,7 +34,7 @@ Kotlin standard library only. Safe to name from an application layer.
 | `shared-saga-api`    | The saga vocabulary, plus `SagaProcessPort` and the `SagaSnapshot` an application service sees |
 | `shared-translation` | The key-declaration DSL, the ICU renderer and pattern validation (ICU4J is its one dependency) |
 | `shared-authz`       | The permission-declaration DSL, role scopes, and the projection port every service implements  |
-| `shared-error`       | `DomainError` and `ApiException`: the contract each service's error catalogue implements       |
+| `shared-error`       | `DomainError` and `ApiException`: the contract each service's error catalog implements         |
 
 ### Spring
 
@@ -42,9 +42,9 @@ Kotlin standard library only. Safe to name from an application layer.
 |-----------------------------|------------------------------------------------------------------------------------------------------------|
 | `shared-web`                | Keycloak JWT converters (servlet and reactive), the error-to-HTTP mapping, ETag helpers, config defaults   |
 | `shared-messaging-kafka`    | Transactional outbox and inbox — contract, JPA mapping and adapters — plus Avro and Schema Registry wiring |
-| `shared-saga-engine`        | One service's local saga: the state machine, compensation, the watchdog, and the JPA flavour of its ports  |
+| `shared-saga-engine`        | One service's local saga: the state machine, compensation, the watchdog, and the JPA flavor of its ports   |
 | `shared-translation-client` | Start-up registration of a service's translation keys with `translation-service`                           |
-| `shared-authz-client`       | Start-up registration of a service's permission catalogue with `iam-service`                               |
+| `shared-authz-client`       | Start-up registration of a service's permission catalog with `iam-service`                                 |
 | `shared-archunit`           | The architecture rules every service is checked against, as executable tests                               |
 
 ## The dependency graph
@@ -102,7 +102,7 @@ Three of these are worth reading as evidence that the boundaries are real rather
 - **file-service takes the outbox but not the saga engine.** It publishes events and
   orchestrates nothing, so it carries outbox tables and no saga tables.
 - **iam-service takes `shared-authz` but not `shared-authz-client`.** The client registers a
-  catalogue *with* iam; iam is the registry and reads its own.
+  catalog *with* iam; iam is the registry and reads its own.
 
 ## Writing a new service: what do I take?
 
@@ -135,7 +135,7 @@ Before adding one, check it against the two rules at the top. In practice:
   the existing module.
 
 A module also has to be wired in four places, which is the real cost of getting this wrong:
-its own `settings.gradle.kts` and version catalogue, the root `settings.gradle.kts`, the
+its own `settings.gradle.kts` and version catalog, the root `settings.gradle.kts`, the
 `documentedLibraries` list in the root `build.gradle.kts`, and a `shared-*-checks.yml`
 workflow. Services that consume it need it in their `settings.gradle.kts`, their build file and
 their `Dockerfile`.

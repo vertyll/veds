@@ -27,7 +27,7 @@ is the consumer, because the consumer defines what it accepts.
 `mail-requested` therefore lives under `mail-service/` even though iam-service and notification-service are the ones
 that publish it.
 
-Who owns and consumes each topic: [Event Catalogue](../docs/events.md).
+Who owns and consumes each topic: [Event Catalog](../docs/events.md).
 
 ## Subject naming
 

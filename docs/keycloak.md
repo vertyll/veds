@@ -84,7 +84,7 @@ session ever existed — and accepts only a token whose audience is its own clie
 The person's own token has the gateway as its only audience, and it never leaves the gateway. Every route carries
 `TokenRelay=veds-<name>-service`: the gateway exchanges the person's token at Keycloak (standard token exchange,
 RFC 8693) for one whose `aud` is that service alone, and relays that. A token leaked from one service — through a log,
-a dump, a bug — opens no other service, and a service cannot replay what it received against its neighbours.
+a dump, a bug — opens no other service, and a service cannot replay what it received against its neighbors.
 
 - The exchange asks for `audience=veds-<name>-service` and the optional scope `veds-<name>-service-audience`; the
   realm grants nothing more, so the exchanged token keeps the person's identity and realm roles and gains one audience.
@@ -126,7 +126,7 @@ pending authorization request therefore lives in its own cookie, which must be `
 
 | Cookie                  | SameSite | Lifetime | Why                                                                 |
 |-------------------------|----------|----------|---------------------------------------------------------------------|
-| `VEDS_SESSION`          | `Strict` | 7 days   | The only cookie the SPA relies on; CSRF defence                     |
+| `VEDS_SESSION`          | `Strict` | 7 days   | The only cookie the SPA relies on; CSRF defense                     |
 | `KEYCLOAK_AUTH_REQUEST` | `Lax`    | 10 min   | State, nonce and PKCE verifier; survives the redirect from Keycloak |
 
 > [!IMPORTANT]

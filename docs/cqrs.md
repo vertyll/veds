@@ -73,7 +73,7 @@ not access rules; a read model that skipped the check would be a data leak.
 the list is short, per-user and rarely fetched, so a dedicated projection would be a second place to maintain for no
 measurable gain.
 
-## What was deliberately not done
+## What is deliberately left out
 
 **No command bus / mediator.** A dispatcher gives a hook for cross-cutting concerns, but the transactional decorator and
 the outbox already cover those here. It would cost reflection and the ability to jump from a call site to its

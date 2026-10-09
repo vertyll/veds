@@ -9,7 +9,7 @@ The reference service. Clone it when adding a bounded context; do not deploy it.
 | Layering     | `domain` / `application` / `infrastructure`, with the dependency rule enforced by `checkHexagonalDependencies`           |
 | CQRS         | Command and query ports already split, and the transactional decorator wired to them                                     |
 | Errors       | `TemplateError` + `ErrorKind`, mapped to HTTP only in the web adapter                                                    |
-| Translations | A catalogue config and the registration runner                                                                           |
+| Translations | A catalog config and the registration runner                                                                             |
 | Messaging    | Outbox tables, saga scaffolding, Avro wiring, an idempotent-receiver ledger                                              |
 | Wiring       | `ApplicationBeansConfig`, `TransactionalUseCaseFactory`, `Slf4jUseCaseLogger`, security, Flyway, Dockerfile, CI workflow |
 
@@ -17,7 +17,7 @@ The reference service. Clone it when adding a bounded context; do not deploy it.
 
 1. Rename the package, the module names in `settings.gradle.kts` and the Gradle project names
 2. Replace `TemplateError` with the real failures — CI fails if a key it can emit is not
-   declared in the catalogue
+   declared in the catalog
 3. Replace the placeholder aggregate and its migration
 4. Assign a port and a database port, and add both to `docker-compose.local.yml`
 5. Add the service to the root `settings.gradle.kts`

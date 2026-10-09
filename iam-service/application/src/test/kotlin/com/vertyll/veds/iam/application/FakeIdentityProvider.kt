@@ -6,7 +6,6 @@ import java.util.UUID
 internal class FakeIdentityProvider : IdentityProviderPort {
     val calls = mutableListOf<String>()
     var createUserFails: Exception? = null
-    var validPasswords = mutableMapOf<String, String>()
 
     override fun createUser(
         email: String,
@@ -71,9 +70,4 @@ internal class FakeIdentityProvider : IdentityProviderPort {
     ) {
         calls += "removeCredential($keycloakId,$credentialType)"
     }
-
-    override fun validatePassword(
-        email: String,
-        password: String,
-    ) = validPasswords[email] == password
 }

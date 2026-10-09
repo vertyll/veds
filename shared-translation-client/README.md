@@ -3,7 +3,7 @@
 Registers a service's translation keys with `translation-service` at start-up.
 
 Depends on [`shared-translation`](../shared-translation/README.md) for the key-declaration DSL
-whose catalogues it ships.
+whose catalogs it ships.
 
 See [Shared Modules](../docs/shared-modules.md) for how this module relates to the others.
 

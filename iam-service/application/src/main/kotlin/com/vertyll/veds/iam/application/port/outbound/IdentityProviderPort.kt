@@ -47,9 +47,4 @@ interface IdentityProviderPort {
         keycloakId: UUID,
         credentialType: String,
     )
-
-    fun validatePassword(
-        email: String,
-        password: String,
-    ): Boolean
 }
