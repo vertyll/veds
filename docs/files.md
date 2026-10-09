@@ -37,11 +37,8 @@ Two consequences worth knowing:
 
 ## CORS is required, and is not optional
 
-The browser `PUT`s to the store from the SPA's origin, so the bucket must allow it. Without this every upload dies in
-the preflight, and the failure looks like an application bug rather than a storage setting. `infra/garage/bootstrap.sh`
-applies it locally.
-
-Allowing an origin is not the same as allowing anonymous reads — the bucket stays private either way.
+The browser `PUT`s to the store from the SPA's origin, so the bucket must allow it; the rule and why it does not open
+the bucket are in [infra/garage](../infra/garage/README.md#cors-is-required).
 
 Two interceptors are scoped to the application's own API for the same reason: `withCredentials`
 would leak the session cookie to a third-party origin (and a CORS response cannot both allow credentials and use a
@@ -50,19 +47,11 @@ allow.
 
 ## Local storage: Garage
 
-Bringing the stack upstarts Garage, a one-shot bootstrap and a web console on `:9101`.
-
-The bootstrap exists because a fresh Garage node has no layout, no bucket and no keys, and none of that can be expressed
-in `garage.toml` — it is cluster state, applied through the admin API. Every step is idempotent, so a restart is
-harmless. See [infra/garage](../infra/garage/README.md) for the version constraint and the two request shapes that are
-easy to get wrong.
+Locally the store is Garage. Its bootstrap, the CORS rule it applies, its version constraint and the
+`response-content-disposition` caveat are in [infra/garage](../infra/garage/README.md).
 
 `pathStyleAccessEnabled(true)` is set in `ObjectStorageConfig` because Garage does not serve virtual-host style buckets
 without wildcard DNS, which a compose file does not have.
-
-**One compatibility caveat.** The download URL sets `response-content-disposition` so the browser saves the file under
-its original name. That is an S3 feature a compatible store may not implement. If it is ignored the download still
-works — the file is simply named after the object key — so this degrades rather than fails, and needs no fallback.
 
 ## What the back end stores
 
@@ -77,10 +66,6 @@ it needs one.
 | iam-service     | `user.avatar_file_id`                        |
 | project-service | `project.icon_file_id`                       |
 | task-service    | `task_attachment`, `task_comment_attachment` |
-
-A user's avatar is a file id, not a path. Storing a path would tie the profile to one storage
-layout and leave the bytes unreachable the moment that layout changes; an id resolves through
-file-service, which owns where the bytes actually live.
 
 ### Keeping references honest
 

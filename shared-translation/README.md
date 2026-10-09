@@ -5,11 +5,7 @@ The key-declaration DSL and the ICU renderer, shared by every service.
 Depends on ICU4J and the Kotlin standard library, and nothing else. It is referenced by
 application layers, which must stay framework-free.
 
-## Why ICU4J
-
-`java.text.MessageFormat` has no CLDR plural rules, so Polish `one/few/many/other` — "1 zadanie",
-"3 zadania", "5 zadań" — is simply not expressible. The front end uses
-`ngx-translate-messageformat-compiler` for the same reason.
+Why ICU4J and not `java.text.MessageFormat` is in [Translations](../docs/translations.md).
 
 ## What lives here
 

@@ -112,14 +112,5 @@ What an application layer may import from outside its own service is the framewo
 
 ## Error catalogues
 
-Each context owns one, in `domain/error/`:
-
-| Service            | Catalogue       |
-|--------------------|-----------------|
-| `project-service`  | `ProjectError`  |
-| `iam-service`      | `IamError`      |
-| `mail-service`     | `MailError`     |
-| `template-service` | `TemplateError` |
-
-One choice worth naming: IAM maps both "no such user" and "wrong password" to
-`iam.auth.invalid_credentials`. Telling them apart would be a user-enumeration oracle.
+Each context owns one: `<Context>Error` in its `domain/error/`, e.g. `ProjectError` or `IamError`. A message key is
+declared there and nowhere else.

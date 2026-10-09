@@ -9,9 +9,9 @@ See [Shared Modules](../docs/shared-modules.md) for how this module relates to t
 
 ## Why it is a separate module
 
-This is the one synchronous call in the system, and it is not on a request path. Registration
-failure is deliberately non-fatal: the service starts anyway and republishes on the next
-restart. `translation-service` itself does not take this module — it is the registry.
+This is the one synchronous call in the system, and it is not on a request path; what happens when it fails is in
+[Service Dependencies](../docs/service-dependencies.md). `translation-service` itself does not take this module — it is
+the registry.
 
 ## API documentation
 
