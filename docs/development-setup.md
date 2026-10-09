@@ -96,9 +96,9 @@ cd <service-name>
 
 > [!NOTE]
 >
-> **Order matters in one place only.** Every service registers its translation keys with `translation-service` at
-> start-up, so starting that one first avoids a failed registration in the logs. Nothing breaks if you do not:
-> registration failure is deliberately non-fatal, and the keys are republished on the next restart.
+> **Start `translation-service` first.** Every other service registers its keys with it at start-up; started later,
+> the others log a failed registration and recover on their next restart
+> ([Service Dependencies](./service-dependencies.md)).
 
 | Service                | Port |
 |------------------------|------|
