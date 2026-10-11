@@ -4,19 +4,19 @@ This directory is the single source of truth for Apache Kafka event schemas.
 
 ## Layout
 
-```
+```text
 contracts/{service}/{topic}/v{version}/{schema}.avsc
 ```
 
 For topics containing dots, replace `.` with `-` in the path and filename:
 
-```
+```text
 contracts/{service}/{topic-with-dashes}/v{version}/{topic-with-dashes}.avsc
 ```
 
 Example:
 
-```
+```text
 contracts/mail-service/mail-requested/v1/mail-requested.avsc
 ```
 
@@ -33,7 +33,7 @@ Who owns and consumes each topic: [Event Catalog](../docs/events.md).
 
 Schemas are registered to Schema Registry using the topic name as the subject:
 
-```
+```text
 {topic}-value
 ```
 

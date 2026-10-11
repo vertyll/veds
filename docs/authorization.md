@@ -141,7 +141,6 @@ A service that enforces no permissions of its own declares no
 the intended answer, not an oversight: a service cannot honor a permission it
 has no way to evaluate.
 
-
 ## The transport layer is role-based, on purpose
 
 `api-gateway` gates routes with `hasRole('ADMIN')` rather than a permission. It owns no
