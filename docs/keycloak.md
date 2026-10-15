@@ -149,12 +149,12 @@ Role names are owned by **two places only**:
 
 ## Useful Keycloak URLs (Local Dev)
 
-| URL                                                                | Description                             |
-|--------------------------------------------------------------------|-----------------------------------------|
-| http://localhost:9000                                              | Keycloak admin console                  |
-| http://localhost:9000/realms/veds/.well-known/openid-configuration | OpenID Connect discovery                |
-| http://localhost:9000/realms/veds/protocol/openid-connect/certs    | JWKS (public keys for JWT verification) |
-| http://localhost:9000/realms/veds/protocol/openid-connect/token    | Token endpoint                          |
+| URL                                                                  | Description                             |
+|----------------------------------------------------------------------|-----------------------------------------|
+| <http://localhost:9000>                                              | Keycloak admin console                  |
+| <http://localhost:9000/realms/veds/.well-known/openid-configuration> | OpenID Connect discovery                |
+| <http://localhost:9000/realms/veds/protocol/openid-connect/certs>    | JWKS (public keys for JWT verification) |
+| <http://localhost:9000/realms/veds/protocol/openid-connect/token>    | Token endpoint                          |
 
 ## Manual Token Request (curl)
 

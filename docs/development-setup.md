@@ -115,16 +115,16 @@ cd <service-name>
 
 ## Service URLs
 
-| Component              | URL                   |
-|------------------------|-----------------------|
-| API Gateway            | http://localhost:8080 |
-| Front end              | http://localhost:4200 |
-| Keycloak               | http://localhost:9000 |
-| Kafka UI               | http://localhost:8090 |
-| Schema Registry        | http://localhost:8081 |
-| MailDev                | http://localhost:1080 |
-| Object storage (S3)    | http://localhost:9100 |
-| Object storage console | http://localhost:9101 |
+| Component              | URL                     |
+|------------------------|-------------------------|
+| API Gateway            | <http://localhost:8080> |
+| Front end              | <http://localhost:4200> |
+| Keycloak               | <http://localhost:9000> |
+| Kafka UI               | <http://localhost:8090> |
+| Schema Registry        | <http://localhost:8081> |
+| MailDev                | <http://localhost:1080> |
+| Object storage (S3)    | <http://localhost:9100> |
+| Object storage console | <http://localhost:9101> |
 
 Databases are exposed on 5432 (iam), 5433 (mail), 5434 (keycloak), 5435 (project), 5436 (task), 5437 (notification),
 5438 (translation), 5439 (file).
@@ -199,13 +199,15 @@ application layer. See [Hexagonal Layering](hexagonal-layering.md).
 
 ## Documentation checks
 
-The Markdown is formatted and linted with [mdtools](https://github.com/vertyll/mdtools), at the version the
-[Docs workflow](../.github/workflows/docs.yml) pins:
+The Markdown is formatted and linted with [markright](https://github.com/vertyll/markright), at the version the
+[Docs workflow](../.github/workflows/docs.yml) pins. Install that version, from an archive of its
+[release](https://github.com/vertyll/markright/releases) or with `cargo install --locked markright@VERSION`, then run:
 
 ```bash
-go run github.com/vertyll/mdtools/cmd/mdtools@VERSION fmt
-go run github.com/vertyll/mdtools/cmd/mdtools@VERSION run
+markright fmt
+markright check
 ```
 
-`fmt` rewrites what it can; `run` reports the rest and fails on any issue, as the workflow does on every push and pull
-request. [`.mdtools.yaml`](../.mdtools.yaml) chooses the formatters and linters and what each one skips.
+`fmt` rewrites what it can; `check` reports the rest and fails on any issue, as the workflow does on every push and
+pull request, and `check --fix` does both in one run. [`.markright.toml`](../.markright.toml) chooses the formatters
+and linters and what each one skips.

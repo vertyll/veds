@@ -10,6 +10,8 @@
     <img alt="" src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
 </p>
 
+# VEDS
+
 ## Project Assumptions
 
 Microservices back-end for managing projects and their tasks, built on:
@@ -23,7 +25,7 @@ Microservices back-end for managing projects and their tasks, built on:
 
 The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
-## Link: https://fastdo.vertyll.dev
+## Link: <https://fastdo.vertyll.dev>
 
 ## Architecture Graph
 
@@ -31,7 +33,7 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 
 ## Technology Stack
 
-### Back-end:
+### Back-end
 
 - Spring Boot.
 - Kotlin.
@@ -48,7 +50,7 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 - Spring Cloud Gateway.
 - OpenAPI (Swagger).
 
-### Authentication:
+### Authentication
 
 - **Identity provider**: Keycloak (realm `veds`); the application never sees a password.
 - **Pattern**: BFF; only the API gateway holds tokens, the browser holds only a session cookie.
@@ -57,7 +59,7 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 - **Authorization**: permissions are granted to roles; each service decides from its own projection.
 - **Details**: [Keycloak](docs/keycloak.md) and [Authorization](docs/authorization.md).
 
-### Core back-end:
+### Core back-end
 
 - The application has an exception handling mechanism (RFC 9457 problem details with message codes).
 - The application has a logging mechanism.
@@ -69,7 +71,7 @@ The front-end is [FastDo](https://github.com/vertyll/fastdo).
 - The application has translations (ICU MessageFormat) owned by the service that declares them.
 - And many other features that can be found in the application code.
 
-### Other:
+### Other
 
 - Docker for development environment.
 - Detekt for static code analysis.
