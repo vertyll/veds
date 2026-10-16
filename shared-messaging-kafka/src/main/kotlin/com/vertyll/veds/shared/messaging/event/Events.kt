@@ -14,7 +14,7 @@ import kotlin.uuid.Uuid
  * everything we need, a custom `DomainEvent` interface would be dead code).
  */
 object Events {
-    /** Returns a fresh UUID v4 string suitable for use as an `eventId`. */
+    /** A fresh time-ordered UUID (v7), as an `eventId`. */
     fun newId(): String = Uuid.generateV7().toString()
 
     /** Returns the current instant. Indirection kept for test stubbing convenience. */

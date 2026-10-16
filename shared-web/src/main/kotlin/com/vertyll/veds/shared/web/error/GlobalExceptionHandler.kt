@@ -20,7 +20,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  * Answers every refusal as an RFC 9457 problem document, whichever service threw it.
  *
  * A caller sees one media type — `application/problem+json` — and one identity per
- * kind of failure, so the front end handles a refusal from any service the same
+ * kind of failure, so the front-end handles a refusal from any service the same
  * way. What changes is the key, and that comes from the service's own catalogue.
  *
  * `type` identifies the problem; `code` repeats the bare catalogue key so a client

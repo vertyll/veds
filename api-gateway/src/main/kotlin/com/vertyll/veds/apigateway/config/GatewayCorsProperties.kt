@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * Bound from `application.gateway.cors.*`. The gateway is a BFF: the browser holds an HttpOnly session
  * cookie, so the preflight response has to allow credentials, and the CORS specification then
  * forbids `*` as an origin. That is why [allowedOrigins] has no wildcard default — a deployment
- * names the front end it serves.
+ * names the front-end it serves.
  *
  * Example:
  * ```yaml

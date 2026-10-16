@@ -11,7 +11,7 @@ import java.util.Locale
  * whereas a bare key is greppable and names exactly what has to be fixed.
  * Throwing would take down a page over one absent string.
  *
- * Used by the back end for the two things it must render itself — e-mail bodies,
+ * Used by the back-end for the two things it must render itself — e-mail bodies,
  * which are sent asynchronously and so have no request language, and spreadsheet
  * headers.
  */

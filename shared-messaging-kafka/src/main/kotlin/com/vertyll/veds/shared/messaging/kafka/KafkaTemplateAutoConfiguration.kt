@@ -43,7 +43,6 @@ internal class KafkaTemplateAutoConfiguration {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
-        /** Interval between retry attempts in milliseconds. */
         private const val RETRY_INTERVAL_MS = 1000L
 
         /** Suffix of the dead letter topic, matching `infra/kafka/topics.tf`. */
