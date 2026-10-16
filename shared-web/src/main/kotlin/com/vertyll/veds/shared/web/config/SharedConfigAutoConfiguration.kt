@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
  * `@EnableConfigurationProperties` itself.
  *
  * Paired with [SharedConfigEnvironmentPostProcessor], which loads the
- * underlying `shared-config.yml` from the classpath.
+ * underlying `shared-web-config.yml` from the classpath.
  */
 @Configuration
 @EnableConfigurationProperties(SharedKeycloakProperties::class)

@@ -14,7 +14,7 @@ import java.time.Duration
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   authz:
  *     client:
  *       base-url: http://iam-service:8082

@@ -51,8 +51,8 @@ class OutboxDispatchTx(
 
     /**
      * Fresh `REQUIRES_NEW` transaction that either:
-     *  - schedules [message] for a retry (status `RETRY_SCHEDULED`,
-     *    `retryCount` incremented), or
+     *  - schedules [message] for a retry (back to `PENDING`, `retryCount`
+     *    incremented), or
      *  - dead-letters it if it has exhausted [maxRetries].
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)

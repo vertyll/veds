@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   shared:
  *     openapi:
  *       title: iam-service

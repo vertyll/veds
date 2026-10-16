@@ -20,7 +20,7 @@ import tools.jackson.databind.ObjectMapper
  * special-case one status. The challenge header still goes out — it is what makes
  * the response a valid `401` — and the body is added beside it.
  *
- * Serialised with the container's [ObjectMapper] on purpose: a plain one nests the
+ * Serialized with the container's [ObjectMapper] on purpose: a plain one nests the
  * extension members under `properties`.
  */
 class ProblemAuthenticationEntryPoint(

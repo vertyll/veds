@@ -13,7 +13,7 @@ import java.time.Duration
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   outbox:
  *     poll-interval: 5s
  *     batch-size: 100

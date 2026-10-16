@@ -5,7 +5,7 @@ package com.vertyll.veds.shared.saga
  *
  * Lives in `shared-saga-api` rather than in `shared-saga-engine` so that an
  * application layer can reference a saga type without putting Spring on its
- * compile classpath. The package name is unchanged, so no import had to move.
+ * compile classpath.
  */
 interface SagaTypeValue {
     val value: String

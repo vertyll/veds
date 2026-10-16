@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
  * Converts a Keycloak-issued JWT into a Spring Security [JwtAuthenticationToken]
  * with authorities extracted from the configured roles claim.
  *
- * Used by WebMVC-based services (iam-service, mail-service, template-service).
+ * Used by every WebMVC service; the gateway uses [ReactiveKeycloakJwtAuthenticationConverter].
  */
 class KeycloakJwtAuthenticationConverter(
     private val sharedConfig: SharedKeycloakProperties,

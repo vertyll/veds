@@ -69,8 +69,11 @@ dependencies {
     // OpenAPI: only contributes a bean when the service already brings springdoc
     compileOnly(libs.swagger.core.models)
 
-    // Serializing a problem document needs the container's mapper, which the service brings
+    // Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it, and the gateway brings it
     compileOnly("io.projectreactor:reactor-core")
+
+    // The service brings these: the container's mapper, which a problem document is serialized with,
+    // and the servlet API
     compileOnly(libs.jackson.databind)
     compileOnly(libs.jakarta.servlet.api)
     testImplementation(libs.swagger.core.models)

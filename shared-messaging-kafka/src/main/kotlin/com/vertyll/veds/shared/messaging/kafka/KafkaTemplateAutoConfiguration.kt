@@ -29,8 +29,8 @@ import org.springframework.util.backoff.FixedBackOff
  * Autoconfiguration for Kafka Producer and Consumer.
  * Only creates beans when Kafka is enabled.
  *
- * Configuration is bound from `spring.kafka.*` via [KafkaInfraProperties], replacing
- * `@Value` lookups. Style consistent with `MailProperties` and `SharedKeycloakProperties`.
+ * Configuration is bound from `spring.kafka.*` via [KafkaInfraProperties], as one typed
+ * object rather than `@Value` lookups.
  */
 @Configuration
 @ConditionalOnProperty(

@@ -92,7 +92,7 @@ abstract class VedsArchitectureTest(
 }
 
 /**
- * Drops classes the Kotlin compiler synthesises rather than a developer writing them:
+ * Drops classes the Kotlin compiler synthesizes rather than a developer writing them:
  * `DefaultImpls` (bodies of interface default methods) and `WhenMappings` (enum `when` tables).
  * Judging them reports compiler strategy, not architecture — `DefaultImpls` is a class, so an
  * "interfaces only" rule fails on every interface that has a default method.

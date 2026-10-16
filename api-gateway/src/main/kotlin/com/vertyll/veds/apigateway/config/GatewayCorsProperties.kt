@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   gateway:
  *     cors:
  *       allowed-origins:

@@ -8,9 +8,9 @@ package com.vertyll.veds.shared.saga.engine
  * domain-level compensations (e.g. delete user, revert email update) —
  * usually by delegating to an application-layer use case.
  *
- * Strongly-typed by design — replaces the previous untyped
- * `Map<String, Any?>` envelope and `action: String` discriminator with an
- * exhaustive `when` on the sealed hierarchy.
+ * Strongly-typed by design: an exhaustive `when` on the sealed hierarchy,
+ * rather than an untyped `Map<String, Any?>` envelope and an
+ * `action: String` discriminator, so a new action cannot go unhandled.
  */
 @Suppress("kotlin:S6517")
 fun interface CompensationCommandHandler<TCommand : Any> {

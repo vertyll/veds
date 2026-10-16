@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   translation:
  *     supported-languages: pl,en
  * ```

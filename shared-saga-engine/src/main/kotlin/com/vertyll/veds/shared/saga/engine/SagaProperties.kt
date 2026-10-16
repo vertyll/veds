@@ -13,7 +13,7 @@ import java.time.Duration
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   saga:
  *     await-response-timeout: 30m
  *     watchdog-interval: 1m

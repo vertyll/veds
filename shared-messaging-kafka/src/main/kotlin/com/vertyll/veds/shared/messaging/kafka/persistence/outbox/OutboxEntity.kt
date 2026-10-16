@@ -28,7 +28,7 @@ import kotlin.uuid.Uuid
  *
  * Mutable fields use `var` with `protected set` so Hibernate dirty-tracking can
  * emit partial `UPDATE` statements while callers see an immutable API and reach
- * the state through the `mark*` behaviour methods. A different store implements
+ * the state through the `mark*` behavior methods. A different store implements
  * [OutboxMessage] directly and returns fresh copies instead; the processor never
  * observes the difference.
  */

@@ -14,7 +14,7 @@ import java.time.Duration
  *
  * Example:
  * ```yaml
- * veds:
+ * application:
  *   translation:
  *     client:
  *       base-url: http://translation-service:8087
