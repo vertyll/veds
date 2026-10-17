@@ -130,7 +130,10 @@ Keycloak draws the sign-in, sign-up, password reset and second-factor pages, and
 The theme menu offers Light and Dark, as FastDo's switch does; without a choice the pages follow the reader's system.
 The sign-in starts in the theme FastDo shows: FastDo adds `theme` to `/auth/authorize`, the API gateway passes it to
 Keycloak as `ui_theme` when it is `light` or `dark`, and `theme.js` keeps it in the browser for Keycloak's address,
-where a choice in its own menu replaces it.
+where a choice in its own menu replaces it. A choice made in that menu goes back to FastDo, as the sign-in returns to an
+address that carries nothing else: `theme.js` leaves it in the cookie `ui_theme_veds`, under the domain Keycloak shares
+with FastDo, the parent of Keycloak's host (on localhost, every port), and FastDo takes it over the next time it loads
+and removes the cookie.
 
 `template.ftl` is a copy of `keycloak.v2`'s own, changed only where it says `Changed from keycloak.v2`. Keycloak builds
 its pages from that template, so after an upgrade of Keycloak the copy is compared with the new release's and brought up
