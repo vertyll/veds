@@ -150,6 +150,12 @@ internal class HostedSignInTest {
     }
 
     @Test
+    fun `authorize passes on the language FastDo shows, and only one Keycloak has`() {
+        assertEquals("en", parameterSentFor("ui_locales", "en"))
+        assertNull(parameterSentFor("ui_locales", "de"))
+    }
+
+    @Test
     fun `authorize passes on the removal of a credential named by its id`() {
         val action = "delete_credential:90062308-97cf-410a-afe5-06680a07a349"
 
@@ -163,17 +169,22 @@ internal class HostedSignInTest {
         }
     }
 
-    private fun kcActionSentFor(action: String): String? {
+    private fun kcActionSentFor(action: String): String? = parameterSentFor("kc_action", action)
+
+    private fun parameterSentFor(
+        name: String,
+        value: String,
+    ): String? {
         val result =
             client
                 .get()
-                .uri { it.path("/auth/authorize").queryParam("kc_action", action).build() }
+                .uri { it.path("/auth/authorize").queryParam(name, value).build() }
                 .exchange()
                 .expectStatus()
                 .isFound
                 .expectBody()
                 .returnResult()
-        return queryOf(requireNotNull(result.responseHeaders.location).toString()).getFirst("kc_action")
+        return queryOf(requireNotNull(result.responseHeaders.location).toString()).getFirst(name)
     }
 
     @Test

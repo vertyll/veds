@@ -65,6 +65,13 @@ internal class FakeIdentityProvider : IdentityProviderPort {
 
     override fun credentialTypes(keycloakId: UUID) = credentials.keys.toSet()
 
+    override fun setLanguage(
+        keycloakId: UUID,
+        language: String,
+    ) {
+        calls += "setLanguage($keycloakId,$language)"
+    }
+
     override fun credentialId(
         keycloakId: UUID,
         credentialType: String,

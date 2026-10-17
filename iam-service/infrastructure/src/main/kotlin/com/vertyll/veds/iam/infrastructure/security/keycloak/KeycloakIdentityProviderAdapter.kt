@@ -180,6 +180,19 @@ internal class KeycloakIdentityProviderAdapter(
             .mapNotNull { it.type?.lowercase() }
             .toSet()
 
+    override fun setLanguage(
+        keycloakId: UUID,
+        language: String,
+    ) {
+        val userResource = usersResource[keycloakId.toString()]
+        val user = userResource.toRepresentation()
+        if (user.attributes?.get(LOCALE_ATTRIBUTE) == listOf(language)) {
+            return
+        }
+        user.attributes = (user.attributes ?: emptyMap()) + (LOCALE_ATTRIBUTE to listOf(language))
+        userResource.update(user)
+    }
+
     override fun credentialId(
         keycloakId: UUID,
         credentialType: String,
@@ -190,4 +203,8 @@ internal class KeycloakIdentityProviderAdapter(
             .credentials()
             .firstOrNull { it.type?.equals(credentialType, ignoreCase = true) == true }
             ?.id
+
+    private companion object {
+        const val LOCALE_ATTRIBUTE = "locale"
+    }
 }

@@ -102,6 +102,10 @@ internal class TranslationCatalogueConfig {
                 pl("Imię musi mieć od 2 do 50 znaków.")
                 en("First name must be 2 to 50 characters long.")
             }
+            key("validation.iam.language_unsupported") {
+                pl("Ten język nie jest obsługiwany.")
+                en("This language is not supported.")
+            }
             key("validation.iam.last_name_required") {
                 pl("Nazwisko jest wymagane.")
                 en("Last name is required.")

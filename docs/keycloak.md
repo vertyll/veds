@@ -119,13 +119,13 @@ is painful. The Admin API stays, in the narrower role of provisioning users at r
 Keycloak draws the sign-in, sign-up, password reset and second-factor pages, and the mails it sends, with the theme in
 [`keycloak/themes/veds`](../keycloak/themes/veds), so they look like FastDo:
 
-| Part                      | Holds                                                                                 |
-|---------------------------|---------------------------------------------------------------------------------------|
-| `login/theme.properties`  | extends `keycloak.v2`, whose templates draw every page, and names the legal pages     |
-| `login/template.ftl`      | the page frame: a top bar with the name and the menus, a footer with the legal pages  |
-| `login/resources`         | `css/app.css`, the colors, type and card on PatternFly; `js/theme.js`, the theme menu |
-| `login/messages`          | the texts of the bar and the footer, in Polish and English                            |
-| `email/html/template.ftl` | the frame of every mail; its texts stay Keycloak's own                                |
+| Part                      | Holds                                                                                                                             |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `login/theme.properties`  | extends `keycloak.v2`, whose templates draw every page, and names the legal pages                                                 |
+| `login/template.ftl`      | the page frame: a top bar with the name and the menus, a footer with the legal pages                                              |
+| `login/resources`         | `css/app.css`, the colors, type and card on PatternFly; `js/theme.js`, the theme menu; `js/language.js`, the language handed back |
+| `login/messages`          | the texts of the bar and the footer, in Polish and English                                                                        |
+| `email/html/template.ftl` | the frame of every mail; its texts stay Keycloak's own                                                                            |
 
 The theme menu offers Light and Dark, as FastDo's switch does; without a choice the pages follow the reader's system.
 The sign-in starts in the theme FastDo shows: FastDo adds `theme` to `/auth/authorize`, the API gateway passes it to
@@ -133,7 +133,15 @@ Keycloak as `ui_theme` when it is `light` or `dark`, and `theme.js` keeps it in 
 where a choice in its own menu replaces it. A choice made in that menu goes back to FastDo, as the sign-in returns to an
 address that carries nothing else: `theme.js` leaves it in the cookie `ui_theme_veds`, under the domain Keycloak shares
 with FastDo, the parent of Keycloak's host (on localhost, every port), and FastDo takes it over the next time it loads
-and removes the cookie.
+and removes the cookie. A signed-in reader's account action reaches Keycloak's page through a redirect that drops
+`ui_theme`, so FastDo also leaves its theme in that cookie before it goes to `/auth/authorize`, and `theme.js` takes it
+from there when the address carries none.
+
+The language goes both ways too. FastDo adds `ui_locales` to `/auth/authorize`, and the gateway passes it to Keycloak
+when it is `pl` or `en`, which picks the sign-in page's language. Keycloak shows a signed-in person their account's
+language instead, so before an account action FastDo stores its language there with `PUT /auth/me/security/language`.
+A language chosen in Keycloak's own menu goes back as the theme does: `language.js` leaves it in the cookie
+`ui_locale_veds`, and FastDo takes it over the next time it loads and removes the cookie.
 
 `template.ftl` is a copy of `keycloak.v2`'s own, changed only where it says `Changed from keycloak.v2`. Keycloak builds
 its pages from that template, so after an upgrade of Keycloak the copy is compared with the new release's and brought up
