@@ -29,7 +29,12 @@ internal class HostedSignInRequests(
         private val DELETE_CREDENTIAL =
             Regex("delete_credential:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
         private const val UI_LOCALES = "ui_locales"
-        private val ALLOWED_LANGUAGES = setOf("pl", "en")
+
+        /**
+         * A BCP 47 language tag, such as `pl` or `en-GB`. The languages themselves are the translation service's data;
+         * Keycloak shows a page in its default language when it has none of the ones asked for.
+         */
+        private val LANGUAGE_TAG = Regex("[a-z]{2,3}(-[A-Za-z0-9]{2,8})*")
         private const val THEME = "theme"
         private const val UI_THEME = "ui_theme"
         private val ALLOWED_THEMES = setOf("light", "dark")
@@ -57,7 +62,7 @@ internal class HostedSignInRequests(
         val query = exchange.request.queryParams
         val action = query.getFirst(KC_ACTION)?.takeIf { it in ALLOWED_ACTIONS || DELETE_CREDENTIAL.matches(it) }
         val theme = query.getFirst(THEME)?.takeIf { it in ALLOWED_THEMES }
-        val language = query.getFirst(UI_LOCALES)?.takeIf { it in ALLOWED_LANGUAGES }
+        val language = query.getFirst(UI_LOCALES)?.takeIf { LANGUAGE_TAG.matches(it) }
         return delegate.resolve(exchange, clientRegistrationId).map { authorization ->
             OAuth2AuthorizationRequest
                 .from(authorization)

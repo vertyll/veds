@@ -136,11 +136,12 @@ reader moves between them: through a sign-in, a cancelled account action, whose 
 also sends through the gateway, the browser's history or another tab.
 
 The language goes both ways too. FastDo adds `ui_locales` to `/auth/authorize`, and the gateway passes it to Keycloak
-when it is `pl` or `en`, which picks the sign-in page's language. Keycloak shows a signed-in person their account's
-language instead, so before an account action FastDo stores its language there with `PUT /auth/me/security/language`. A
-language chosen in Keycloak's own menu goes back in a cookie too, taken over once, as Keycloak itself keeps the language
-on the account: `language.js` leaves it in the cookie `ui_locale_veds`, and FastDo takes it over the next time it loads
-and removes the cookie.
+when it is a language tag, which picks the sign-in page's language. Keycloak shows a signed-in person their account's
+language instead, so FastDo stores a signed-in reader's choice there at once and again before an account action, with
+`PUT /auth/me/security/language`. The language the reader last chose, in FastDo or in Keycloak's own menu, is kept in
+the cookie `ui_locale_veds`, which both write, under the same domain as the theme's and for a year: FastDo writes it
+when the reader picks a language and reads it whenever it loads, and `language.js` writes it on a choice in Keycloak's
+menu.
 
 `template.ftl` is a copy of `keycloak.v2`'s own, changed only where it says `Changed from keycloak.v2`. Keycloak builds
 its pages from that template, so after an upgrade of Keycloak the copy is compared with the new release's and brought up

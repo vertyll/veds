@@ -2,6 +2,7 @@ package com.vertyll.veds.iam.application.port.inbound.command
 
 import java.util.UUID
 
+@Suppress("kotlin:S6517")
 interface SecurityCommandUseCase {
     /**
      * Stores the language on the caller's Keycloak account, which Keycloak's pages show a signed-in person in, so an

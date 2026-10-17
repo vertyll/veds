@@ -150,9 +150,9 @@ internal class HostedSignInTest {
     }
 
     @Test
-    fun `authorize passes on the language FastDo shows, and only one Keycloak has`() {
+    fun `authorize passes on the language FastDo shows, and only a language tag`() {
         assertEquals("en", parameterSentFor("ui_locales", "en"))
-        assertNull(parameterSentFor("ui_locales", "de"))
+        assertNull(parameterSentFor("ui_locales", "en&prompt=none"))
     }
 
     @Test
