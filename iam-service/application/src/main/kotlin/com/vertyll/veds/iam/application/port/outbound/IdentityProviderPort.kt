@@ -43,8 +43,9 @@ interface IdentityProviderPort {
 
     fun credentialTypes(keycloakId: UUID): Set<String>
 
-    fun removeCredential(
+    /** The id of the person's credential of this type, or null when they have none. */
+    fun credentialId(
         keycloakId: UUID,
         credentialType: String,
-    )
+    ): String?
 }

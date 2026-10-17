@@ -150,6 +150,33 @@ internal class HostedSignInTest {
     }
 
     @Test
+    fun `authorize passes on the removal of a credential named by its id`() {
+        val action = "delete_credential:90062308-97cf-410a-afe5-06680a07a349"
+
+        assertEquals(action, kcActionSentFor(action))
+    }
+
+    @Test
+    fun `authorize drops an action the account page does not start`() {
+        for (action in listOf("delete_account", "delete_credential", "delete_credential:otp")) {
+            assertNull(kcActionSentFor(action), action)
+        }
+    }
+
+    private fun kcActionSentFor(action: String): String? {
+        val result =
+            client
+                .get()
+                .uri { it.path("/auth/authorize").queryParam("kc_action", action).build() }
+                .exchange()
+                .expectStatus()
+                .isFound
+                .expectBody()
+                .returnResult()
+        return queryOf(requireNotNull(result.responseHeaders.location).toString()).getFirst("kc_action")
+    }
+
+    @Test
     fun `a callback with a state this browser was not given is refused`() {
         val browser = Browser()
         browser.send(client.get().uri("/auth/authorize"))

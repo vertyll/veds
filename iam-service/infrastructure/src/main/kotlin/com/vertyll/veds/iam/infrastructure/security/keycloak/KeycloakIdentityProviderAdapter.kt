@@ -180,14 +180,14 @@ internal class KeycloakIdentityProviderAdapter(
             .mapNotNull { it.type?.lowercase() }
             .toSet()
 
-    override fun removeCredential(
+    override fun credentialId(
         keycloakId: UUID,
         credentialType: String,
-    ) {
-        val userResource = realmResource.users().get(keycloakId.toString())
-        userResource
+    ): String? =
+        realmResource
+            .users()
+            .get(keycloakId.toString())
             .credentials()
-            .filter { it.type?.equals(credentialType, ignoreCase = true) == true }
-            .forEach { credential -> credential.id?.let { userResource.removeCredential(it) } }
-    }
+            .firstOrNull { it.type?.equals(credentialType, ignoreCase = true) == true }
+            ?.id
 }

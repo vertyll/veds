@@ -18,6 +18,7 @@ class SecurityQueryService(
         return SecuritySettingsResponse(
             twoFactorEnabled = OTP_CREDENTIAL in factors,
             configuredFactors = factors.sorted(),
+            twoFactorCredentialId = identityProvider.credentialId(keycloakId, OTP_CREDENTIAL),
         )
     }
 }

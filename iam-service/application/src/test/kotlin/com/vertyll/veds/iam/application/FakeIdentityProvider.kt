@@ -6,6 +6,7 @@ import java.util.UUID
 internal class FakeIdentityProvider : IdentityProviderPort {
     val calls = mutableListOf<String>()
     var createUserFails: Exception? = null
+    val credentials = mutableMapOf("password" to "password-1")
 
     override fun createUser(
         email: String,
@@ -62,12 +63,10 @@ internal class FakeIdentityProvider : IdentityProviderPort {
         calls += "removeRole($keycloakUserId,$roleName)"
     }
 
-    override fun credentialTypes(keycloakId: UUID) = setOf("password")
+    override fun credentialTypes(keycloakId: UUID) = credentials.keys.toSet()
 
-    override fun removeCredential(
+    override fun credentialId(
         keycloakId: UUID,
         credentialType: String,
-    ) {
-        calls += "removeCredential($keycloakId,$credentialType)"
-    }
+    ): String? = credentials[credentialType]
 }

@@ -19,7 +19,14 @@ internal class HostedSignInRequests(
     companion object {
         const val AUTHORIZE_PATH = "/auth/authorize"
         private const val KC_ACTION = "kc_action"
-        private val ALLOWED_ACTIONS = setOf("CONFIGURE_TOTP", "UPDATE_PASSWORD", "delete_credential")
+        private val ALLOWED_ACTIONS = setOf("CONFIGURE_TOTP", "UPDATE_PASSWORD")
+
+        /**
+         * Keycloak's action removing one credential, named by its id; Keycloak asks to confirm and removes it only when
+         * it is the person's own.
+         */
+        private val DELETE_CREDENTIAL =
+            Regex("delete_credential:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
         private const val THEME = "theme"
         private const val UI_THEME = "ui_theme"
         private val ALLOWED_THEMES = setOf("light", "dark")
@@ -45,7 +52,7 @@ internal class HostedSignInRequests(
         clientRegistrationId: String,
     ): Mono<OAuth2AuthorizationRequest> {
         val query = exchange.request.queryParams
-        val action = query.getFirst(KC_ACTION)?.takeIf { it in ALLOWED_ACTIONS }
+        val action = query.getFirst(KC_ACTION)?.takeIf { it in ALLOWED_ACTIONS || DELETE_CREDENTIAL.matches(it) }
         val theme = query.getFirst(THEME)?.takeIf { it in ALLOWED_THEMES }
         return delegate.resolve(exchange, clientRegistrationId).map { authorization ->
             OAuth2AuthorizationRequest

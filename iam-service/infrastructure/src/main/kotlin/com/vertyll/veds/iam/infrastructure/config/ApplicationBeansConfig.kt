@@ -3,7 +3,6 @@ package com.vertyll.veds.iam.infrastructure.config
 import com.vertyll.veds.iam.application.port.inbound.command.PermissionCatalogueUseCase
 import com.vertyll.veds.iam.application.port.inbound.command.ProvisionCurrentUserUseCase
 import com.vertyll.veds.iam.application.port.inbound.command.RoleCommandUseCase
-import com.vertyll.veds.iam.application.port.inbound.command.SecurityCommandUseCase
 import com.vertyll.veds.iam.application.port.inbound.command.UserCommandUseCase
 import com.vertyll.veds.iam.application.port.inbound.query.AuthQueryUseCase
 import com.vertyll.veds.iam.application.port.inbound.query.PermissionQueryUseCase
@@ -15,7 +14,6 @@ import com.vertyll.veds.iam.application.port.outbound.IdentityProviderPort
 import com.vertyll.veds.iam.application.port.outbound.RolePermissionsEventPublisherPort
 import com.vertyll.veds.iam.application.service.command.PermissionCatalogueService
 import com.vertyll.veds.iam.application.service.command.RoleCommandService
-import com.vertyll.veds.iam.application.service.command.SecurityCommandService
 import com.vertyll.veds.iam.application.service.command.UserCommandService
 import com.vertyll.veds.iam.application.service.command.UserProvisioningService
 import com.vertyll.veds.iam.application.service.query.AuthQueryService
@@ -72,19 +70,6 @@ internal class ApplicationBeansConfig {
                 permissionRepository,
                 roleRepository,
                 rolePermissionsEventPublisher,
-            ),
-            NO_METHODS,
-        )
-
-    @Bean
-    fun securityCommandUseCase(
-        transactions: TransactionalUseCaseFactory,
-        identityProvider: IdentityProviderPort,
-    ): SecurityCommandUseCase =
-        transactions.wrap(
-            SecurityCommandUseCase::class.java,
-            SecurityCommandService(
-                identityProvider,
             ),
             NO_METHODS,
         )
