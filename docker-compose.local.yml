@@ -364,6 +364,7 @@ services:
         condition: service_healthy
     volumes:
       - ./keycloak/realm-config/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/realm-config/themes/veds:/opt/keycloak/themes/veds:ro
     networks:
       - microservices-network
     healthcheck:

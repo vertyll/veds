@@ -120,6 +120,36 @@ internal class HostedSignInTest {
     }
 
     @Test
+    fun `authorize passes the reader's theme on to Keycloak`() {
+        val result =
+            client
+                .get()
+                .uri("/auth/authorize?theme=dark")
+                .exchange()
+                .expectStatus()
+                .isFound
+                .expectBody()
+                .returnResult()
+
+        assertEquals("dark", queryOf(requireNotNull(result.responseHeaders.location).toString()).getFirst("ui_theme"))
+    }
+
+    @Test
+    fun `authorize drops a theme Keycloak's pages do not have`() {
+        val result =
+            client
+                .get()
+                .uri("/auth/authorize?theme=neon")
+                .exchange()
+                .expectStatus()
+                .isFound
+                .expectBody()
+                .returnResult()
+
+        assertNull(queryOf(requireNotNull(result.responseHeaders.location).toString()).getFirst("ui_theme"))
+    }
+
+    @Test
     fun `a callback with a state this browser was not given is refused`() {
         val browser = Browser()
         browser.send(client.get().uri("/auth/authorize"))

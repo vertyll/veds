@@ -114,6 +114,37 @@ JavaScript memory.
 Profile data is deliberately *not* stored in Keycloak user attributes: it is not an application database and querying it
 is painful. The Admin API stays, in the narrower role of provisioning users at registration and syncing roles.
 
+## The sign-in pages
+
+Keycloak draws the sign-in, sign-up, password reset and second-factor pages, and the mails it sends, with the theme in
+[`keycloak/themes/veds`](../keycloak/themes/veds), so they look like FastDo:
+
+| Part                      | Holds                                                                                 |
+|---------------------------|---------------------------------------------------------------------------------------|
+| `login/theme.properties`  | extends `keycloak.v2`, whose templates draw every page, and names the legal pages     |
+| `login/template.ftl`      | the page frame: a top bar with the name and the menus, a footer with the legal pages  |
+| `login/resources`         | `css/app.css`, the colors, type and card on PatternFly; `js/theme.js`, the theme menu |
+| `login/messages`          | the texts of the bar and the footer, in Polish and English                            |
+| `email/html/template.ftl` | the frame of every mail; its texts stay Keycloak's own                                |
+
+The theme menu offers Light and Dark, as FastDo's switch does; without a choice the pages follow the reader's system.
+The sign-in starts in the theme FastDo shows: FastDo adds `theme` to `/auth/authorize`, the API gateway passes it to
+Keycloak as `ui_theme` when it is `light` or `dark`, and `theme.js` keeps it in the browser for Keycloak's address,
+where a choice in its own menu replaces it.
+
+`template.ftl` is a copy of `keycloak.v2`'s own, changed only where it says `Changed from keycloak.v2`. Keycloak builds
+its pages from that template, so after an upgrade of Keycloak the copy is compared with the new release's and brought up
+to date. The Keycloak theme workflow does the comparison: `keycloak/check-template.sh` fails when the template in the
+Keycloak image of `docker-compose.local.yml` is not the one the copy was made from, recorded as `parentTemplateSha256`
+in `theme.properties`, which changes with the copy. The colors are those of FastDo's `style.css` and the primary color
+of its Material theme. A mail's colors are written as hex, since mail clients read neither `oklch()` nor `light-dark()`.
+The links of the bar and the footer lead to the client's base URL, `baseUrl` in the realm.
+
+The realm names the theme in `loginTheme` and `emailTheme`. Locally, compose mounts the folder into Keycloak. A Keycloak
+that serves several applications, each in its own realm, takes it as a JAR in `/opt/keycloak/providers`:
+`keycloak/build-theme.sh` writes `keycloak/target/veds-keycloak-theme.jar`, and `keycloak/Dockerfile` builds an image
+holding it in `/themes`, which the Keycloak theme workflow publishes on a `keycloak-theme-v*` tag.
+
 ## Configuration
 
 All Keycloak-related config is centralized in `shared-web/src/main/resources/shared-web-config.yml` and injected

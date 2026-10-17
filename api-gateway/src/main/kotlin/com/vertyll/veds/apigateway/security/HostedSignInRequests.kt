@@ -9,7 +9,10 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
-/** `GET /auth/authorize` starts the sign-in: Spring's request with PKCE, plus an allowed `kc_action`. */
+/**
+ * `GET /auth/authorize` starts the sign-in: Spring's request with PKCE, plus an allowed `kc_action`, and the reader's
+ * `theme`, passed on as `ui_theme` so Keycloak's pages open in the theme FastDo shows.
+ */
 internal class HostedSignInRequests(
     registrations: ReactiveClientRegistrationRepository,
 ) : ServerOAuth2AuthorizationRequestResolver {
@@ -17,6 +20,9 @@ internal class HostedSignInRequests(
         const val AUTHORIZE_PATH = "/auth/authorize"
         private const val KC_ACTION = "kc_action"
         private val ALLOWED_ACTIONS = setOf("CONFIGURE_TOTP", "UPDATE_PASSWORD", "delete_credential")
+        private const val THEME = "theme"
+        private const val UI_THEME = "ui_theme"
+        private val ALLOWED_THEMES = setOf("light", "dark")
     }
 
     private val delegate =
@@ -38,15 +44,16 @@ internal class HostedSignInRequests(
         exchange: ServerWebExchange,
         clientRegistrationId: String,
     ): Mono<OAuth2AuthorizationRequest> {
-        val action =
-            exchange.request.queryParams
-                .getFirst(KC_ACTION)
-                ?.takeIf { it in ALLOWED_ACTIONS }
+        val query = exchange.request.queryParams
+        val action = query.getFirst(KC_ACTION)?.takeIf { it in ALLOWED_ACTIONS }
+        val theme = query.getFirst(THEME)?.takeIf { it in ALLOWED_THEMES }
         return delegate.resolve(exchange, clientRegistrationId).map { authorization ->
             OAuth2AuthorizationRequest
                 .from(authorization)
-                .additionalParameters { parameters -> action?.let { parameters[KC_ACTION] = it } }
-                .build()
+                .additionalParameters { parameters ->
+                    action?.let { parameters[KC_ACTION] = it }
+                    theme?.let { parameters[UI_THEME] = it }
+                }.build()
         }
     }
 }
