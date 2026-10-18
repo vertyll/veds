@@ -1,7 +1,12 @@
 [versions]
+ktlint-plugin = "14.2.0"
+ktlint-engine = "1.8.0"
 java = "25"
 avro = "1.12.2"
 
 [libraries]
 avro = { module = "org.apache.avro:avro", version.ref = "avro" }
 avro-tools = { module = "org.apache.avro:avro-tools", version.ref = "avro" }
+
+[plugins]
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }

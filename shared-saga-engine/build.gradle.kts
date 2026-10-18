@@ -97,8 +97,6 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     enableExperimentalRules.set(true)
     filter {
         exclude { element -> element.file.path.contains("generated/") }
-        include("**/src/**/*.kt")
-        include("**/src/**/*.kts")
     }
 }
 

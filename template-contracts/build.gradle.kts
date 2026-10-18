@@ -1,6 +1,7 @@
 plugins {
     java
     `java-library`
+    alias(libs.plugins.ktlint)
 }
 
 group = "com.vertyll.veds"
@@ -14,6 +15,13 @@ repositories {
     mavenCentral()
 }
 
+ktlint {
+    version.set(
+        libs.versions.ktlint.engine
+            .get(),
+    )
+}
+
 configure<JavaPluginExtension> {
     toolchain {
         languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
@@ -25,30 +33,31 @@ val avroContractsDir = file("$projectDir/avro")
 val avroGeneratedDir = layout.buildDirectory.dir("generated/sources/avro/main/java")
 val avroSchemas = fileTree(avroContractsDir) { include("**/*.avsc") }
 
-val generateAvroJava = tasks.register<JavaExec>("generateAvroJava") {
-    group = "build"
-    description = "Generate Java SpecificRecord classes from all Avro schemas owned by the template bounded context."
-    inputs
-        .files(avroSchemas)
-        .withPropertyName("avroSchemas")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir(avroGeneratedDir).withPropertyName("avroGeneratedDir")
-    classpath = avroTools
-    mainClass = "org.apache.avro.tool.Main"
+val generateAvroJava =
+    tasks.register<JavaExec>("generateAvroJava") {
+        group = "build"
+        description = "Generate Java SpecificRecord classes from all Avro schemas owned by the template bounded context."
+        inputs
+            .files(avroSchemas)
+            .withPropertyName("avroSchemas")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        outputs.dir(avroGeneratedDir).withPropertyName("avroGeneratedDir")
+        classpath = avroTools
+        mainClass = "org.apache.avro.tool.Main"
 
-    doFirst {
-        val outDir = avroGeneratedDir.get().asFile
-        outDir.deleteRecursively()
-        outDir.mkdirs()
+        doFirst {
+            val outDir = avroGeneratedDir.get().asFile
+            outDir.deleteRecursively()
+            outDir.mkdirs()
+        }
+        argumentProviders.add(
+            CommandLineArgumentProvider {
+                listOf("compile", "schema", "-string") +
+                    avroSchemas.files.map { it.absolutePath } +
+                    listOf(avroGeneratedDir.get().asFile.absolutePath)
+            },
+        )
     }
-    argumentProviders.add(
-        CommandLineArgumentProvider {
-            listOf("compile", "schema", "-string") +
-                avroSchemas.files.map { it.absolutePath } +
-                listOf(avroGeneratedDir.get().asFile.absolutePath)
-        },
-    )
-}
 
 sourceSets {
     main {

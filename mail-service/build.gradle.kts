@@ -83,8 +83,6 @@ subprojects {
         enableExperimentalRules.set(true)
         filter {
             exclude { element -> element.file.path.contains("generated/") }
-            include("**/src/**/*.kt")
-            include("**/src/**/*.kts")
         }
     }
 
@@ -174,7 +172,10 @@ sonar {
     properties {
         property("sonar.projectKey", "veds-mail-service")
         property("sonar.projectName", "veds mail-service")
-        property("sonar.issue.ignore.multicriteria", "dto,command,domainModel,beans,tests,repository,entity,mailTitle,mailTableAttrs,mailTableLayout")
+        property(
+            "sonar.issue.ignore.multicriteria",
+            "dto,command,domainModel,beans,tests,repository,entity,mailTitle,mailTableAttrs,mailTableLayout",
+        )
         property("sonar.issue.ignore.multicriteria.dto.ruleKey", "kotlin:S107")
         property("sonar.issue.ignore.multicriteria.dto.resourceKey", "**/dto/*.kt")
         property("sonar.issue.ignore.multicriteria.command.ruleKey", "kotlin:S107")
