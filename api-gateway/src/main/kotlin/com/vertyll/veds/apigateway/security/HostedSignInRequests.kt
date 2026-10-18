@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono
 /**
  * `GET /auth/authorize` starts the sign-in: Spring's request with PKCE, plus an allowed `kc_action`, the reader's
  * `theme`, passed on as `ui_theme`, and their `ui_locales`, so Keycloak's pages open in the theme and the language
- * FastDo shows.
+ * FastDo shows. `return_to`, the page of FastDo to come back to, rides in the request itself, see [ReturnPage].
  */
 internal class HostedSignInRequests(
     registrations: ReactiveClientRegistrationRepository,
@@ -63,6 +63,7 @@ internal class HostedSignInRequests(
         val action = query.getFirst(KC_ACTION)?.takeIf { it in ALLOWED_ACTIONS || DELETE_CREDENTIAL.matches(it) }
         val theme = query.getFirst(THEME)?.takeIf { it in ALLOWED_THEMES }
         val language = query.getFirst(UI_LOCALES)?.takeIf { LANGUAGE_TAG.matches(it) }
+        val returnTo = ReturnPage.onThisSite(query.getFirst(ReturnPage.PARAMETER))
         return delegate.resolve(exchange, clientRegistrationId).map { authorization ->
             OAuth2AuthorizationRequest
                 .from(authorization)
@@ -70,7 +71,8 @@ internal class HostedSignInRequests(
                     action?.let { parameters[KC_ACTION] = it }
                     theme?.let { parameters[UI_THEME] = it }
                     language?.let { parameters[UI_LOCALES] = it }
-                }.build()
+                }.attributes { attributes -> returnTo?.let { attributes[ReturnPage.ATTRIBUTE] = it } }
+                .build()
         }
     }
 }

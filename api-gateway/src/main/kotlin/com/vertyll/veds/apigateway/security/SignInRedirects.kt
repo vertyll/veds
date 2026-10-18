@@ -15,7 +15,10 @@ import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import java.net.URI
 
-/** Sends the browser back to the front-end after Keycloak, with `?error=` when the sign-in did not complete. */
+/**
+ * Sends the browser back to the front-end after Keycloak: to the page the sign-in was started from, or the front-end's
+ * start page, with `?error=` when the sign-in did not complete.
+ */
 @Component
 internal class SignInRedirects(
     private val oauth: GatewayOAuthProperties,
@@ -33,7 +36,11 @@ internal class SignInRedirects(
     override fun onAuthenticationSuccess(
         webFilterExchange: WebFilterExchange,
         authentication: Authentication,
-    ): Mono<Void> = redirects.sendRedirect(webFilterExchange.exchange, URI.create(oauth.postLoginRedirectUri))
+    ): Mono<Void> {
+        val start = URI.create(oauth.postLoginRedirectUri)
+        val page = ReturnPage.onThisSite(webFilterExchange.exchange.getAttribute<String>(ReturnPage.ATTRIBUTE))
+        return redirects.sendRedirect(webFilterExchange.exchange, page?.let(start::resolve) ?: start)
+    }
 
     override fun onAuthenticationFailure(
         webFilterExchange: WebFilterExchange,

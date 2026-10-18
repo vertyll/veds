@@ -198,6 +198,20 @@ internal class HostedSignInTest {
     }
 
     @Test
+    fun `a sign-in returns to the page of FastDo it was started from`() {
+        signedIn(
+            LIFETIME_SECONDS,
+            returnTo = "/projects/7?tab=tasks",
+            landing = "http://localhost:4200/projects/7?tab=tasks",
+        )
+    }
+
+    @Test
+    fun `a sign-in never returns to a page elsewhere`() {
+        signedIn(LIFETIME_SECONDS, returnTo = "//evil.test/")
+    }
+
+    @Test
     fun `signing in gives a Strict session cookie and keeps the tokens encrypted in Redis`() {
         val browser = signedIn(LIFETIME_SECONDS)
 
@@ -316,9 +330,15 @@ internal class HostedSignInTest {
         verify(keycloakSessions, never()).revoke(anyString())
     }
 
-    private fun signedIn(accessTokenLifetimeSeconds: Long): Browser {
+    private fun signedIn(
+        accessTokenLifetimeSeconds: Long,
+        returnTo: String? = null,
+        landing: String = "http://localhost:4200/",
+    ): Browser {
         val browser = Browser()
-        val location = requireNotNull(browser.send(client.get().uri("/auth/authorize")).responseHeaders.location)
+        val authorize =
+            if (returnTo == null) client.get().uri("/auth/authorize") else client.get().uri("/auth/authorize?return_to={page}", returnTo)
+        val location = requireNotNull(browser.send(authorize).responseHeaders.location)
         val authorization = queryOf(location.toString())
         val idToken = idToken(requireNotNull(authorization.getFirst("nonce")))
         `when`(idTokenDecoders.createDecoder(any())).thenReturn(ReactiveJwtDecoder { Mono.just(idToken) })
@@ -329,7 +349,7 @@ internal class HostedSignInTest {
             browser.send(client.get().uri("/auth/callback?code=code&state={state}", requireNotNull(authorization.getFirst("state"))))
 
         assertEquals(HttpStatus.FOUND, callback.status)
-        assertEquals("http://localhost:4200/", callback.responseHeaders.location.toString())
+        assertEquals(landing, callback.responseHeaders.location.toString())
         assertNotNull(browser.cookies[SESSION_COOKIE])
         return browser
     }

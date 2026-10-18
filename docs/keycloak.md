@@ -68,7 +68,9 @@ sequenceDiagram
 1. **`GET /auth/authorize`** — Spring builds the authorization request (`state`, `nonce`, `code_verifier`), keeps it in
    an encrypted short-lived cookie and redirects to Keycloak with `code_challenge = S256(code_verifier)`.
 2. **`GET /auth/callback`** — Spring checks `state`, exchanges the code as a *confidential* client (client secret
-   **and** PKCE verifier), validates the ID token and opens a server-side session.
+   **and** PKCE verifier), validates the ID token, opens a server-side session and sends the browser to the page of
+   FastDo the sign-in was started from. FastDo names it in `return_to`; it rides inside the encrypted authorization
+   request (`ReturnPage`) and only a path on FastDo's own site is kept, else the browser lands on FastDo's start page.
 3. **`GET /auth/session`** — the SPA's bootstrap call: "am I logged in, and as whom?". Returns id, e-mail and
    roles, or **`204`** when nobody is. Not being signed in is an answer, not a refusal: a `401` here would be
    indistinguishable from the session store being unreachable, and the SPA would sign the person out over a

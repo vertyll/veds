@@ -60,8 +60,12 @@ internal class CookieAuthorizationRequestRepository(
         exchange: ServerWebExchange,
     ): Mono<Void> = Mono.fromRunnable { exchange.response.addCookie(cookie(seal(authorizationRequest), LIFETIME)) }
 
+    /** Ends the pending request, and hands the page it returns to, if any, to the rest of the callback. */
     override fun removeAuthorizationRequest(exchange: ServerWebExchange): Mono<OAuth2AuthorizationRequest> =
-        loadAuthorizationRequest(exchange).doOnNext { exchange.response.addCookie(cookie("", Duration.ZERO)) }
+        loadAuthorizationRequest(exchange).doOnNext { request ->
+            (request.attributes[ReturnPage.ATTRIBUTE] as? String)?.let { exchange.attributes[ReturnPage.ATTRIBUTE] = it }
+            exchange.response.addCookie(cookie("", Duration.ZERO))
+        }
 
     private fun seal(request: OAuth2AuthorizationRequest): String {
         val bytes = ByteArrayOutputStream().also { out -> ObjectOutputStream(out).use { it.writeObject(request) } }.toByteArray()
