@@ -29,11 +29,9 @@ internal class AvroSerDeAutoConfiguration {
         AvroTrustedPackages.register()
     }
 
-    /** Confluent Avro serializer wired to the configured Schema Registry. */
     @Bean
     fun avroPayloadSerializer(properties: KafkaInfraProperties) = AvroPayloadSerializer(properties)
 
-    /** Confluent Avro deserializer wired to the configured Schema Registry. */
     @Bean
     fun avroPayloadDeserializer(properties: KafkaInfraProperties) = AvroPayloadDeserializer(properties)
 }

@@ -142,7 +142,6 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      # Fails if a framework reaches the application layer's resolved compile classpath.
-      - name: Hexagonal
+      - name: No framework on the application layer's classpath
         working-directory: ${{ inputs.service }}
         run: ./gradlew --no-daemon checkHexagonalDependencies

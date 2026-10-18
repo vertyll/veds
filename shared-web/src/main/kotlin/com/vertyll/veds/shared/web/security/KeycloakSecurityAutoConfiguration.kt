@@ -11,14 +11,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.jwt.Jwt
 import tools.jackson.databind.ObjectMapper
 
-/**
- * Autoconfiguration that provides Keycloak JWT converters for both
- * WebMVC (servlet) and WebFlux (reactive) environments.
- */
 @Configuration
 @ConditionalOnClass(Jwt::class)
 internal class KeycloakSecurityAutoConfiguration {
-    /** Servlet-stack JWT → `AbstractAuthenticationToken` converter bean. */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
@@ -48,7 +43,6 @@ internal class KeycloakSecurityAutoConfiguration {
     fun problemAuthenticationEntryPoint(objectMapper: ObjectMapper): ProblemAuthenticationEntryPoint =
         ProblemAuthenticationEntryPoint(objectMapper)
 
-    /** Reactive-stack JWT → `Mono<AbstractAuthenticationToken>` converter bean. */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)

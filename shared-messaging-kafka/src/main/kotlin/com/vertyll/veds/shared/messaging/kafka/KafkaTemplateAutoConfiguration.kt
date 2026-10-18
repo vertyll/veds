@@ -25,13 +25,6 @@ import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
 import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.util.backoff.FixedBackOff
 
-/**
- * Autoconfiguration for Kafka Producer and Consumer.
- * Only creates beans when Kafka is enabled.
- *
- * Configuration is bound from `spring.kafka.*` via [KafkaInfraProperties], as one typed
- * object rather than `@Value` lookups.
- */
 @Configuration
 @ConditionalOnProperty(
     name = ["spring.kafka.enabled"],
@@ -48,7 +41,6 @@ internal class KafkaTemplateAutoConfiguration {
         /** Suffix of the dead letter topic, matching `infra/kafka/topics.tf`. */
         private const val DLT_SUFFIX = "-dlt"
 
-        /** Maximum number of retry attempts before sending to DLT. */
         private const val MAX_RETRIES = 3L
     }
 
@@ -94,7 +86,6 @@ internal class KafkaTemplateAutoConfiguration {
         return props
     }
 
-    /** Shared [KafkaTemplate] used by [KafkaOutboxProcessor]. */
     @Bean
     fun kafkaTemplate(producerFactory: ProducerFactory<String, ByteArray>) = KafkaTemplate(producerFactory)
 

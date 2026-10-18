@@ -14,7 +14,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-/** Fails the build if a framework reaches the application layer. */
 val forbiddenOnApplicationClasspath =
     listOf(
         "org.springframework",

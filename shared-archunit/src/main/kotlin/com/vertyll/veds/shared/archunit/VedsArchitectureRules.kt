@@ -24,7 +24,6 @@ import com.tngtech.archunit.library.Architectures.layeredArchitecture
  * A service applies them by extending `VedsArchitectureTest`.
  */
 object VedsArchitectureRules {
-    /** Every way Spring maps a method to an HTTP request. */
     private val MAPPING_ANNOTATIONS =
         arrayOf(
             "org.springframework.web.bind.annotation.RequestMapping",
@@ -48,7 +47,6 @@ object VedsArchitectureRules {
             "com.vertyll.veds.shared.web.security.PublicEndpoint",
         )
 
-    /** Packages a domain or application class may never touch. */
     private val FRAMEWORK_PACKAGES =
         arrayOf(
             "org.springframework..",

@@ -30,9 +30,9 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  *
  * Spring's own failures — an unsupported method, a missing parameter — answer in
  * the same shape through `spring.mvc.problemdetails.enabled`, defaulted on in
- * `shared-web-config.yml`. The three handled here are handled because they carry
- * something extra worth telling the caller: which fields were rejected. This advice
- * runs first so those win over Boot's.
+ * `shared-web-config.yml`. A rejected body, field or parameter is handled here
+ * instead, as a validation problem naming the rejected fields where there are any.
+ * This advice runs first so those win over Boot's.
  *
  * Registered by [ErrorHandlingAutoConfiguration]; a service that needs to differ
  * declares its own `@RestControllerAdvice` at a higher precedence.

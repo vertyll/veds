@@ -31,7 +31,7 @@ data class SharedKeycloakProperties(
     val gatewayClientSecret: String,
     /** Dotted path to the roles claim inside the access token. */
     val rolesClaimPath: String,
-    /** Attributes of the refresh-token cookie the gateway sets. */
+    /** Attributes of the cookies the gateway sets. */
     val cookie: CookieProperties,
 ) {
     data class CookieProperties(

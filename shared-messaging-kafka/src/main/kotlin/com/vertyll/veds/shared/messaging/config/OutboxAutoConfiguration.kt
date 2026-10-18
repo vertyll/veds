@@ -5,10 +5,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
-/**
- * Autoconfiguration registering the outbox [KafkaOutboxProperties] and enabling
- * scheduling for the Kafka outbox processor.
- */
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(KafkaOutboxProperties::class)

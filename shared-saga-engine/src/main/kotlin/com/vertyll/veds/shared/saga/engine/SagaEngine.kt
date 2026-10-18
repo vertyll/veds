@@ -302,11 +302,7 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         compensationRunner.runCompensation(sagaId)
     }
 
-    /**
-     * Applies a status transition to a freshly-created step (one whose
-     * canonical status is [SagaStepStatus.STARTED]). Uses the port's
-     * behavior methods so the engine never touches the entity's fields.
-     */
+    /** Moves [step] to [target] through the port's behavior methods, so the engine never touches its fields. */
     private fun applyStepStatus(
         step: T,
         target: SagaStepStatus,
