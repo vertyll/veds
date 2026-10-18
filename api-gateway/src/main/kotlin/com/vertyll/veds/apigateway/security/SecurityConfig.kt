@@ -1,10 +1,6 @@
-package com.vertyll.veds.apigateway.config
+package com.vertyll.veds.apigateway.security
 
-import com.vertyll.veds.apigateway.security.CookieAuthorizationRequestRepository
-import com.vertyll.veds.apigateway.security.HostedSignInRequests
-import com.vertyll.veds.apigateway.security.JsonAuthenticationEntryPoint
-import com.vertyll.veds.apigateway.security.SessionAccessTokenFilter
-import com.vertyll.veds.apigateway.security.SignInRedirects
+import com.vertyll.veds.apigateway.config.GatewayCorsProperties
 import com.vertyll.veds.shared.web.security.ReactiveKeycloakJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
