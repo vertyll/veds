@@ -6,6 +6,7 @@
 :root {
   color-scheme: light dark;
   --background: light-dark(#f9fafb, #111318);
+  --background-secondary: light-dark(#f9fafb, #191c20);
   --foreground: light-dark(#111827, #e2e2e6);
   --card: light-dark(#ffffff, #1d2024);
   --popover: light-dark(#ffffff, #2d3035);
@@ -39,10 +40,10 @@
   --app-card-radius: 1rem;
   --app-page-background: var(--background);
   --app-field-background: var(--card);
-  --app-bar-background: var(--card);
+  --app-bar-background: var(--background-secondary);
   --app-bar-foreground: var(--foreground);
   --app-bar-border: var(--border);
-  --app-footer-background: transparent;
+  --app-footer-background: var(--app-bar-background);
   --app-footer-foreground: var(--muted-foreground);
   --app-footer-border: var(--border);
 }
