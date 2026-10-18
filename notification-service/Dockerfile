@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.gradle ./gradlew --no-daemon bootJar
 
 FROM ${JDK_IMAGE} AS extract
 WORKDIR /extract
-COPY --from=build /workspace/notification-service/infrastructure/build/libs/*.jar app.jar
+COPY --from=build /workspace/notification-service/notification-infrastructure/build/libs/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination layers
 
 FROM ${JRE_IMAGE} AS runtime

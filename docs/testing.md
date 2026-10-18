@@ -2,10 +2,10 @@
 
 Two tiers, split by what they can actually prove.
 
-| Tier                 | Where                                     | Needs   | Runs on          |
-|----------------------|-------------------------------------------|---------|------------------|
-| Domain / application | `domain/src/test`, `application/src/test` | nothing | every push       |
-| Integration          | `infrastructure/src/test`                 | Docker  | service workflow |
+| Tier                 | Where                                                         | Needs   | Runs on          |
+|----------------------|---------------------------------------------------------------|---------|------------------|
+| Domain / application | `<context>-domain/src/test`, `<context>-application/src/test` | nothing | every push       |
+| Integration          | `<context>-infrastructure/src/test`                           | Docker  | service workflow |
 
 ## Domain and application tests
 

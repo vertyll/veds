@@ -1,10 +1,6 @@
 rootProject.name = "task-service"
 
-include(":domain", ":application", ":infrastructure")
-
-project(":domain").name = "task-domain"
-project(":application").name = "task-application"
-project(":infrastructure").name = "task-infrastructure"
+include(":task-domain", ":task-application", ":task-infrastructure")
 
 includeBuild("../shared-web")
 includeBuild("../shared-archunit")

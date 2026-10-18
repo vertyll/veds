@@ -1,10 +1,6 @@
 rootProject.name = "project-service"
 
-include(":domain", ":application", ":infrastructure")
-
-project(":domain").name = "project-domain"
-project(":application").name = "project-application"
-project(":infrastructure").name = "project-infrastructure"
+include(":project-domain", ":project-application", ":project-infrastructure")
 
 includeBuild("../shared-saga-api")
 includeBuild("../shared-error")

@@ -1,10 +1,6 @@
 rootProject.name = "translation-service"
 
-include(":domain", ":application", ":infrastructure")
-
-project(":domain").name = "translation-domain"
-project(":application").name = "translation-application"
-project(":infrastructure").name = "translation-infrastructure"
+include(":translation-domain", ":translation-application", ":translation-infrastructure")
 
 includeBuild("../shared-error")
 includeBuild("../shared-web")

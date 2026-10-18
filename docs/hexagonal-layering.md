@@ -21,6 +21,10 @@ infrastructure ──► application ──► domain
 | `application`    | `domain` plus the framework-free `shared-*` | Use cases, commands, response DTOs, inbound/outbound ports |
 | `infrastructure` | everything                                  | JPA, Kafka, Avro, web, Spring wiring, adapters             |
 
+Each layer of a service is a Gradle project in a folder of the same name, prefixed with the service's context:
+`iam-service/iam-domain`, `iam-service/iam-application` and `iam-service/iam-infrastructure`, so a project's path, its
+jar and its Sonar module name the service it belongs to.
+
 `shared-saga-api` is a module holding only the saga vocabulary, with the Kotlin standard library as its single
 dependency. Keeping them out of the Spring-bound modules is what stops an import of a saga status from putting the
 whole framework on the application classpath.

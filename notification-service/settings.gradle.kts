@@ -1,10 +1,6 @@
 rootProject.name = "notification-service"
 
-include(":domain", ":application", ":infrastructure")
-
-project(":domain").name = "notification-domain"
-project(":application").name = "notification-application"
-project(":infrastructure").name = "notification-infrastructure"
+include(":notification-domain", ":notification-application", ":notification-infrastructure")
 
 includeBuild("../shared-error")
 includeBuild("../shared-web")

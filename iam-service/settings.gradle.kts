@@ -1,10 +1,6 @@
 rootProject.name = "iam-service"
 
-include(":domain", ":application", ":infrastructure")
-
-project(":domain").name = "iam-domain"
-project(":application").name = "iam-application"
-project(":infrastructure").name = "iam-infrastructure"
+include(":iam-domain", ":iam-application", ":iam-infrastructure")
 
 includeBuild("../shared-error")
 includeBuild("../shared-web")
