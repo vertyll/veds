@@ -23,10 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class GatewayCorsProperties(
     /** Origins allowed to call the gateway with credentials. */
     val allowedOrigins: List<String> = emptyList(),
-    /** HTTP methods allowed on a cross-origin request. */
     val allowedMethods: List<String> = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"),
-    /** Request headers the browser may send. */
     val allowedHeaders: List<String> = listOf("*"),
-    /** Whether the browser may send the session cookie. */
     val allowCredentials: Boolean = true,
 )

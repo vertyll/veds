@@ -8,6 +8,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 
 @Tag("integration")
 @SpringBootTest
@@ -15,14 +16,20 @@ import org.testcontainers.utility.DockerImageName
 abstract class IntegrationTestBase protected constructor() {
     companion object {
         private val postgres: PostgreSQLContainer =
-            PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
+            PostgreSQLContainer(
+                DockerImageName.parse("postgres:18-alpine"),
+            ).withStartupTimeout(Duration.ofMinutes(2))
+                .withStartupAttempts(3)
                 .withDatabaseName("project_service_test")
                 .withUsername("postgres")
                 .withPassword("postgres")
                 .also { it.start() }
 
         private val kafka: KafkaContainer =
-            KafkaContainer(DockerImageName.parse("apache/kafka-native:4.3.1"))
+            KafkaContainer(
+                DockerImageName.parse("apache/kafka-native:4.3.1"),
+            ).withStartupTimeout(Duration.ofMinutes(2))
+                .withStartupAttempts(3)
                 .also { it.start() }
 
         @JvmStatic

@@ -5,8 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 /**
  * Languages this service accepts on translatable fields.
  *
- * Bound from `application.translation.*`. Seeded here until translation-service owns the catalogue;
- * [SupportedLanguagesAdapter] is the only file that changes when it does.
+ * Bound from `application.translation.*`. The list is configured here rather than read from
+ * translation-service; [SupportedLanguagesAdapter] is the only file that reads it.
  *
  * Example:
  * ```yaml

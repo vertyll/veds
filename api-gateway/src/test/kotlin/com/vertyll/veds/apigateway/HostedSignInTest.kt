@@ -46,6 +46,7 @@ import reactor.netty.http.server.HttpServer
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -430,7 +431,12 @@ internal class HostedSignInTest {
         private const val EXPIRING_SECONDS = 5L
 
         private val received = ConcurrentLinkedQueue<Pair<String, String?>>()
-        private val redisContainer = GenericContainer("redis:8-alpine").withExposedPorts(6379).apply { start() }
+        private val redisContainer =
+            GenericContainer(
+                "redis:8-alpine",
+            ).withStartupTimeout(Duration.ofMinutes(2)).withStartupAttempts(3).withExposedPorts(6379).apply {
+                start()
+            }
         private val service: DisposableServer =
             HttpServer
                 .create()

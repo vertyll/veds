@@ -13,7 +13,6 @@ internal object ReturnPage {
 
     private const val MOST_LENGTH = 2048
 
-    /** A path that starts with a single `/`, with no backslash and no control character. */
     fun onThisSite(path: String?): String? =
         path?.takeIf {
             it.startsWith("/") &&

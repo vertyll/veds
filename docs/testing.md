@@ -38,6 +38,10 @@ It injects both addresses into the `test` profile, so no test resource points at
 takes a fresh consumer group per run, so one run never replays another's offsets, and shortens the saga timeouts
 enough that a watchdog test does not wait on the production cooldown.
 
+Each container gets two minutes and three attempts to start (`withStartupTimeout`, `withStartupAttempts`): on a shared
+CI runner a container can take longer than the default minute to log that it is ready, and one that does not is started
+again rather than failing the suite.
+
 Collaborators arrive through the test class's constructor, never an `@Autowired` field, which is
 what keeps a test honest about how many things it needs. Spring resolves those parameters only
 when the module carries `spring.test.constructor.autowire.mode = all` in
