@@ -45,7 +45,9 @@ potential-bugs:
 style:
   active: true
   MaxLineLength:
-    active: false
+    active: true
+    maxLineLength: 140
+    excludeCommentStatements: false
   ThrowsCount:
     active: false
   ReturnCount:

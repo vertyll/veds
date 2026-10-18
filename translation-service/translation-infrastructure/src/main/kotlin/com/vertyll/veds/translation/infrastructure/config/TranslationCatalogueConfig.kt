@@ -200,19 +200,22 @@ internal class TranslationCatalogueConfig {
             }
             key("admin.translations.import_applied") {
                 pl(
-                    "{count, plural, one{Zastosowano # wiersz} few{Zastosowano # wiersze} many{Zastosowano # wierszy} other{Zastosowano # wiersza}}",
+                    "{count, plural, one{Zastosowano # wiersz} few{Zastosowano # wiersze} " +
+                        "many{Zastosowano # wierszy} other{Zastosowano # wiersza}}",
                 )
                 en("{count, plural, one{Applied # row} other{Applied # rows}}")
             }
             key("admin.translations.import_unknown_keys") {
                 pl(
-                    "{count, plural, one{Pominięto # nieznany klucz} few{Pominięto # nieznane klucze} many{Pominięto # nieznanych kluczy} other{Pominięto # nieznanego klucza}}",
+                    "{count, plural, one{Pominięto # nieznany klucz} few{Pominięto # nieznane klucze} " +
+                        "many{Pominięto # nieznanych kluczy} other{Pominięto # nieznanego klucza}}",
                 )
                 en("{count, plural, one{Skipped # unknown key} other{Skipped # unknown keys}}")
             }
             key("admin.translations.import_rejected") {
                 pl(
-                    "{count, plural, one{Odrzucono # wzorzec ICU} few{Odrzucono # wzorce ICU} many{Odrzucono # wzorców ICU} other{Odrzucono # wzorca ICU}}",
+                    "{count, plural, one{Odrzucono # wzorzec ICU} few{Odrzucono # wzorce ICU} " +
+                        "many{Odrzucono # wzorców ICU} other{Odrzucono # wzorca ICU}}",
                 )
                 en("{count, plural, one{Rejected # ICU pattern} other{Rejected # ICU patterns}}")
             }

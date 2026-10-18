@@ -46,7 +46,10 @@ interface Saga<S : Saga<S>> {
     /** Instant the saga reached a terminal status; `null` while it is still in flight. */
     val completedAt: Instant?
 
-    /** Instant of the most recent state change; used by `SagaWatchdog` to detect AWAITING_RESPONSE timeouts and to throttle compensation retries. */
+    /**
+     * Instant of the most recent state change; used by `SagaWatchdog` to detect AWAITING_RESPONSE timeouts and to
+     * throttle compensation retries.
+     */
     val updatedAt: Instant
 
     /** JPA optimistic-locking version, or `null` for storage backends that do not provide one. */
