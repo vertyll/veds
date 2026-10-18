@@ -31,6 +31,5 @@ interface BaseSagaStepRepository<T : BaseSagaStep<T>> :
 
     override fun findByCompensationStepId(compensationStepId: Long): T?
 
-    // Bridges between the port (T?) and JpaRepository (Optional<T>).
     override fun findOneById(id: Long): T? = findById(id).orElse(null)
 }

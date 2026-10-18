@@ -161,16 +161,16 @@ holding it in `/themes`, which the Keycloak theme workflow publishes on a `keycl
 ## Configuration
 
 All Keycloak-related config is centralized in `shared-web/src/main/resources/shared-web-config.yml` and injected
-into each service via `KeycloakProperties`.
+into each service via `SharedKeycloakProperties`.
 
 ## Where Do Role Names Live? (Microservices Anti–Shared-Kernel)
 
 Role names are owned by **two places only**:
 
-| Location           | Details                                                                                                                                                                                                                                                                                                        |
-|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Keycloak realm** | (`keycloak/realm-config/realm-export.json`) — the runtime source of truth issued in every access token's `realm_access.roles` claim.                                                                                                                                                                           |
-| **iam-service**    | (`iam-service/.../domain/model/RoleType.kt`, `internal`) — a type-safe mirror used solely by the role *administrator* (`RoleInitializer` seeds the DB, `AuthService.register` assigns `USER` via the Keycloak Admin API). The enum is `internal` to the iam-service module and intentionally **not** exported. |
+| Location           | Details                                                                                                                                                                                                                                                                           |
+|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Keycloak realm** | (`keycloak/realm-config/realm-export.json`) — the runtime source of truth issued in every access token's `realm_access.roles` claim.                                                                                                                                              |
+| **iam-service**    | (`iam-service/iam-domain/.../domain/model/RoleType.kt`) — a type-safe mirror used by iam-service alone: `RoleInitializer` seeds the database, and `UserProvisioningService` gives a new account the `USER` role. iam-service is its own build, so no other service can import it. |
 
 > [!NOTE]
 >

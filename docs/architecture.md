@@ -112,9 +112,9 @@ harmless for the aggregates here.
 opts in at the top. The annotation is deliberately per file rather than a compiler flag: a reader sees the experimental
 dependency where it is used.
 
-**A secret is the one thing that must not be a v7.** `AuthCommandService.generateRandomToken` stays on a random v4:
-a secret must be unguessable and must not disclose when it was issued. Ordering buys nothing there
-because the value is never a key.
+**A secret is the one thing that must not be a v7:** it must be unguessable and must not disclose when it was issued,
+so a secret is a random v4, where ordering buys nothing because the value is never a key. Keycloak issues every secret
+veds relies on.
 
 **Sequences are still right where the key never leaves its table.** `kafka_outbox`, `processed_event` and `saga_step`
 use `GenerationType.IDENTITY`, because nothing outside those tables ever names those rows.
@@ -143,7 +143,7 @@ Provides shared engines, event definitions, and utilities for all microservices.
 | **Kafka Blocks**          | Reusable Kafka building blocks: `KafkaOutboxProcessor` + `OutboxDispatchTx`, `ProcessedEventGuard`, `AvroPayloadSerializer`/`AvroPayloadDeserializer`.                                             |
 | **IdP Adapter**           | Shared technical IdP adapter for OAuth2/OIDC that translates configured roles into Spring Security authorities without knowing concrete role names.                                                |
 | **Saga Engine**           | Generic `SagaEngine`, `SagaCompensationRunner`, and `SagaWatchdog` operating on F-bounded contracts with zero unchecked casts.                                                                     |
-| **Configuration**         | Externalized configuration (`KafkaOutboxProperties`, `SagaProperties`) auto-registered by `OutboxAndSagaAutoConfiguration`.                                                                        |
+| **Configuration**         | Externalized configuration (`KafkaOutboxProperties`, `SagaProperties`) auto-registered by `OutboxAutoConfiguration` and `SagaAutoConfiguration`.                                                   |
 | **Composable Contracts**  | Inter-service conventions, such as `SagaCompensationTopic.PREFIX` for defining participant topics.                                                                                                 |
 | **Event Schemas**         | Integration event schemas defined as Avro binary wire format with Schema Registry.                                                                                                                 |
 

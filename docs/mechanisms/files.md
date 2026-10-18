@@ -43,8 +43,9 @@ Two consequences worth knowing:
 - **A pre-signed URL is a bearer credential.** Whoever holds it can use it until it expires, which is why downloads are
   signed for 5 minutes — a link pasted into a chat should stop working before it is forwarded far. Uploads get 15,
   enough for a slow connection to finish a large attachment.
-- **Images cannot use a permanent `src`.** `SignedImageDirective` resolves a file id into a fresh link and re-requests
-  once on a failed load. Binding a stale URL would leave the user looking at a broken image with no way to tell why.
+- **Images cannot use a permanent `src`.** FastDo's `ImageComponent` asks for a fresh link to the file id each time it
+  shows one, through the `ImageSource` the files feature provides. Binding a stale URL would leave the user looking at a
+  broken image with no way to tell why.
 
 ## CORS is required, and is not optional
 

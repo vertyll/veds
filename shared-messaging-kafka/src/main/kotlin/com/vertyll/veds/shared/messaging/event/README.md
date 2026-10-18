@@ -32,7 +32,7 @@ with `newId()` and `now()` lives here.
 Add them **inside the owning service**, e.g.:
 
 ```text
-iam-service/
+iam-service/iam-domain/
   src/main/kotlin/com/vertyll/veds/iam/domain/event/
     UserRegistered.kt          // sealed interface or data class
     EmailChanged.kt

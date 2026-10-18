@@ -39,6 +39,5 @@ interface BaseSagaRepository<T : BaseSaga<T>> :
         updatedAt: Instant,
     ): List<T>
 
-    // Bridges between the port (T?) and JpaRepository (Optional<T>).
     override fun findOneById(id: String): T? = findById(id).orElse(null)
 }

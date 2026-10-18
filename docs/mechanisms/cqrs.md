@@ -9,33 +9,34 @@ that applying it everywhere is the most common way people hurt themselves with i
 
 | Service                | Applied     | Why                                                              |
 |------------------------|-------------|------------------------------------------------------------------|
-| `project-service`      | both levels | `getProjectDetails` read five aggregates to build one flat DTO   |
+| `project-service`      | both levels | `getProjectDetails` reads five aggregates to build one flat DTO  |
 | `iam-service`          | ports only  | queries are single-aggregate; a read model would add nothing     |
+| `task-service`         | ports only  | reads outnumber writes, and each still reads one aggregate       |
+| `notification-service` | ports only  | the same                                                         |
+| `file-service`         | ports only  | the same                                                         |
+| `translation-service`  | ports only  | the same                                                         |
 | `template-service`     | ports only  | it is the pattern every new service is cloned from               |
 | `mail-service`         | **none**    | one read endpoint returning an empty page — nothing to segregate |
-| `task-service`         | planned     | reads vastly outnumber writes; read models already required      |
-| `notification-service` | planned     | same                                                             |
 
 Splitting `mail-service` would add a port, a service and a bean per read that does not exist. That is the "hurt yourself
 with it" case, so it keeps one port and this note.
 
 ## Level 1 — separate ports
 
-Applied in project-service, iam-service and template-service.
+Every service but `mail-service` gives each aggregate a command port and a query port:
 
-| Before                     | After                                               |
-|----------------------------|-----------------------------------------------------|
-| `ProjectUseCase`           | `ProjectCommandUseCase` + `ProjectQueryUseCase`     |
-| `ProjectCategoryUseCase`   | `ProjectCategoryCommandUseCase` + `…QueryUseCase`   |
-| `ProjectStatusUseCase`     | `ProjectStatusCommandUseCase` + `…QueryUseCase`     |
-| `ProjectMembershipUseCase` | `ProjectMembershipCommandUseCase` + `…QueryUseCase` |
-| `ProjectInvitationUseCase` | `ProjectInvitationCommandUseCase` + `…QueryUseCase` |
-| `UserUseCase`              | `UserCommandUseCase` + `UserQueryUseCase`           |
-| `RoleUseCase`              | `RoleCommandUseCase` + `RoleQueryUseCase`           |
-| `TemplateSagaUseCase`      | `TemplateCommandUseCase` + `TemplateQueryUseCase`   |
+| Service                | Command ports                                                                                                                                                 | Query ports                                                                                                                                                                                               |
+|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `project-service`      | `ProjectCommandUseCase`, `ProjectCategoryCommandUseCase`, `ProjectStatusCommandUseCase`, `ProjectMembershipCommandUseCase`, `ProjectInvitationCommandUseCase` | `ProjectQueryUseCase`, `ProjectCategoryQueryUseCase`, `ProjectStatusQueryUseCase`, `ProjectMembershipQueryUseCase`, `ProjectInvitationQueryUseCase`, `ProjectTypeQueryUseCase`, `ProjectRoleQueryUseCase` |
+| `iam-service`          | `UserCommandUseCase`, `RoleCommandUseCase`, `SecurityCommandUseCase`                                                                                          | `UserQueryUseCase`, `RoleQueryUseCase`, `SecurityQueryUseCase`, `AuthQueryUseCase`, `PermissionQueryUseCase`                                                                                              |
+| `task-service`         | `TaskCommandUseCase`, `TaskCommentCommandUseCase`, `WorkLogCommandUseCase`                                                                                    | `TaskQueryUseCase`, `TaskCommentQueryUseCase`, `WorkLogQueryUseCase`                                                                                                                                      |
+| `notification-service` | `NotificationCommandUseCase`                                                                                                                                  | `NotificationQueryUseCase`                                                                                                                                                                                |
+| `file-service`         | `FileCommandUseCase`                                                                                                                                          | `FileQueryUseCase`                                                                                                                                                                                        |
+| `translation-service`  | `TranslationCommandUseCase`                                                                                                                                   | `TranslationQueryUseCase`                                                                                                                                                                                 |
+| `template-service`     | `TemplateCommandUseCase`                                                                                                                                      | `TemplateQueryUseCase`                                                                                                                                                                                    |
 
-`ProjectTypeUseCase` and `ProjectRoleUseCase` became query-only: adding a type or a role means adding an enum constant,
-which is a code change rather than a runtime command.
+Project types and project roles have query ports only: adding one means adding an enum constant, which is a code change
+rather than a runtime command.
 
 Mapping is shared rather than duplicated: `UserResponseMapper` and `RoleResponseMapper` are named types both sides
 call. A private helper on each side would let the read and write halves drift into returning different shapes for the
