@@ -185,7 +185,7 @@ services:
       - microservices-network
 
   object-storage:
-    image: docker.io/dxflrs/garage:v2.4.1
+    image: docker.io/dxflrs/garage:v2.5.0
     restart: unless-stopped
     volumes:
       - ./infra/garage/garage.toml:/etc/garage.toml:ro
@@ -204,7 +204,7 @@ services:
       start_period: 15s
 
   object-storage-init:
-    image: docker.io/library/alpine:3.24
+    image: docker.io/library/alpine:3.24.3
     depends_on:
       object-storage:
         condition: service_healthy
@@ -223,7 +223,7 @@ services:
       - microservices-network
 
   object-storage-ui:
-    image: docker.io/noooste/garage-ui:v0.13.0
+    image: docker.io/noooste/garage-ui:v0.14.0
     restart: unless-stopped
     depends_on:
       object-storage:
@@ -300,7 +300,7 @@ services:
       start_period: 30s
 
   topics-init:
-    image: ghcr.io/opentofu/opentofu:1.12.6
+    image: ghcr.io/opentofu/opentofu:1.13.2
     depends_on:
       kafka:
         condition: service_healthy
@@ -321,7 +321,7 @@ services:
     restart: "no"
 
   schemas-init:
-    image: docker.io/library/python:3.14-alpine
+    image: docker.io/library/python:3.15-alpine
     depends_on:
       schema-registry:
         condition: service_healthy

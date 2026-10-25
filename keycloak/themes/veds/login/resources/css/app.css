@@ -5,7 +5,7 @@
 
 :root {
   color-scheme: light dark;
-  --background: light-dark(#f9fafb, #111318);
+  --background: light-dark(#ffffff, #111318);
   --background-secondary: light-dark(#f9fafb, #191c20);
   --foreground: light-dark(#111827, #e2e2e6);
   --card: light-dark(#ffffff, #1d2024);
