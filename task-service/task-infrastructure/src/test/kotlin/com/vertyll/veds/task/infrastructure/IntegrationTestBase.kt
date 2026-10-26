@@ -27,7 +27,7 @@ abstract class IntegrationTestBase protected constructor() {
 
         private val kafka: KafkaContainer =
             KafkaContainer(
-                DockerImageName.parse("apache/kafka-native:4.3.1"),
+                DockerImageName.parse("apache/kafka-native:4.4.0"),
             ).withStartupTimeout(Duration.ofMinutes(2))
                 .withStartupAttempts(3)
                 .also { it.start() }

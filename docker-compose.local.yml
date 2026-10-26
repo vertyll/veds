@@ -242,7 +242,7 @@ services:
       - microservices-network
 
   kafka:
-    image: docker.io/confluentinc/cp-kafka:8.3.2
+    image: docker.io/confluentinc/cp-kafka:8.4.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:9092:9092"
@@ -278,7 +278,7 @@ services:
       start_period: 30s
 
   schema-registry:
-    image: docker.io/confluentinc/cp-schema-registry:8.3.2
+    image: docker.io/confluentinc/cp-schema-registry:8.4.0
     restart: unless-stopped
     depends_on:
       kafka:
