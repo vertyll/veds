@@ -2,9 +2,11 @@ package com.vertyll.veds.iam.infrastructure.web.controller
 
 import com.vertyll.veds.iam.application.command.RegisterPermissionCatalogueCommand
 import com.vertyll.veds.iam.application.port.inbound.command.PermissionCatalogueUseCase
+import com.vertyll.veds.iam.domain.error.IamError
 import com.vertyll.veds.iam.domain.model.RoleScope
 import com.vertyll.veds.iam.infrastructure.web.dto.RegisterPermissionCatalogueRequest
 import com.vertyll.veds.shared.web.security.PublicEndpoint
+import com.vertyll.veds.sharederror.ApiException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -36,14 +38,14 @@ internal class PermissionCatalogueController(
                         RegisterPermissionCatalogueCommand.PermissionDeclaration(
                             name = permission.name,
                             description = permission.description,
-                            scope = RoleScope.fromString(permission.scope) ?: error("unknown permission scope '${permission.scope}'"),
+                            scope = roleScope(permission.scope),
                         )
                     },
                 stockRoles =
                     request.stockRoles.map { role ->
                         RegisterPermissionCatalogueCommand.StockRoleDeclaration(
                             name = role.name,
-                            scope = RoleScope.fromString(role.scope) ?: error("unknown role scope '${role.scope}'"),
+                            scope = roleScope(role.scope),
                             permissions = role.permissions,
                         )
                     },
@@ -51,4 +53,6 @@ internal class PermissionCatalogueController(
         )
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
+
+    private fun roleScope(value: String): RoleScope = RoleScope.fromString(value) ?: throw ApiException(IamError.SCOPE_UNKNOWN)
 }

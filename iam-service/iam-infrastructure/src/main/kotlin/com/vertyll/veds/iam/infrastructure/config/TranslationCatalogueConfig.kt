@@ -34,6 +34,10 @@ internal class TranslationCatalogueConfig {
                 pl("Rola jest nadal przypisana użytkownikom.")
                 en("The role is still assigned to users.")
             }
+            key("iam.scope.unknown") {
+                pl("Nie ma takiego zakresu.")
+                en("There is no such scope.")
+            }
             key("iam.permission.out_of_scope") {
                 pl("Tego uprawnienia nie można nadać roli o tym zakresie.")
                 en("This permission cannot be held by a role in that scope.")

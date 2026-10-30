@@ -183,15 +183,13 @@ internal class IamApiIntegrationTest(
         assertTrue("removeRole $name" in identityProvider.calls)
     }
 
-    // Shows a defect rather than a wish: an unknown scope is a bad request, but the controller calls error(), so the
-    // refusal reaches the last-resort handler and answers 500.
     @Test
-    fun `a catalogue with an unknown scope answers a server error`() {
+    fun `a catalogue with an unknown scope is refused`() {
         mockMvc
             .perform(
                 post("/internal/authz/catalogue").json(
                     """{"module":"odd","permissions":[{"name":"ODD_READ","scope":"NO_SUCH_SCOPE"}],"stockRoles":[]}""",
                 ),
-            ).andExpect(status().isInternalServerError)
+            ).andExpect(status().isBadRequest)
     }
 }

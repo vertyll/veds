@@ -1,11 +1,7 @@
 package com.vertyll.veds.template.infrastructure
 
-import com.vertyll.veds.shared.translation.client.TranslationClientProperties
 import org.junit.jupiter.api.Tag
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -17,14 +13,7 @@ import java.time.Duration
 @Tag("integration")
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(IntegrationTestBase.TranslationClient::class)
 abstract class IntegrationTestBase protected constructor() {
-    // TemplateServiceApplication does not enable these properties, as every other service does, so the service
-    // itself cannot start. The context here enables them to reach what lies behind that.
-    @TestConfiguration
-    @EnableConfigurationProperties(TranslationClientProperties::class)
-    class TranslationClient
-
     companion object {
         private val postgres: PostgreSQLContainer =
             PostgreSQLContainer(

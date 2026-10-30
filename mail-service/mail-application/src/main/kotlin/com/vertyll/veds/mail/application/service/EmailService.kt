@@ -8,6 +8,7 @@ import com.vertyll.veds.mail.application.port.outbound.UseCaseLogger
 import com.vertyll.veds.mail.domain.model.EmailLog
 import com.vertyll.veds.mail.domain.model.EmailStatus
 import com.vertyll.veds.mail.domain.model.EmailTemplate
+import com.vertyll.veds.mail.domain.model.PageRequest
 import com.vertyll.veds.mail.domain.model.PageResult
 import com.vertyll.veds.mail.domain.model.SenderAddress
 import com.vertyll.veds.mail.domain.repository.EmailLogRepository
@@ -105,7 +106,19 @@ class EmailService(
         emailLogRepository.save(emailLog)
     }
 
-    override fun getEmailLogs(): PageResult<EmailLogResponse> = PageResult(content = emptyList(), page = 0, size = 0, totalElements = 0)
+    override fun getEmailLogs(pageRequest: PageRequest): PageResult<EmailLogResponse> =
+        emailLogRepository.findAll(pageRequest).map { log ->
+            EmailLogResponse(
+                id = requireNotNull(log.id) { "a stored email log has an id" },
+                recipient = log.recipient,
+                subject = log.subject,
+                templateName = log.templateName,
+                status = log.status.name,
+                errorMessage = log.errorMessage,
+                createdAt = log.createdAt.toString(),
+                sentAt = log.sentAt?.toString(),
+            )
+        }
 
     private companion object {
         private const val MAX_VARIABLE_VALUE_LENGTH = 50

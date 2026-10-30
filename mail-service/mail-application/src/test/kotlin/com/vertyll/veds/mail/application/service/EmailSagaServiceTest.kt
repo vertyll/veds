@@ -4,6 +4,7 @@ import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.application.port.outbound.MailFeedbackEventPublisherPort
 import com.vertyll.veds.mail.application.port.outbound.UseCaseLogger
 import com.vertyll.veds.mail.domain.model.EmailTemplate
+import com.vertyll.veds.mail.domain.model.PageRequest
 import com.vertyll.veds.shared.saga.SagaProcessPort
 import com.vertyll.veds.shared.saga.SagaSnapshot
 import com.vertyll.veds.shared.saga.SagaStatus
@@ -71,7 +72,7 @@ class EmailSagaServiceTest {
                 return sendSucceeds
             }
 
-            override fun getEmailLogs() = error("not used by the saga")
+            override fun getEmailLogs(pageRequest: PageRequest) = error("not used by the saga")
         }
 
     private val publisher =

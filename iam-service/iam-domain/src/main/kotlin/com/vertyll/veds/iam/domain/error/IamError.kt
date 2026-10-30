@@ -19,6 +19,7 @@ enum class IamError(
     ROLE_STILL_ASSIGNED("iam.role.still_assigned", ErrorKind.CONFLICT),
     PERMISSION_NOT_FOUND("iam.permission.not_found", ErrorKind.NOT_FOUND),
     PERMISSION_OUT_OF_SCOPE("iam.permission.out_of_scope", ErrorKind.INVALID),
+    SCOPE_UNKNOWN("iam.scope.unknown", ErrorKind.INVALID),
     LAST_UNRESTRICTED_ROLE("iam.role.last_unrestricted", ErrorKind.CONFLICT),
     DEFAULT_ROLE_NOT_CONFIGURED("iam.role.default_not_configured", ErrorKind.MISCONFIGURED),
 

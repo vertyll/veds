@@ -8,6 +8,7 @@ import com.vertyll.veds.mail.application.port.inbound.EmailBatchUseCase
 import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.domain.error.MailError
 import com.vertyll.veds.mail.domain.model.EmailTemplate
+import com.vertyll.veds.mail.domain.model.PageRequest
 import com.vertyll.veds.mail.domain.model.PageResult
 import com.vertyll.veds.mail.infrastructure.web.dto.SendBatchEmailRequest
 import com.vertyll.veds.mail.infrastructure.web.dto.SendEmailRequest
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -29,8 +31,11 @@ internal class EmailController(
 ) {
     @GetMapping("/logs")
     @PreAuthorize("@authz.has('MAIL_LOGS_VIEW')")
-    fun getEmailLogs(): ResponseEntity<PageResult<EmailLogResponse>> {
-        val logs = emailService.getEmailLogs()
+    fun getEmailLogs(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
+    ): ResponseEntity<PageResult<EmailLogResponse>> {
+        val logs = emailService.getEmailLogs(PageRequest(page = page, size = size))
         return ResponseEntity.ok(logs)
     }
 

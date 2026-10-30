@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.Instant
 import kotlin.test.assertEquals
 
 @AutoConfigureMockMvc
@@ -75,15 +76,20 @@ internal class EmailApiIntegrationTest(
         assertEquals(listOf(EmailStatus.SENT), logs.findByRecipient("reader@example.com").map { it.status })
     }
 
-    // Shows a defect rather than a wish: EmailService.getEmailLogs always answers an empty page, whatever is stored.
     @Test
-    fun `the logs endpoint answers an empty page even when emails were logged`() {
-        logs.save(EmailLog(recipient = "logged@example.com", subject = "New task", templateName = "TASK_CREATED"))
+    fun `the logs endpoint pages through what was logged, newest first`() {
+        val now = Instant.now()
+        logs.save(
+            EmailLog(recipient = "older@example.com", subject = "Old", templateName = "TASK_CREATED", createdAt = now.minusSeconds(60)),
+        )
+        logs.save(EmailLog(recipient = "newer@example.com", subject = "New", templateName = "TASK_CREATED", createdAt = now))
 
         mockMvc
-            .perform(get("/mail/logs").with(postman()))
+            .perform(get("/mail/logs").param("size", "1").with(postman()))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isEmpty)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].recipient").value("newer@example.com"))
+            .andExpect(jsonPath("$.totalElements").value(2))
     }
 
     @Test

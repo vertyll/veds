@@ -6,6 +6,8 @@ import com.vertyll.veds.mail.application.port.outbound.UseCaseLogger
 import com.vertyll.veds.mail.domain.model.EmailLog
 import com.vertyll.veds.mail.domain.model.EmailStatus
 import com.vertyll.veds.mail.domain.model.EmailTemplate
+import com.vertyll.veds.mail.domain.model.PageRequest
+import com.vertyll.veds.mail.domain.model.PageResult
 import com.vertyll.veds.mail.domain.model.SenderAddress
 import com.vertyll.veds.mail.domain.repository.EmailLogRepository
 import org.junit.jupiter.api.Test
@@ -24,6 +26,9 @@ class EmailServiceTest {
             override fun save(emailLog: EmailLog): EmailLog = emailLog.also { saved += it }
 
             override fun findById(id: Long): EmailLog? = null
+
+            override fun findAll(pageRequest: PageRequest): PageResult<EmailLog> =
+                PageResult(saved.toList(), pageRequest.page, pageRequest.size, saved.size.toLong())
 
             override fun findByRecipient(recipient: String): List<EmailLog> = emptyList()
 

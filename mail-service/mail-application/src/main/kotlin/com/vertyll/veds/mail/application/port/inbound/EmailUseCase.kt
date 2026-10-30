@@ -2,6 +2,7 @@ package com.vertyll.veds.mail.application.port.inbound
 
 import com.vertyll.veds.mail.application.dto.EmailLogResponse
 import com.vertyll.veds.mail.domain.model.EmailTemplate
+import com.vertyll.veds.mail.domain.model.PageRequest
 import com.vertyll.veds.mail.domain.model.PageResult
 
 interface EmailUseCase {
@@ -12,5 +13,5 @@ interface EmailUseCase {
         replyTo: String? = null,
     ): Boolean
 
-    fun getEmailLogs(): PageResult<EmailLogResponse>
+    fun getEmailLogs(pageRequest: PageRequest): PageResult<EmailLogResponse>
 }

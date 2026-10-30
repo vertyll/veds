@@ -2,9 +2,12 @@ package com.vertyll.veds.mail.infrastructure.persistence.adapter
 
 import com.vertyll.veds.mail.domain.model.EmailLog
 import com.vertyll.veds.mail.domain.model.EmailStatus
+import com.vertyll.veds.mail.domain.model.PageRequest
+import com.vertyll.veds.mail.domain.model.PageResult
 import com.vertyll.veds.mail.domain.repository.EmailLogRepository
 import com.vertyll.veds.mail.infrastructure.persistence.entity.EmailLogJpaEntity
 import com.vertyll.veds.mail.infrastructure.persistence.repository.EmailLogJpaRepository
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -16,6 +19,19 @@ internal class EmailLogPersistenceAdapter(
     override fun save(emailLog: EmailLog): EmailLog = repository.save(emailLog.toJpaEntity()).toDomain()
 
     override fun findById(id: Long): EmailLog? = repository.findByIdOrNull(id)?.toDomain()
+
+    override fun findAll(pageRequest: PageRequest): PageResult<EmailLog> {
+        val newestFirst =
+            org.springframework.data.domain.PageRequest
+                .of(pageRequest.page, pageRequest.size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        val found = repository.findAll(newestFirst)
+        return PageResult(
+            content = found.content.map { it.toDomain() },
+            page = pageRequest.page,
+            size = pageRequest.size,
+            totalElements = found.totalElements,
+        )
+    }
 
     override fun findByRecipient(recipient: String): List<EmailLog> = repository.findByRecipient(recipient).map { it.toDomain() }
 

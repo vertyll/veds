@@ -2,6 +2,7 @@ package com.vertyll.veds.mail.application.service
 
 import com.vertyll.veds.mail.application.port.inbound.EmailUseCase
 import com.vertyll.veds.mail.domain.model.EmailTemplate
+import com.vertyll.veds.mail.domain.model.PageRequest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -22,7 +23,7 @@ class EmailBatchServiceTest {
                 return to !in refuse
             }
 
-            override fun getEmailLogs() = error("not used by the batch")
+            override fun getEmailLogs(pageRequest: PageRequest) = error("not used by the batch")
         }
 
     private val service = EmailBatchService(emails)
