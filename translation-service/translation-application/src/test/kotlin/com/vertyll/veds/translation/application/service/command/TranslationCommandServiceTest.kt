@@ -173,6 +173,22 @@ internal class TranslationCommandServiceTest {
     }
 
     @Test
+    fun `a language written as no language tag cannot be overridden`() {
+        givenKey()
+
+        val error =
+            assertFailsWith<ApiException> {
+                service.override(
+                    OverrideTranslationCommand(PROJECT_NOT_FOUND_KEY, "not a language", "Hallo"),
+                    editor,
+                    null,
+                )
+            }
+
+        assertEquals(TranslationError.LANGUAGE_NOT_FOUND, error.error)
+    }
+
+    @Test
     fun `a malformed ICU pattern is rejected where it is typed`() {
         givenKey()
 

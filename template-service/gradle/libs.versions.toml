@@ -44,6 +44,7 @@ springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openap
 
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-security-test = { module = "org.springframework.security:spring-security-test" }
+spring-boot-webmvc-test = { module = "org.springframework.boot:spring-boot-webmvc-test" }
 spring-boot-starter-flyway-test = { module = "org.springframework.boot:spring-boot-starter-flyway-test" }
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
 
@@ -94,6 +95,7 @@ test-unit = [
 test-common = [
     "kotlin-test-junit5",
     "spring-boot-starter-test",
+    "spring-boot-webmvc-test",
     "springframework-kafka-test",
     "testcontainers-junit-jupiter",
     "testcontainers-kafka",

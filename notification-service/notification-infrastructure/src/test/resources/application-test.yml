@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: true
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      group-id: notification-service-test
+    properties:
+      schema.registry.url: mock://notification-service-test
+
+application:
+  translation:
+    client:
+      base-url: http://localhost:1
+
+logging:
+  level:
+    com.vertyll.veds: DEBUG
+    org.testcontainers: INFO

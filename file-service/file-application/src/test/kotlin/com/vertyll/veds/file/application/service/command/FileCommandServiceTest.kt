@@ -2,6 +2,7 @@
 
 package com.vertyll.veds.file.application.service.command
 
+import com.vertyll.veds.file.application.command.AttachFileCommand
 import com.vertyll.veds.file.application.command.ConfirmUploadCommand
 import com.vertyll.veds.file.application.command.RequestUploadCommand
 import com.vertyll.veds.file.application.dto.Actor
@@ -182,6 +183,32 @@ class FileCommandServiceTest {
 
         assertEquals(FileError.OBJECT_MISSING_IN_STORAGE, failure.error)
         assertTrue(confirmedEvents.isEmpty(), "a file that does not exist is never announced")
+    }
+
+    @Test
+    fun `an upload that was not confirmed cannot be attached`() {
+        val ticket = requestAvatar()
+
+        val failure = assertFailsWith<ApiException> { service.attach(AttachFileCommand(ticket.fileId, UUID.randomUUID()), actor) }
+
+        assertEquals(FileError.FILE_NOT_AVAILABLE, failure.error)
+    }
+
+    @Test
+    fun `a file that does not exist cannot be attached`() {
+        val failure = assertFailsWith<ApiException> { service.attach(AttachFileCommand(UUID.randomUUID(), UUID.randomUUID()), actor) }
+
+        assertEquals(FileError.FILE_NOT_FOUND, failure.error)
+    }
+
+    @Test
+    fun `someone else's file cannot be attached`() {
+        val ticket = requestAvatar()
+        val stranger = Actor(Uuid.generateV7().toJavaUuid(), "stranger@example.com")
+
+        val failure = assertFailsWith<ApiException> { service.attach(AttachFileCommand(ticket.fileId, UUID.randomUUID()), stranger) }
+
+        assertEquals(FileError.FILE_NOT_FOUND, failure.error)
     }
 
     @Test

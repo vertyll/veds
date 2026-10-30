@@ -40,6 +40,8 @@ spring-boot-starter-security-test = { module = "org.springframework.security:spr
 
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
+postgresql = { module = "org.postgresql:postgresql" }
 
 springframework-web = { module = "org.springframework:spring-web" }
 
@@ -75,6 +77,8 @@ test-common = [
     "springframework-kafka-test",
     "testcontainers-junit-jupiter",
     "testcontainers-kafka",
+    "testcontainers-postgresql",
+    "postgresql",
     "spring-boot-starter-security-test",
 ]
 

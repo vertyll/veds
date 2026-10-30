@@ -34,7 +34,7 @@ internal class ProjectInvitationSagaIntegrationTest(
 ) : IntegrationTestBase() {
     @BeforeEach
     fun clearOutbox() {
-        outboxRepository.deleteAll()
+        outboxRepository.deleteAllInBatch()
     }
 
     private fun owner() =

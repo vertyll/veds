@@ -63,6 +63,8 @@ dependencies {
 
     kapt(libs.spring.boot.configuration.processor)
 
+    testImplementation(libs.jackson.databind)
+    testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.spring.boot.starter.test)
 }
 

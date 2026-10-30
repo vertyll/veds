@@ -1,0 +1,38 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: true
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      group-id: mail-service-test
+    properties:
+      schema.registry.url: mock://mail-service-test
+  mail:
+    host: localhost
+    port: 1
+
+management:
+  health:
+    mail:
+      enabled: false
+
+application:
+  mail:
+    from: no-reply@veds.test
+  authz:
+    client:
+      base-url: http://localhost:1
+  translation:
+    client:
+      base-url: http://localhost:1
+
+logging:
+  level:
+    com.vertyll.veds: DEBUG
+    org.testcontainers: INFO

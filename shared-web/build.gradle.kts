@@ -78,6 +78,7 @@ dependencies {
     compileOnly(libs.jakarta.servlet.api)
     testImplementation(libs.swagger.core.models)
     testImplementation(libs.jackson.databind)
+    testImplementation(libs.jakarta.servlet.api)
 
     // Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it
     testImplementation("io.projectreactor:reactor-core")

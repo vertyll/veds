@@ -71,4 +71,21 @@ class KeycloakJwtAuthenticationConverterTest {
             converter.convert(jwt(mapOf("realm_access" to mapOf("roles" to listOf("ADMIN")))))
         }
     }
+
+    @Test
+    fun `the gateway maps realm roles to Spring authorities too`() {
+        val token =
+            ReactiveKeycloakJwtAuthenticationConverter(properties)
+                .convert(jwt(mapOf("sub" to "user-1", "realm_access" to mapOf("roles" to listOf("ADMIN")))))
+                .block()
+
+        assertEquals(listOf("ROLE_ADMIN"), token?.authorities?.map { it.authority })
+    }
+
+    @Test
+    fun `the gateway refuses a token without a subject`() {
+        assertFailsWith<IllegalArgumentException> {
+            ReactiveKeycloakJwtAuthenticationConverter(properties).convert(jwt(mapOf("azp" to "client")))
+        }
+    }
 }
