@@ -200,19 +200,6 @@ Role names are owned by **two places only**:
 | <http://localhost:9000/realms/veds/protocol/openid-connect/certs>    | JWKS (public keys for JWT verification) |
 | <http://localhost:9000/realms/veds/protocol/openid-connect/token>    | Token endpoint                          |
 
-## Manual Token Request (curl)
-
-```bash
-# Get access token
-curl -s -X POST http://localhost:9000/realms/veds/protocol/openid-connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password" \
-  -d "client_id=veds-api-gateway" \
-  -d "client_secret=KEYCLOAK_GATEWAY_CLIENT_SECRET_HERE" \
-  -d "username=test@example.com" \
-  -d "password=Test1234!" | jq .
-```
-
 ## Production TLS
 
 `application-prod.yml` assumes TLS on every hop. Defaults are set for an ingress that terminates TLS in front of the
