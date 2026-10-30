@@ -24,12 +24,6 @@ internal class SignInRedirects(
     private val oauth: GatewayOAuthProperties,
 ) : ServerAuthenticationSuccessHandler,
     ServerAuthenticationFailureHandler {
-    private companion object {
-        private const val STATE_MISMATCH = "state_mismatch"
-        private const val CODE_EXCHANGE_FAILED = "code_exchange_failed"
-        private val STATE_ERRORS = setOf("authorization_request_not_found", "invalid_state_parameter")
-    }
-
     private val log = LoggerFactory.getLogger(javaClass)
     private val redirects = DefaultServerRedirectStrategy()
 
@@ -64,5 +58,11 @@ internal class SignInRedirects(
                 .build()
                 .toUri()
         return redirects.sendRedirect(exchange, target)
+    }
+
+    private companion object {
+        private const val STATE_MISMATCH = "state_mismatch"
+        private const val CODE_EXCHANGE_FAILED = "code_exchange_failed"
+        private val STATE_ERRORS = setOf("authorization_request_not_found", "invalid_state_parameter")
     }
 }

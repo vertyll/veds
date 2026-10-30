@@ -38,7 +38,10 @@ class KeycloakJwtUtilsTest {
      */
     @Test
     fun `grants nothing when a path segment is missing`() {
-        assertEquals(emptyList(), KeycloakJwtUtils.extractRoles(jwt(mapOf("realm_access" to mapOf<String, Any>())), "realm_access.roles"))
+        assertEquals(
+            emptyList(),
+            KeycloakJwtUtils.extractRoles(jwt(mapOf("realm_access" to emptyMap<String, Any>())), "realm_access.roles"),
+        )
     }
 
     @Test

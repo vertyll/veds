@@ -2,7 +2,6 @@ package com.vertyll.veds.project.application.port.outbound
 
 import java.util.UUID
 
-@Suppress("TooManyFunctions")
 interface ProjectEventPublisherPort {
     fun publishProjectCreated(
         projectId: UUID,

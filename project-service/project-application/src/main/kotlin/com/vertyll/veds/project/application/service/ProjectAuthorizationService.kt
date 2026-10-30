@@ -16,10 +16,6 @@ class ProjectAuthorizationService(
     private val memberRepository: ProjectMemberRepository,
     private val roleRepository: ProjectRoleRepository,
 ) {
-    private companion object {
-        private const val PROJECT_ID_PARAM = "projectId"
-    }
-
     fun requirePermission(
         projectId: UUID,
         actorId: UUID,
@@ -57,5 +53,9 @@ class ProjectAuthorizationService(
         val member = memberRepository.findByProjectIdAndUserId(projectId, actorId)
         val role = member?.let { roleRepository.findById(it.roleId) }
         return ProjectAccessPolicy.permissionsOf(project, actorId, member, role)
+    }
+
+    private companion object {
+        private const val PROJECT_ID_PARAM = "projectId"
     }
 }

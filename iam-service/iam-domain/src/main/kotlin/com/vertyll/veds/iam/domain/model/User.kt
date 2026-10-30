@@ -21,6 +21,9 @@ data class User(
         require(email.isNotBlank()) { "user email must not be blank" }
     }
 
+    val storedId: Long
+        get() = checkNotNull(id) { "user '$keycloakId' has no id" }
+
     val permissions: Set<Permission>
         get() = roles.flatMap { it.permissions }.toSet()
 

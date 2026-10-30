@@ -49,14 +49,14 @@ internal class TaskCommentCommandServiceTest {
     private val project = projectRef().also { directory.saveProject(it) }
     private val projectId = project.projectId
 
+    private val author = actorWithRole("MEMBER")
+    private val existingTask = task(projectId, createdBy = author.id).also { tasks.given(it) }
+
     private fun actorWithRole(roleCode: String): Actor {
         val id = Uuid.generateV7().toJavaUuid()
         directory.saveMembership(membership(projectId, id, roleCode))
         return Actor(id = id, email = "$roleCode@example.com", firstName = "Test", lastName = "User")
     }
-
-    private val author = actorWithRole("MEMBER")
-    private val existingTask = task(projectId, createdBy = author.id).also { tasks.given(it) }
 
     private fun givenComment(authorId: UUID = author.id) =
         TaskComment(taskId = existingTask.id, authorId = authorId, content = "Working on it", version = 0L)

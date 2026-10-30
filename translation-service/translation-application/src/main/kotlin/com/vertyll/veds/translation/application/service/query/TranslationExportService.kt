@@ -14,15 +14,6 @@ class TranslationExportService(
     private val valueRepository: TranslationValueRepository,
     private val languageRepository: LanguageRepository,
 ) : TranslationExportUseCase {
-    private companion object {
-        private val HEADER_KEYS =
-            listOf(
-                "translation.export.column.key",
-                "translation.export.column.source_service",
-                "translation.export.column.description",
-            )
-    }
-
     override fun exportRows(): List<ExportRowResponse> {
         val keys = keyRepository.findAll().sortedBy { it.key }
         val valuesByKey = valueRepository.findAllForKeys(keys.map { it.key }).groupBy { it.key }
@@ -42,7 +33,7 @@ class TranslationExportService(
     override fun exportHeaders(language: LanguageTag): List<String> {
         val resolver = MessageResolver(snapshotSource(language))
 
-        val fixed = HEADER_KEYS.map { resolver.resolve(it, language.value) }
+        val fixed = HEADER_KEYS.map { resolver.resolve(key = it, language = language.value) }
         val languageColumns = languageRepository.findAll().map { it.tag.value }
         return fixed + languageColumns
     }
@@ -54,5 +45,14 @@ class TranslationExportService(
                 .mapNotNull { value -> value.effectiveValue?.let { value.key to it } }
                 .toMap()
         return TranslationSource { key, _ -> entries[key] }
+    }
+
+    private companion object {
+        private val HEADER_KEYS =
+            listOf(
+                "translation.export.column.key",
+                "translation.export.column.source_service",
+                "translation.export.column.description",
+            )
     }
 }

@@ -1,6 +1,7 @@
 package com.vertyll.veds.notification.infrastructure.web.controller
 
 import com.vertyll.veds.notification.application.dto.NotificationResponse
+import com.vertyll.veds.notification.application.dto.NotificationSearchParams
 import com.vertyll.veds.notification.application.dto.NotificationSettingsResponse
 import com.vertyll.veds.notification.application.dto.PagedResponse
 import com.vertyll.veds.notification.application.dto.UnreadCountResponse
@@ -38,10 +39,6 @@ internal class NotificationController(
     private val commands: NotificationCommandUseCase,
     private val queries: NotificationQueryUseCase,
 ) {
-    private companion object {
-        private const val DEFAULT_PAGE_SIZE = "20"
-    }
-
     @GetMapping
     @Operation(summary = "List the caller's notifications")
     @Suppress("LongParameterList")
@@ -55,10 +52,8 @@ internal class NotificationController(
     ): ResponseEntity<PagedResponse<NotificationResponse>> {
         val notifications =
             queries.list(
+                params = NotificationSearchParams(onlyUnread, projectId, type),
                 actorId = CurrentUser.idOf(jwt),
-                onlyUnread = onlyUnread,
-                projectId = projectId,
-                type = type,
                 page = page,
                 size = size,
             )
@@ -138,5 +133,9 @@ internal class NotificationController(
                 version = ETagUtils.parseIfMatchToVersion(ifMatch),
             )
         return ResponseEntity.ok(settings)
+    }
+
+    private companion object {
+        private const val DEFAULT_PAGE_SIZE = "20"
     }
 }

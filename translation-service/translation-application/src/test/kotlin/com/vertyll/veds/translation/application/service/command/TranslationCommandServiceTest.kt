@@ -19,6 +19,7 @@ import com.vertyll.veds.translation.application.command.OverrideTranslationComma
 import com.vertyll.veds.translation.application.command.RegisterCatalogueCommand
 import com.vertyll.veds.translation.domain.error.TranslationError
 import com.vertyll.veds.translation.domain.model.Language
+import com.vertyll.veds.translation.domain.model.LanguageTag
 import com.vertyll.veds.translation.domain.model.TranslationKey
 import com.vertyll.veds.translation.domain.model.TranslationValue
 import org.junit.jupiter.api.Test
@@ -126,8 +127,7 @@ internal class TranslationCommandServiceTest {
         assertNull(
             values.find(
                 PROJECT_NOT_FOUND_KEY,
-                com.vertyll.veds.translation.domain.model
-                    .LanguageTag("de"),
+                LanguageTag("de"),
             ),
         )
     }

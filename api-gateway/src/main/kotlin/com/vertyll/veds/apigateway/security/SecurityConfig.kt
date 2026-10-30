@@ -23,73 +23,6 @@ internal class SecurityConfig(
     private val jsonAuthenticationEntryPoint: JsonAuthenticationEntryPoint,
     private val reactiveKeycloakJwtConverter: ReactiveKeycloakJwtAuthenticationConverter,
 ) {
-    companion object {
-        private const val CALLBACK_PATH = "/auth/callback"
-
-        private val PUBLIC_AUTH_ENDPOINTS =
-            arrayOf(
-                "/auth/authorize",
-                "/auth/callback",
-                "/auth/session",
-                "/auth/logout",
-            )
-
-        private val SWAGGER_ENDPOINTS =
-            arrayOf(
-                "/swagger-ui.html",
-                "/api-docs/**",
-                "/v3/api-docs/**",
-                "/swagger-ui/**",
-            )
-
-        private const val ACTUATOR_ENDPOINTS = "/actuator/**"
-
-        private val PROTECTED_AUTH_ENDPOINTS =
-            arrayOf(
-                "/auth/me",
-                "/auth/me/permissions",
-            )
-
-        private val ROLE_ADMIN_ENDPOINTS =
-            arrayOf(
-                "/roles/user/{userId}/role/{roleName}",
-                "/roles/user/{userId}/role/{roleName}/",
-            )
-        private const val ROLE_USER_ENDPOINTS = "/roles/**"
-
-        private const val PERMISSION_ENDPOINTS = "/permissions/**"
-
-        private val USER_ID_ENDPOINT =
-            arrayOf(
-                "/users/{id}",
-                "/users/{id}/",
-                "/users/email/{email}",
-                "/users/email/{email}/",
-            )
-
-        private const val MAIL_ENDPOINTS = "/mail/**"
-
-        private val PROJECT_ENDPOINTS =
-            arrayOf(
-                "/projects/**",
-                "/project-types/**",
-                "/project-roles/**",
-                "/project-user-roles/**",
-            )
-
-        private val TASK_ENDPOINTS = arrayOf("/tasks/**")
-
-        private const val FILE_ENDPOINTS = "/files/**"
-
-        private const val PUBLIC_TRANSLATION_ENDPOINTS = "/translations/**"
-
-        private val NOTIFICATION_ENDPOINTS =
-            arrayOf(
-                "/notifications/**",
-                "/ws/notifications/**",
-            )
-    }
-
     @Bean
     @Suppress("LongParameterList")
     fun springSecurityFilterChain(
@@ -167,5 +100,72 @@ internal class SecurityConfig(
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source
+    }
+
+    private companion object {
+        private const val CALLBACK_PATH = "/auth/callback"
+
+        private val PUBLIC_AUTH_ENDPOINTS =
+            arrayOf(
+                "/auth/authorize",
+                "/auth/callback",
+                "/auth/session",
+                "/auth/logout",
+            )
+
+        private val SWAGGER_ENDPOINTS =
+            arrayOf(
+                "/swagger-ui.html",
+                "/api-docs/**",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+            )
+
+        private const val ACTUATOR_ENDPOINTS = "/actuator/**"
+
+        private val PROTECTED_AUTH_ENDPOINTS =
+            arrayOf(
+                "/auth/me",
+                "/auth/me/permissions",
+            )
+
+        private val ROLE_ADMIN_ENDPOINTS =
+            arrayOf(
+                "/roles/user/{userId}/role/{roleName}",
+                "/roles/user/{userId}/role/{roleName}/",
+            )
+        private const val ROLE_USER_ENDPOINTS = "/roles/**"
+
+        private const val PERMISSION_ENDPOINTS = "/permissions/**"
+
+        private val USER_ID_ENDPOINT =
+            arrayOf(
+                "/users/{id}",
+                "/users/{id}/",
+                "/users/email/{email}",
+                "/users/email/{email}/",
+            )
+
+        private const val MAIL_ENDPOINTS = "/mail/**"
+
+        private val PROJECT_ENDPOINTS =
+            arrayOf(
+                "/projects/**",
+                "/project-types/**",
+                "/project-roles/**",
+                "/project-user-roles/**",
+            )
+
+        private val TASK_ENDPOINTS = arrayOf("/tasks/**")
+
+        private const val FILE_ENDPOINTS = "/files/**"
+
+        private const val PUBLIC_TRANSLATION_ENDPOINTS = "/translations/**"
+
+        private val NOTIFICATION_ENDPOINTS =
+            arrayOf(
+                "/notifications/**",
+                "/ws/notifications/**",
+            )
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 class PermissionAuthorizer(
     private val source: RolePermissionsSource?,
 ) {
+    /** Whether the current caller holds [permission]. */
     fun has(permission: String): Boolean {
         val roles = currentRoles()
         return !(roles.isEmpty() || source == null) && (source.isUnrestricted(roles) || permission in source.forRoles(roles))

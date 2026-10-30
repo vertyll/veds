@@ -20,13 +20,6 @@ class EmailService(
     private val senderAddress: SenderAddress,
     private val logger: UseCaseLogger,
 ) : EmailUseCase {
-    private companion object {
-        private const val MAX_VARIABLE_VALUE_LENGTH = 50
-
-        private const val LOG_SENDING_EMAIL = "Sending email to {} with subject: {}"
-        private const val LOG_SEND_FAILURE = "Failed to send email to {} with subject: {}"
-    }
-
     override fun sendEmail(
         to: String,
         template: EmailTemplate,
@@ -113,4 +106,11 @@ class EmailService(
     }
 
     override fun getEmailLogs(): PageResult<EmailLogResponse> = PageResult(content = emptyList(), page = 0, size = 0, totalElements = 0)
+
+    private companion object {
+        private const val MAX_VARIABLE_VALUE_LENGTH = 50
+
+        private const val LOG_SENDING_EMAIL = "Sending email to {} with subject: {}"
+        private const val LOG_SEND_FAILURE = "Failed to send email to {} with subject: {}"
+    }
 }

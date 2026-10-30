@@ -15,16 +15,6 @@ import org.springframework.transaction.annotation.Transactional
 internal class LanguageSeeder(
     private val languageRepository: LanguageRepository,
 ) : ApplicationRunner {
-    private companion object {
-        private val logger = LoggerFactory.getLogger(LanguageSeeder::class.java)
-
-        private val SEEDED =
-            listOf(
-                Language(tag = LanguageTag.of("pl"), displayName = "Polski", isDefault = true),
-                Language(tag = LanguageTag.of("en"), displayName = "English"),
-            )
-    }
-
     @Transactional
     override fun run(args: ApplicationArguments) {
         SEEDED.forEach { language ->
@@ -35,5 +25,15 @@ internal class LanguageSeeder(
             languageRepository.save(language)
             logger.info("Seeded language: {} ({})", language.tag, language.displayName)
         }
+    }
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(LanguageSeeder::class.java)
+
+        private val SEEDED =
+            listOf(
+                Language(tag = LanguageTag.of("pl"), displayName = "Polski", isDefault = true),
+                Language(tag = LanguageTag.of("en"), displayName = "English"),
+            )
     }
 }

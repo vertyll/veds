@@ -24,7 +24,7 @@ internal class TransactionalUseCaseFactory(
                 val template = if (isReadOnly(method.name)) readOnly else readWrite
                 template.execute {
                     try {
-                        method.invoke(target, *(args ?: emptyArray()))
+                        method.invoke(target, *args.orEmpty())
                     } catch (e: InvocationTargetException) {
                         throw e.targetException
                     }

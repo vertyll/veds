@@ -11,6 +11,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.CommonErrorHandler
@@ -36,18 +37,11 @@ import kotlin.test.assertTrue
  */
 @Tag("integration")
 class DeadLetterRoutingIntegrationTest {
-    private companion object {
-        const val TOPIC = "dlt-routing-test"
-        const val DLT = "$TOPIC-dlt"
-        const val MAX_RETRIES = 3L
-        const val EXPECTED_ATTEMPTS = MAX_RETRIES + 1
-    }
-
     private val kafka: KafkaContainer =
         KafkaContainer(
             DockerImageName.parse("apache/kafka-native:4.4.0"),
-        ).withStartupTimeout(Duration.ofMinutes(2)).withStartupAttempts(3).also {
-            it.start()
+        ).withStartupTimeout(Duration.ofMinutes(2)).withStartupAttempts(3).apply {
+            start()
         }
 
     private fun producerFactory() =
@@ -93,7 +87,7 @@ class DeadLetterRoutingIntegrationTest {
         attempts: AtomicInteger,
     ): KafkaMessageListenerContainer<String, ByteArray> {
         val consumerFactory =
-            org.springframework.kafka.core.DefaultKafkaConsumerFactory<String, ByteArray>(
+            DefaultKafkaConsumerFactory<String, ByteArray>(
                 mapOf(
                     ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to kafka.bootstrapServers,
                     ConsumerConfig.GROUP_ID_CONFIG to "dlt-routing-test-group",
@@ -134,5 +128,12 @@ class DeadLetterRoutingIntegrationTest {
             }
             return emptyList()
         }
+    }
+
+    private companion object {
+        const val TOPIC = "dlt-routing-test"
+        const val DLT = "$TOPIC-dlt"
+        const val MAX_RETRIES = 3L
+        const val EXPECTED_ATTEMPTS = MAX_RETRIES + 1
     }
 }

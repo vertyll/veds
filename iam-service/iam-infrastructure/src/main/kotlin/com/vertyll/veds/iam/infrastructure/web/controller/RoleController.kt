@@ -67,16 +67,12 @@ internal class RoleController(
         @RequestParam(required = false) scope: String?,
     ): ResponseEntity<List<RoleResponse>> {
         val roles =
-            when (scope) {
-                null -> {
-                    roleServiceQueries.getAllRoles()
-                }
-
-                else -> {
-                    roleServiceQueries.getRolesInScope(
-                        RoleScope.fromString(scope.uppercase()) ?: throw ApiException(IamError.ROLE_NOT_FOUND),
-                    )
-                }
+            if (scope == null) {
+                roleServiceQueries.getAllRoles()
+            } else {
+                roleServiceQueries.getRolesInScope(
+                    RoleScope.fromString(scope.uppercase()) ?: throw ApiException(IamError.ROLE_NOT_FOUND),
+                )
             }
         return ResponseEntity.ok(roles)
     }

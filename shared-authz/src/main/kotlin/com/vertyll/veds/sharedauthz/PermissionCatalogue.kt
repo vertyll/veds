@@ -9,8 +9,11 @@ package com.vertyll.veds.sharedauthz
  * belongs to iam-service and is edited by administrators.
  */
 data class PermissionCatalogue(
+    /** The module whose permissions these are. */
     val module: String,
+    /** The permissions the module declares. */
     val definitions: List<PermissionDefinition>,
+    /** The roles the module ships with. */
     val stockRoles: List<StockRole> = emptyList(),
 ) {
     init {
@@ -31,5 +34,6 @@ data class PermissionCatalogue(
         }
     }
 
+    /** The names of [definitions], in the order they were declared. */
     val names: Set<String> get() = definitions.mapTo(linkedSetOf()) { it.name }
 }

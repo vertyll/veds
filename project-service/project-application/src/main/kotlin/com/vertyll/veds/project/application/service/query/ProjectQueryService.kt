@@ -66,7 +66,7 @@ class ProjectQueryService(
                 sortDescending = params.sortDescending,
             )
 
-        val page = queryPort.searchProjects(criteria, PageRequest(params.page, params.size))
+        val page = queryPort.searchProjects(criteria, PageRequest(page = params.page, size = params.size))
         return PagedResponse(
             items = page.content.map { it.copy(permissions = authorization.effectivePermissions(it.id, actorId)) },
             pagination =

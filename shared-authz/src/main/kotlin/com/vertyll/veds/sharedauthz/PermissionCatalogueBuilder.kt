@@ -11,6 +11,7 @@ class PermissionCatalogueBuilder(
     private val declared = mutableSetOf<String>()
     private val stockRoles = mutableListOf<StockRole>()
 
+    /** Declares the permission [name]; a name may be declared once. */
     fun permission(
         name: String,
         description: String? = null,
@@ -20,6 +21,7 @@ class PermissionCatalogueBuilder(
         definitions += PermissionDefinition(name = name, description = description, scope = scope)
     }
 
+    /** Declares the stock role [name], granting [permissions]; a name may be declared once. */
     fun stockRole(
         name: String,
         scope: RoleScope,

@@ -18,12 +18,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@Suppress("TooManyFunctions", "LongParameterList")
 internal class ApplicationBeansConfig {
-    private companion object {
-        private val NO_METHODS: (String) -> Boolean = { false }
-    }
-
     @Bean
     fun emailBatchUseCase(
         transactions: TransactionalUseCaseFactory,
@@ -73,4 +68,8 @@ internal class ApplicationBeansConfig {
                 Slf4jUseCaseLogger(EmailService::class.java),
             ),
         ) { it in setOf("getEmailLogs") }
+
+    private companion object {
+        private val NO_METHODS: (String) -> Boolean = { false }
+    }
 }

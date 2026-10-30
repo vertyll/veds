@@ -17,16 +17,14 @@ import com.vertyll.veds.task.domain.repository.TaskCommentRepository
 import com.vertyll.veds.task.domain.repository.UserDirectoryRepository
 import java.util.UUID
 
+private const val COMMENT_ID_PARAM = "commentId"
+
 class TaskCommentCommandService(
     private val commentRepository: TaskCommentRepository,
     private val userDirectory: UserDirectoryRepository,
     private val authorization: TaskAuthorizationService,
     private val eventPublisher: TaskEventPublisherPort,
 ) : TaskCommentCommandUseCase {
-    private companion object {
-        private const val EXCERPT_LENGTH = 120
-    }
-
     override fun addComment(
         taskId: UUID,
         command: CreateCommentCommand,
@@ -65,15 +63,15 @@ class TaskCommentCommandService(
     ): TaskCommentResponse {
         val comment =
             commentRepository.findById(commentId)
-                ?: throw ApiException(TaskError.COMMENT_NOT_FOUND, mapOf("commentId" to commentId.toString()))
+                ?: throw ApiException(TaskError.COMMENT_NOT_FOUND, mapOf(COMMENT_ID_PARAM to commentId.toString()))
 
-        authorization.requireTaskPermission(comment.taskId, actor.id, TaskPermission.COMMENT)
+        authorization.requireTaskPermission(taskId = comment.taskId, actorId = actor.id, permission = TaskPermission.COMMENT)
 
         if (!comment.isAuthoredBy(actor.id)) {
-            throw ApiException(TaskError.COMMENT_NOT_AUTHORED_BY_CALLER, mapOf("commentId" to commentId.toString()))
+            throw ApiException(TaskError.COMMENT_NOT_AUTHORED_BY_CALLER, mapOf(COMMENT_ID_PARAM to commentId.toString()))
         }
 
-        VersionGuard.requireMatch(comment.version, version) { ApiException(TaskError.VERSION_MISMATCH) }
+        VersionGuard.requireMatch(currentVersion = comment.version, expectedVersion = version) { ApiException(TaskError.VERSION_MISMATCH) }
 
         val edited = commentRepository.save(comment.editedBy(actor.id, command.content))
         return edited.toResponse(actor)
@@ -85,16 +83,16 @@ class TaskCommentCommandService(
     ) {
         val comment =
             commentRepository.findById(commentId)
-                ?: throw ApiException(TaskError.COMMENT_NOT_FOUND, mapOf("commentId" to commentId.toString()))
+                ?: throw ApiException(TaskError.COMMENT_NOT_FOUND, mapOf(COMMENT_ID_PARAM to commentId.toString()))
 
-        val task = authorization.requireTaskPermission(comment.taskId, actor.id, TaskPermission.COMMENT)
+        val task = authorization.requireTaskPermission(taskId = comment.taskId, actorId = actor.id, permission = TaskPermission.COMMENT)
         val moderator =
             authorization
-                .effectivePermissions(task.projectId, actor.id)
+                .effectivePermissions(projectId = task.projectId, actorId = actor.id)
                 .contains(TaskPermission.MANAGE_TASKS)
 
         if (!comment.isAuthoredBy(actor.id) && !moderator) {
-            throw ApiException(TaskError.COMMENT_NOT_AUTHORED_BY_CALLER, mapOf("commentId" to commentId.toString()))
+            throw ApiException(TaskError.COMMENT_NOT_AUTHORED_BY_CALLER, mapOf(COMMENT_ID_PARAM to commentId.toString()))
         }
 
         commentRepository.delete(commentId)
@@ -116,4 +114,8 @@ class TaskCommentCommandService(
             updatedAt = updatedAt,
             version = version,
         )
+
+    private companion object {
+        private const val EXCERPT_LENGTH = 120
+    }
 }

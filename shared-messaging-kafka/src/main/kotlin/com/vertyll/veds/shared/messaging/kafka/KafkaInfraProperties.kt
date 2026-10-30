@@ -14,14 +14,18 @@ data class KafkaInfraProperties(
     val bootstrapServers: String,
     /** Client properties passed through to Kafka, including `schema.registry.url` for Avro. */
     val properties: Map<String, String>,
+    /** How clients authenticate to the brokers. */
     val security: Security,
+    /** The trust settings of the TLS listener. */
     val ssl: Ssl,
+    /** The settings of this service as a consumer. */
     val consumer: Consumer,
 ) {
     /** Schema Registry endpoint used by the Avro serializer and deserializer. */
     val schemaRegistryUrl: String
         get() = properties.getValue(SCHEMA_REGISTRY_URL)
 
+    /** The settings of a service as a Kafka consumer. */
     data class Consumer(
         /** Kafka consumer group id used by this service. */
         val groupId: String,
@@ -47,7 +51,9 @@ data class KafkaInfraProperties(
     data class Ssl(
         /** Plain filesystem path to the truststore, e.g. /tls-kafka/truststore.p12. */
         val trustStoreLocation: String,
+        /** The format of the truststore, such as `PKCS12`. */
         val trustStoreType: String,
+        /** The password of the truststore. */
         val trustStorePassword: String,
     )
 

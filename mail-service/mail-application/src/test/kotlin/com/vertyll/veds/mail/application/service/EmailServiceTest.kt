@@ -66,6 +66,8 @@ class EmailServiceTest {
             ) = Unit
         }
 
+    private val template = EmailTemplate.entries.first()
+
     private fun renderer(output: String = "<p>hello</p>") =
         object : TemplateRendererPort {
             override fun render(
@@ -91,8 +93,6 @@ class EmailServiceTest {
         mailSender: MailSenderPort = sender(),
         templateRenderer: TemplateRendererPort = renderer(),
     ) = EmailService(mailSender, templateRenderer, repository, SenderAddress("no-reply@veds.local"), silentLogger)
-
-    private val template = EmailTemplate.entries.first()
 
     @Test
     fun `records a sent message with the moment it left`() {

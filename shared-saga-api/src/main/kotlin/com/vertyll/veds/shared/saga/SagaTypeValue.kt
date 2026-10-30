@@ -8,5 +8,6 @@ package com.vertyll.veds.shared.saga
  * compile classpath.
  */
 interface SagaTypeValue {
+    /** The name a saga type is stored under. */
     val value: String
 }

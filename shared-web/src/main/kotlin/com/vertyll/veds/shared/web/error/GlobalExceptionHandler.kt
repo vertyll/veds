@@ -42,20 +42,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 class GlobalExceptionHandler {
     private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
-    companion object {
-        /**
-         * Ahead of Boot's own problem-detail advice so the handlers here win, and
-         * short of the highest precedence so a service can still put its own in
-         * front of this one.
-         */
-        const val ADVICE_ORDER: Int = Ordered.HIGHEST_PRECEDENCE + 10
-
-        private const val ACCESS_DENIED = "common.access_denied"
-        private const val VALIDATION_FAILED = "common.validation_failed"
-        private const val UNEXPECTED_ERROR = "common.unexpected_error"
-        private const val INVALID_VALUE = "common.invalid_value"
-    }
-
+    /** Answers a refusal with the status of its [ErrorKind] and its catalogue key. */
     @ExceptionHandler(ApiException::class)
     fun handleApiException(
         ex: ApiException,
@@ -64,7 +51,7 @@ class GlobalExceptionHandler {
         if (ex.error.kind == ErrorKind.MISCONFIGURED) {
             log.error("Misconfiguration: {} params={}", ex.error.key, ex.params, ex)
         } else {
-            log.debug("Rejected request: {} params={}", ex.error.key, ex.params)
+            log.debug("Rejected request: {} params={}", ex.error.key, ex.params, ex)
         }
 
         return problem(
@@ -75,6 +62,7 @@ class GlobalExceptionHandler {
         )
     }
 
+    /** Answers a refused authorization with `403`. */
     @ExceptionHandler(AuthorizationDeniedException::class)
     fun handleAccessDenied(
         ex: AuthorizationDeniedException,
@@ -85,6 +73,7 @@ class GlobalExceptionHandler {
         return problem(HttpStatus.FORBIDDEN, ACCESS_DENIED, request)
     }
 
+    /** Answers a request that failed validation with `400` and the fields at fault. */
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationExceptions(
         ex: MethodArgumentNotValidException,
@@ -96,6 +85,7 @@ class GlobalExceptionHandler {
         return validationProblem(fields, request)
     }
 
+    /** Answers a parameter of the wrong type with `400`. */
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleTypeMismatch(
         ex: MethodArgumentTypeMismatchException,
@@ -106,6 +96,7 @@ class GlobalExceptionHandler {
         return validationProblem(mapOf(ex.name to INVALID_VALUE), request)
     }
 
+    /** Answers a body that cannot be read with `400`. */
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleUnreadableBody(
         ex: HttpMessageNotReadableException,
@@ -166,4 +157,19 @@ class GlobalExceptionHandler {
             instance = request.getDescription(false).removePrefix("uri="),
             properties = properties,
         )
+
+    /** The order of this advice among the others. */
+    companion object {
+        /**
+         * Ahead of Boot's own problem-detail advice so the handlers here win, and
+         * short of the highest precedence so a service can still put its own in
+         * front of this one.
+         */
+        const val ADVICE_ORDER: Int = Ordered.HIGHEST_PRECEDENCE + 10
+
+        private const val ACCESS_DENIED = "common.access_denied"
+        private const val VALIDATION_FAILED = "common.validation_failed"
+        private const val UNEXPECTED_ERROR = "common.unexpected_error"
+        private const val INVALID_VALUE = "common.invalid_value"
+    }
 }

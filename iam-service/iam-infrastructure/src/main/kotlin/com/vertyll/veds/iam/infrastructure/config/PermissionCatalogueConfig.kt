@@ -11,9 +11,9 @@ internal class PermissionCatalogueConfig {
     @Bean
     fun adminPermissionCatalogue(): PermissionCatalogue =
         permissions("admin") {
-            permission("USERS_VIEW", "View the user directory", RoleScope.GLOBAL)
-            permission("USERS_MANAGE", "Edit users and assign roles", RoleScope.GLOBAL)
-            permission("ROLES_VIEW", "View roles and their permissions", RoleScope.GLOBAL)
-            permission("ROLES_MANAGE", "Create roles and change what they grant", RoleScope.GLOBAL)
+            permission(name = "USERS_VIEW", description = "View the user directory", scope = RoleScope.GLOBAL)
+            permission(name = "USERS_MANAGE", description = "Edit users and assign roles", scope = RoleScope.GLOBAL)
+            permission(name = "ROLES_VIEW", description = "View roles and their permissions", scope = RoleScope.GLOBAL)
+            permission(name = "ROLES_MANAGE", description = "Create roles and change what they grant", scope = RoleScope.GLOBAL)
         }
 }

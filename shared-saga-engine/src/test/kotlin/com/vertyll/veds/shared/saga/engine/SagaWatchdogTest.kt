@@ -133,7 +133,7 @@ internal class SagaWatchdogTest {
         val exploding =
             object : SagaEngine<TestSaga, TestStep>(sagas, steps, ObjectMapper(), TestEntityFactory(), { }) {
                 override fun runCompensation(sagaId: String) {
-                    if (sagaId == "poison") throw IllegalStateException("participant unreachable")
+                    if (sagaId == "poison") error("participant unreachable")
                     compensated += sagaId
                 }
             }

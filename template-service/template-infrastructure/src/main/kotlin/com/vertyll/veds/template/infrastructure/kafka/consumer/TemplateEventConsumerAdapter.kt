@@ -22,10 +22,6 @@ internal class TemplateEventConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val CONSUMER_GROUP = "template-service:template-requested"
-    }
-
     @KafkaListener(topics = [TemplateKafkaTopics.TEMPLATE_REQUESTED])
     @Transactional
     fun consume(
@@ -47,5 +43,9 @@ internal class TemplateEventConsumerAdapter(
             logger.error("Error processing message from topic {}", record.topic(), e)
             throw e
         }
+    }
+
+    private companion object {
+        const val CONSUMER_GROUP = "template-service:template-requested"
     }
 }

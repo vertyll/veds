@@ -33,8 +33,13 @@ class TaskCommandService(
         command: CreateTaskCommand,
         actor: Actor,
     ): TaskResponse {
-        authorization.requireProjectPermission(command.projectId, actor.id, TaskPermission.MANAGE_TASKS)
-        references.validate(command.projectId, command.statusId, command.categoryIds, command.assigneeIds)
+        authorization.requireProjectPermission(projectId = command.projectId, actorId = actor.id, permission = TaskPermission.MANAGE_TASKS)
+        references.validate(
+            projectId = command.projectId,
+            statusId = command.statusId,
+            categoryIds = command.categoryIds,
+            assigneeIds = command.assigneeIds,
+        )
 
         userDirectory.save(actor.toUserRef())
 
@@ -75,8 +80,13 @@ class TaskCommandService(
     ): TaskResponse {
         val task = authorization.requireTaskPermission(taskId, actor.id, TaskPermission.MANAGE_TASKS)
 
-        VersionGuard.requireMatch(task.version, version) { ApiException(TaskError.VERSION_MISMATCH) }
-        references.validate(task.projectId, command.statusId, command.categoryIds, command.assigneeIds)
+        VersionGuard.requireMatch(currentVersion = task.version, expectedVersion = version) { ApiException(TaskError.VERSION_MISMATCH) }
+        references.validate(
+            projectId = task.projectId,
+            statusId = command.statusId,
+            categoryIds = command.categoryIds,
+            assigneeIds = command.assigneeIds,
+        )
 
         val previousAssignees = task.assigneeIds
         val previousStatus = task.statusId
@@ -84,7 +94,7 @@ class TaskCommandService(
         val updated =
             taskRepository.save(
                 task
-                    .describe(command.name, command.description)
+                    .describe(newName = command.name, newDescription = command.description)
                     .reprioritise(command.priority)
                     .moveTo(command.statusId)
                     .categoriseAs(command.categoryIds)
@@ -95,10 +105,20 @@ class TaskCommandService(
             )
 
         if (updated.assigneeIds != previousAssignees) {
-            eventPublisher.publishTaskAssigned(updated.id, updated.projectId, updated.assigneeIds, actor.id)
+            eventPublisher.publishTaskAssigned(
+                taskId = updated.id,
+                projectId = updated.projectId,
+                assigneeIds = updated.assigneeIds,
+                assignedBy = actor.id,
+            )
         }
         if (updated.statusId != previousStatus) {
-            eventPublisher.publishTaskStatusChanged(updated.id, updated.projectId, updated.statusId, actor.id)
+            eventPublisher.publishTaskStatusChanged(
+                taskId = updated.id,
+                projectId = updated.projectId,
+                statusId = updated.statusId,
+                changedBy = actor.id,
+            )
         }
 
         return TaskResponse.from(updated)
@@ -112,8 +132,8 @@ class TaskCommandService(
     ): TaskResponse {
         val task = authorization.requireTaskPermission(taskId, actor.id, TaskPermission.MANAGE_TASKS)
 
-        VersionGuard.requireMatch(task.version, version) { ApiException(TaskError.VERSION_MISMATCH) }
-        references.validate(task.projectId, command.statusId, emptySet(), emptySet())
+        VersionGuard.requireMatch(currentVersion = task.version, expectedVersion = version) { ApiException(TaskError.VERSION_MISMATCH) }
+        references.validate(projectId = task.projectId, statusId = command.statusId, categoryIds = emptySet(), assigneeIds = emptySet())
 
         val moved = task.moveTo(command.statusId)
         if (moved === task) {
@@ -121,7 +141,12 @@ class TaskCommandService(
         }
 
         val saved = taskRepository.save(moved)
-        eventPublisher.publishTaskStatusChanged(saved.id, saved.projectId, saved.statusId, actor.id)
+        eventPublisher.publishTaskStatusChanged(
+            taskId = saved.id,
+            projectId = saved.projectId,
+            statusId = saved.statusId,
+            changedBy = actor.id,
+        )
         return TaskResponse.from(saved)
     }
 
@@ -132,11 +157,11 @@ class TaskCommandService(
     ) {
         val task = authorization.requireTaskPermission(taskId, actor.id, TaskPermission.MANAGE_TASKS)
 
-        VersionGuard.requireMatch(task.version, version) { ApiException(TaskError.VERSION_MISMATCH) }
+        VersionGuard.requireMatch(currentVersion = task.version, expectedVersion = version) { ApiException(TaskError.VERSION_MISMATCH) }
 
         taskRepository.save(task.archive())
         commentRepository.deleteAllByTaskId(task.id)
-        eventPublisher.publishTaskArchived(task.id, task.projectId)
+        eventPublisher.publishTaskArchived(taskId = task.id, projectId = task.projectId)
     }
 
     override fun archiveTasks(
@@ -145,7 +170,7 @@ class TaskCommandService(
     ): Int {
         val tasks =
             command.taskIds.map { id ->
-                authorization.requireTaskPermission(id, actor.id, TaskPermission.MANAGE_TASKS)
+                authorization.requireTaskPermission(taskId = id, actorId = actor.id, permission = TaskPermission.MANAGE_TASKS)
             }
 
         if (tasks.isEmpty()) return 0
@@ -153,7 +178,7 @@ class TaskCommandService(
         taskRepository.saveAll(tasks.map { it.archive() })
         tasks.forEach { task ->
             commentRepository.deleteAllByTaskId(task.id)
-            eventPublisher.publishTaskArchived(task.id, task.projectId)
+            eventPublisher.publishTaskArchived(taskId = task.id, projectId = task.projectId)
         }
         return tasks.size
     }

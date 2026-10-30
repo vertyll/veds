@@ -39,7 +39,7 @@ class ProjectMembershipCommandService(
             throw ApiException(ProjectError.MEMBER_OWNER_IMMUTABLE)
         }
 
-        VersionGuard.requireMatch(member.version, version) {
+        VersionGuard.requireMatch(currentVersion = member.version, expectedVersion = version) {
             ApiException(ProjectError.VERSION_MISMATCH)
         }
 

@@ -26,10 +26,6 @@ import tools.jackson.databind.ObjectMapper
 class ProblemAuthenticationEntryPoint(
     private val objectMapper: ObjectMapper,
 ) : AuthenticationEntryPoint {
-    private companion object {
-        private const val NOT_AUTHENTICATED = "common.not_authenticated"
-    }
-
     private val challenge = BearerTokenAuthenticationEntryPoint()
 
     override fun commence(
@@ -45,7 +41,11 @@ class ProblemAuthenticationEntryPoint(
         response.characterEncoding = Charsets.UTF_8.name()
         objectMapper.writeValue(
             response.outputStream,
-            Problems.of(HttpStatus.UNAUTHORIZED, NOT_AUTHENTICATED, request.requestURI),
+            Problems.of(status = HttpStatus.UNAUTHORIZED, code = NOT_AUTHENTICATED, instance = request.requestURI),
         )
+    }
+
+    private companion object {
+        private const val NOT_AUTHENTICATED = "common.not_authenticated"
     }
 }

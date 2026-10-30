@@ -10,7 +10,7 @@ class SharedOpenApiAutoConfigurationTest {
     private val configuration = SharedOpenApiAutoConfiguration()
 
     private fun environment(applicationName: String? = null) =
-        MockEnvironment().apply { applicationName?.let { setProperty("spring.application.name", it) } }
+        MockEnvironment().apply { if (applicationName != null) setProperty("spring.application.name", applicationName) }
 
     /**
      * Left to spring doc's defaults every service publishes a document called `OpenAPI definition`,

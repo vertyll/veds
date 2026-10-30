@@ -28,10 +28,6 @@ import tools.jackson.databind.ObjectMapper
 @Configuration
 @EnableScheduling
 internal class SagaConfig {
-    companion object {
-        const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "mail"
-    }
-
     @Bean
     fun mailSagaCompensationContext(
         kafkaOutboxProcessor: KafkaOutboxProcessor,
@@ -96,4 +92,8 @@ internal class SagaConfig {
             sagaEngine = sagaEngine,
             properties = sagaProperties,
         )
+
+    companion object {
+        const val SAGA_COMPENSATION_TOPIC: String = SagaCompensationTopic.PREFIX + "mail"
+    }
 }

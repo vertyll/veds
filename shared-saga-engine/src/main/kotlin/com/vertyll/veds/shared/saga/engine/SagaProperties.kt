@@ -42,9 +42,9 @@ data class SagaProperties(
      */
     val compensationRetryCooldown: Duration = Duration.ofMinutes(DEFAULT_COMPENSATION_RETRY_COOLDOWN_MINUTES),
 ) {
-    companion object {
-        const val DEFAULT_AWAIT_RESPONSE_TIMEOUT_MINUTES: Long = 30
-        const val DEFAULT_WATCHDOG_INTERVAL_MINUTES: Long = 1
-        const val DEFAULT_COMPENSATION_RETRY_COOLDOWN_MINUTES: Long = 5
+    private companion object {
+        private const val DEFAULT_AWAIT_RESPONSE_TIMEOUT_MINUTES: Long = 30
+        private const val DEFAULT_WATCHDOG_INTERVAL_MINUTES: Long = 1
+        private const val DEFAULT_COMPENSATION_RETRY_COOLDOWN_MINUTES: Long = 5
     }
 }

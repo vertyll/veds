@@ -1,6 +1,8 @@
 package com.vertyll.veds.sharedauthz
 
 /**
+ * @property name the permission, in `UPPER_SNAKE_CASE`.
+ * @property description what the permission allows, for the people who assign it.
  * @property scope where the permission can be held. A permission enforced against
  *           a project membership is meaningless on a platform-wide role, and one
  *           enforced against the platform is meaningless inside a project, so the

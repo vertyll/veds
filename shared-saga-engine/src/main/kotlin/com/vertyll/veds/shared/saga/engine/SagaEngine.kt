@@ -144,15 +144,13 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
                 return existingStep
             }
             logger.info("Updating saga step '$stepName' for saga '$sagaId': ${existingStep.status} → $status")
-            val transitioned = applyStepStatus(existingStep, status, defaultErrorReason = "Step '$stepName' failed")
+            val transitioned = applyStepStatus(existingStep, status, defaultErrorReason = stepFailed(stepName))
             val updatedStep = sagaStepRepository.save(transitioned)
             handleStepFailure(sagaId, stepName, status)
             return updatedStep
         }
 
-        val saga =
-            sagaRepository.findOneById(sagaId)
-                ?: throw IllegalArgumentException("Saga with id '$sagaId' not found")
+        val saga = requireSaga(sagaId)
 
         if (saga.status.isTerminal()) {
             logger.warn("Saga '$sagaId' is already in terminal status '${saga.status}' — ignoring new step '$stepName'")
@@ -181,7 +179,7 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
                 payload = payloadJson,
                 createdAt = Instant.now(),
             )
-        val transitioned = applyStepStatus(step, status, defaultErrorReason = "Step '$stepName' failed")
+        val transitioned = applyStepStatus(step, status, defaultErrorReason = stepFailed(stepName))
         val savedStep = sagaStepRepository.save(transitioned)
         handleStepFailure(sagaId, stepName, status)
         return savedStep
@@ -194,13 +192,11 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
     ) {
         if (status != SagaStepStatus.FAILED) return
 
-        val saga =
-            sagaRepository.findOneById(sagaId)
-                ?: throw IllegalArgumentException("Saga with id '$sagaId' not found")
+        val saga = requireSaga(sagaId)
 
         if (saga.status.isTerminal()) return
 
-        sagaRepository.save(saga.startCompensating("Step '$stepName' failed"))
+        sagaRepository.save(saga.startCompensating(stepFailed(stepName)))
         scheduleCompensationAfterCommit(sagaId)
     }
 
@@ -213,9 +209,7 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
      */
     @Transactional
     open fun completeSaga(sagaId: String): S {
-        val saga =
-            sagaRepository.findOneById(sagaId)
-                ?: throw IllegalArgumentException("Saga with id '$sagaId' not found")
+        val saga = requireSaga(sagaId)
         if (saga.status.isTerminal()) {
             logger.warn("Ignoring completeSaga for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
@@ -235,9 +229,7 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
      */
     @Transactional
     open fun awaitResponse(sagaId: String): S {
-        val saga =
-            sagaRepository.findOneById(sagaId)
-                ?: throw IllegalArgumentException("Saga with id '$sagaId' not found")
+        val saga = requireSaga(sagaId)
         if (saga.status.isTerminal()) {
             logger.warn("Ignoring awaitResponse for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
@@ -258,9 +250,7 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         sagaId: String,
         error: String,
     ): S {
-        val saga =
-            sagaRepository.findOneById(sagaId)
-                ?: throw IllegalArgumentException("Saga with id '$sagaId' not found")
+        val saga = requireSaga(sagaId)
         if (saga.status.isTerminal()) {
             logger.warn("Ignoring failSaga for saga '$sagaId' — already in terminal status '${saga.status}'")
             return saga
@@ -270,13 +260,15 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         return savedSaga
     }
 
-    /**
-     * Registers an after-commit hook that delegates to the proxied
-     * [SagaCompensationRunner.runCompensation] (which opens a fresh
-     * `REQUIRES_NEW` transaction). Decouples broker IO and step-compensation
-     * work from the caller's business transaction; if the caller's
-     * transaction rolls back, the hook is never executed.
-     */
+    private fun requireSaga(sagaId: String): S = requireNotNull(sagaRepository.findOneById(sagaId)) { "Saga with id '$sagaId' not found" }
+
+    private fun stepFailed(stepName: String) = "Step '$stepName' failed"
+
+    // Registers an after-commit hook that delegates to the proxied
+    // [SagaCompensationRunner.runCompensation] (which opens a fresh
+    // `REQUIRES_NEW` transaction). Decouples broker IO and step-compensation
+    // work from the caller's business transaction; if the caller's
+    // transaction rolls back, the hook is never executed.
     private fun scheduleCompensationAfterCommit(sagaId: String) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(
@@ -302,7 +294,7 @@ open class SagaEngine<S : Saga<S>, T : SagaStep<T>>(
         compensationRunner.runCompensation(sagaId)
     }
 
-    /** Moves [step] to [target] through the port's behavior methods, so the engine never touches its fields. */
+    // Moves [step] to [target] through the port's behavior methods, so the engine never touches its fields.
     private fun applyStepStatus(
         step: T,
         target: SagaStepStatus,

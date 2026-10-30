@@ -12,14 +12,6 @@ import javax.crypto.spec.SecretKeySpec
 internal class SessionCipher(
     properties: GatewaySessionProperties,
 ) {
-    private companion object {
-        private const val ALGORITHM = "AES"
-        private const val TRANSFORMATION = "AES/GCM/NoPadding"
-        private const val NONCE_BYTES = 12
-        private const val TAG_BITS = 128
-        private const val AES_256_KEY_BYTES = 32
-    }
-
     private val random = SecureRandom()
     private val decoder: Base64.Decoder = Base64.getDecoder()
 
@@ -52,5 +44,13 @@ internal class SessionCipher(
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, payload, 0, NONCE_BYTES))
         return cipher.doFinal(payload, NONCE_BYTES, payload.size - NONCE_BYTES)
+    }
+
+    private companion object {
+        private const val ALGORITHM = "AES"
+        private const val TRANSFORMATION = "AES/GCM/NoPadding"
+        private const val NONCE_BYTES = 12
+        private const val TAG_BITS = 128
+        private const val AES_256_KEY_BYTES = 32
     }
 }

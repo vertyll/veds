@@ -17,17 +17,6 @@ internal class SecurityConfig(
     private val keycloakJwtAuthenticationConverter: KeycloakJwtAuthenticationConverter,
     private val problemAuthenticationEntryPoint: ProblemAuthenticationEntryPoint,
 ) {
-    private companion object {
-        private val PUBLIC_ENDPOINTS =
-            arrayOf(
-                "/actuator/**",
-                "/api-docs/**",
-                "/v3/api-docs/**",
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-            )
-    }
-
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -51,5 +40,16 @@ internal class SecurityConfig(
             }
 
         return http.build()
+    }
+
+    private companion object {
+        private val PUBLIC_ENDPOINTS =
+            arrayOf(
+                "/actuator/**",
+                "/api-docs/**",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+            )
     }
 }

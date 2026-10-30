@@ -11,6 +11,7 @@ import com.vertyll.veds.iam.application.permission
 import com.vertyll.veds.iam.application.role
 import com.vertyll.veds.iam.application.user
 import com.vertyll.veds.iam.domain.error.IamError
+import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.model.RoleScope
 import com.vertyll.veds.sharederror.ApiException
 import org.junit.jupiter.api.Test
@@ -32,7 +33,7 @@ internal class RoleCommandServiceTest {
 
     private fun givenUser(
         id: Long = 1L,
-        vararg granted: com.vertyll.veds.iam.domain.model.Role,
+        vararg granted: Role,
     ) = user(id = id, roles = granted.toSet()).copy(version = 0L).also { users.given(it) }
 
     @Test

@@ -23,15 +23,6 @@ internal class AuthController(
     private val authorizedClients: ServerOAuth2AuthorizedClientRepository,
     private val keycloakSessions: KeycloakSessions,
 ) {
-    private companion object {
-        private const val REALM_ACCESS_CLAIM = "realm_access"
-        private const val ROLES_CLAIM = "roles"
-        private const val DEFAULT_ROLES_PREFIX = "default-roles-"
-        private val KEYCLOAK_OWN_ROLES = setOf("offline_access", "uma_authorization")
-        private val NOBODY =
-            AnonymousAuthenticationToken("logout", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))
-    }
-
     data class SessionResponse(
         val userId: String,
         val email: String,
@@ -73,6 +64,17 @@ internal class AuthController(
     private fun applicationRoles(claim: Any?): List<String> =
         (claim as? Collection<*>)
             .orEmpty()
+            .asSequence()
             .filterIsInstance<String>()
             .filterNot { it in KEYCLOAK_OWN_ROLES || it.startsWith(DEFAULT_ROLES_PREFIX) }
+            .toList()
+
+    private companion object {
+        private const val REALM_ACCESS_CLAIM = "realm_access"
+        private const val ROLES_CLAIM = "roles"
+        private const val DEFAULT_ROLES_PREFIX = "default-roles-"
+        private val KEYCLOAK_OWN_ROLES = setOf("offline_access", "uma_authorization")
+        private val NOBODY =
+            AnonymousAuthenticationToken("logout", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))
+    }
 }

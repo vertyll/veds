@@ -24,17 +24,12 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Component
-@Suppress("TooManyFunctions")
 internal class ProjectEventConsumerAdapter(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val projections: ProjectProjectionUseCase,
     private val processedEventGuard: ProcessedEventGuard,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-
-    private companion object {
-        private const val GROUP_PREFIX = "task-service:"
-    }
 
     @KafkaListener(topics = [TaskKafkaTopics.Consumed.PROJECT_CREATED])
     @Transactional
@@ -175,5 +170,9 @@ internal class ProjectEventConsumerAdapter(
             logger.error("Failed to project {}: {} - will be retried / sent to DLT", topic, e.message, e)
             throw e
         }
+    }
+
+    private companion object {
+        private const val GROUP_PREFIX = "task-service:"
     }
 }

@@ -20,11 +20,6 @@ internal class FileEventConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val FILE_DELETED = "file-deleted"
-        const val GROUP = "task-service:file-deleted"
-    }
-
     @KafkaListener(topics = [FILE_DELETED])
     @Transactional
     fun onFileDeleted(
@@ -43,5 +38,10 @@ internal class FileEventConsumerAdapter(
             logger.error("Failed to apply {}: {} - will be retried / sent to DLT", FILE_DELETED, e.message, e)
             throw e
         }
+    }
+
+    private companion object {
+        const val FILE_DELETED = "file-deleted"
+        const val GROUP = "task-service:file-deleted"
     }
 }

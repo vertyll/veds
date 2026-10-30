@@ -22,12 +22,6 @@ internal class UserProjectionConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val USER_REGISTERED = "user-registered"
-        const val USER_PROFILE_UPDATED = "user-profile-updated"
-        const val GROUP_PREFIX = "notification-service:"
-    }
-
     @KafkaListener(topics = [USER_REGISTERED])
     @Transactional
     fun onUserRegistered(
@@ -77,5 +71,11 @@ internal class UserProjectionConsumerAdapter(
             logger.error("Failed to project {}: {} - will be retried / sent to DLT", topic, e.message, e)
             throw e
         }
+    }
+
+    private companion object {
+        const val USER_REGISTERED = "user-registered"
+        const val USER_PROFILE_UPDATED = "user-profile-updated"
+        const val GROUP_PREFIX = "notification-service:"
     }
 }

@@ -8,9 +8,9 @@ internal class InMemoryPermissionRepository : PermissionRepository {
     private var nextId = 1L
 
     fun given(vararg permissions: Permission) =
-        permissions.forEach {
-            stored += it
-            nextId = maxOf(nextId, (it.id ?: 0L) + 1)
+        permissions.forEach { permission ->
+            stored += permission
+            nextId = maxOf(nextId, (permission.id ?: 0L) + 1)
         }
 
     override fun save(permission: Permission): Permission {

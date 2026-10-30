@@ -23,6 +23,7 @@ package com.vertyll.veds.shared.saga.engine
  * (see `infra/kafka/topics.tf`).
  */
 object SagaCompensationTopic {
+    /** What every saga-compensation topic name starts with. */
     const val PREFIX: String = "saga-compensation-"
 
     /**

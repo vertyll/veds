@@ -6,7 +6,7 @@ data class ResolvedLabel(
 )
 
 internal fun Map<String, String>.resolveLabel(language: LanguageTag): ResolvedLabel {
-    this[language.value]?.let { return ResolvedLabel(it, language.value) }
+    this[language.value]?.let { return ResolvedLabel(name = it, language = language.value) }
     val entry = entries.minByOrNull { it.key } ?: error("label projection has no names at all")
-    return ResolvedLabel(entry.value, entry.key)
+    return ResolvedLabel(name = entry.value, language = entry.key)
 }

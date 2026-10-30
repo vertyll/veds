@@ -10,6 +10,7 @@ class TranslationCatalogueBuilder(
     private val definitions = mutableListOf<TranslationKeyDefinition>()
     private val declared = mutableSetOf<String>()
 
+    /** Declares the translation key [key]. */
     fun key(
         key: String,
         description: String? = null,
@@ -54,6 +55,7 @@ class TranslationCatalogueBuilder(
  *
  * @param sourceService identifies the owner; registration refuses a key another
  *        service already declared.
+ * @param block declares the keys.
  * @throws IllegalArgumentException on a duplicate key or an invalid pattern.
  */
 fun translations(

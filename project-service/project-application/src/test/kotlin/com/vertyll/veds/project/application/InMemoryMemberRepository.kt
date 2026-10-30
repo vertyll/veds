@@ -10,9 +10,9 @@ internal class InMemoryMemberRepository : ProjectMemberRepository {
     fun given(vararg members: ProjectMember) = members.forEach { stored += it }
 
     override fun save(member: ProjectMember) =
-        member.also {
-            stored.removeAll { existing -> existing.id == it.id }
-            stored += it
+        member.also { saved ->
+            stored.removeAll { existing -> existing.id == saved.id }
+            stored += saved
         }
 
     override fun findById(id: UUID) = stored.firstOrNull { it.id == id }

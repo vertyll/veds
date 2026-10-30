@@ -22,8 +22,10 @@ import org.junit.jupiter.api.Test
  * Jars are deliberately part of the import: `domain` and `application` are separate Gradle
  * projects, so their classes reach the infrastructure test classpath packaged. Excluding jars
  * leaves those layers empty, and the rules then pass or fail for the wrong reason.
+ *
+ * Abstract because it is complete only with a subclass naming its service.
  */
-
+@Suppress("AbstractClassCanBeConcreteClass")
 abstract class VedsArchitectureTest(
     private val basePackage: String,
 ) {
@@ -34,69 +36,81 @@ abstract class VedsArchitectureTest(
             .importPackages(basePackage)
     }
 
+    /** Checks [VedsArchitectureRules.layering]. */
     @Test
     @DisplayName("the dependency rule points inwards")
     fun dependencyRulePointsInwards() = VedsArchitectureRules.layering(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.domainIsFrameworkFree]. */
     @Test
     @DisplayName("the domain layer is framework-free")
     fun domainLayerIsFrameworkFree() = VedsArchitectureRules.domainIsFrameworkFree(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.applicationIsFrameworkFree]. */
     @Test
     @DisplayName("the application layer is framework-free")
     fun applicationLayerIsFrameworkFree() = VedsArchitectureRules.applicationIsFrameworkFree(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.jpaEntitiesLiveInPersistence]. */
     @Test
     @DisplayName("JPA entities live in the persistence adapter")
     fun jpaEntitiesLiveInPersistenceAdapter() = VedsArchitectureRules.jpaEntitiesLiveInPersistence(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.controllersLiveInWebAdapter]. */
     @Test
     @DisplayName("controllers live in the web adapter")
     fun controllersLiveInWebAdapter() = VedsArchitectureRules.controllersLiveInWebAdapter(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.everyEndpointDeclaresItsAuthorization]. */
     @Test
     @DisplayName("every endpoint declares where its authorization decision is taken")
     fun everyEndpointDeclaresItsAuthorization() = VedsArchitectureRules.everyEndpointDeclaresItsAuthorization().check(classes)
 
+    /** Checks [VedsArchitectureRules.kafkaOnlyInInfrastructure]. */
     @Test
     @DisplayName("only infrastructure talks to Kafka")
     fun onlyInfrastructureTalksToKafka() = VedsArchitectureRules.kafkaOnlyInInfrastructure(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.portsAreInterfaces]. */
     @Test
     @DisplayName("application ports are interfaces")
     fun applicationPortsAreInterfaces() = VedsArchitectureRules.portsAreInterfaces(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.repositoryPortsAreInterfaces]. */
     @Test
     @DisplayName("repository ports are interfaces")
     fun repositoryPortsAreInterfaces() = VedsArchitectureRules.repositoryPortsAreInterfaces(basePackage).check(classes)
 
+    /** Checks [VedsArchitectureRules.adaptersLiveInInfrastructure]. */
     @Test
     @DisplayName("adapters live in infrastructure")
     fun adaptersLiveInInfrastructure() = VedsArchitectureRules.adaptersLiveInInfrastructure(basePackage).check(classes)
 
+    /** No class writes to the standard streams; logging goes through a logger. */
     @Test
     @DisplayName("nothing writes to standard streams")
     fun nothingWritesToStandardStreams() = NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS.check(classes)
 
+    /** No class throws `Exception`, `RuntimeException` or `Throwable` itself. */
     @Test
     @DisplayName("nothing throws generic exceptions")
     fun nothingThrowsGenericExceptions() = NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS.check(classes)
 
+    /** No class logs through `java.util.logging`. */
     @Test
     @DisplayName("nothing uses java util logging")
     fun nothingUsesJavaUtilLogging() = NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING.check(classes)
 
+    /** No class takes its collaborators through field injection. */
     @Test
     @DisplayName("nothing uses field injection")
     fun nothingUsesFieldInjection() = NO_CLASSES_SHOULD_USE_FIELD_INJECTION.check(classes)
 }
 
-/**
- * Drops classes the Kotlin compiler synthesizes rather than a developer writing them:
- * `DefaultImpls` (bodies of interface default methods) and `WhenMappings` (enum `when` tables).
- * Judging them reports compiler strategy, not architecture — `DefaultImpls` is a class, so an
- * "interfaces only" rule fails on every interface that has a default method.
- */
+// Drops classes the Kotlin compiler synthesizes rather than a developer writing them:
+// `DefaultImpls` (bodies of interface default methods) and `WhenMappings` (enum `when` tables).
+// Judging them reports compiler strategy, not architecture — `DefaultImpls` is a class, so an
+// "interfaces only" rule fails on every interface that has a default method.
 private val NoKotlinCompilerArtefacts =
     ImportOption { location: Location ->
         !location.contains($$"$DefaultImpls") && !location.contains($$"$WhenMappings")

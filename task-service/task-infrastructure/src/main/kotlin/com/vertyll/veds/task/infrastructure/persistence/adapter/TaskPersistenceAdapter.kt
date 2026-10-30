@@ -10,6 +10,7 @@ import com.vertyll.veds.task.infrastructure.persistence.entity.TaskJpaEntity
 import com.vertyll.veds.task.infrastructure.persistence.repository.TaskJpaRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import jakarta.persistence.TypedQuery
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -85,7 +86,7 @@ internal class TaskPersistenceAdapter(
 
     override fun delete(id: UUID) = repository.deleteById(id)
 
-    private fun <T> jakarta.persistence.TypedQuery<T>.applyCriteria(criteria: TaskSearchCriteria) =
+    private fun <T> TypedQuery<T>.applyCriteria(criteria: TaskSearchCriteria) =
         apply {
             setParameter("projectId", criteria.projectId)
             setParameter("onlyActive", criteria.onlyActive)
@@ -111,7 +112,7 @@ internal class TaskPersistenceAdapter(
                         OR LOWER(COALESCE(t.description, ''))
                             LIKE LOWER(CONCAT('%', CAST(:searchTerm AS string), '%'))
                     )
-                    """,
+                    """.trimIndent(),
                 )
                 if (criteria.categoryId != null) append(" AND :categoryId MEMBER OF t.categoryIds")
                 if (criteria.assigneeId != null) append(" AND :assigneeId MEMBER OF t.assigneeIds")

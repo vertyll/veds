@@ -8,8 +8,11 @@ package com.vertyll.veds.sharedauthz
  * it answers from the last set it was told about rather than asking.
  */
 data class RolePermissions(
+    /** The name of the role. */
     val role: String,
+    /** The module these permissions belong to. */
     val module: String,
+    /** The permissions the role grants in [module]. */
     val permissions: Set<String>,
     /**
      * A role that holds everything the module has, now and after it grows. The
@@ -19,5 +22,6 @@ data class RolePermissions(
      */
     val unrestricted: Boolean = false,
 ) {
+    /** Whether the role grants [permission]. */
     fun grants(permission: String): Boolean = unrestricted || permission in permissions
 }

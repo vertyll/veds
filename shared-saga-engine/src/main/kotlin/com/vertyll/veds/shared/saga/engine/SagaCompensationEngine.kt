@@ -71,21 +71,25 @@ open class SagaCompensationEngine<T : SagaStep<T>, TCommand : Any>(
         val id = stepId ?: return
         val step =
             sagaStepRepository.findOneById(id)
-                ?: throw IllegalStateException("Saga step '$id' of saga '$sagaId' not found")
+                ?: error("Saga step '$id' of saga '$sagaId' not found")
 
         val compensationStep =
             stepFactory.createCompensationStep(
-                sagaId = sagaId,
-                stepName = "$COMPENSATION_PREFIX${step.stepName}",
-                status = SagaStepStatus.COMPENSATED,
-                createdAt = Instant.now(),
-                completedAt = Instant.now(),
-                compensationStepId = step.id,
+                CompensationStepDraft(
+                    sagaId = sagaId,
+                    stepName = "$COMPENSATION_PREFIX${step.stepName}",
+                    status = SagaStepStatus.COMPENSATED,
+                    createdAt = Instant.now(),
+                    completedAt = Instant.now(),
+                    compensationStepId = id,
+                ),
             )
         sagaStepRepository.save(compensationStep)
     }
 
+    /** Names shared with the code that reads compensation steps. */
     companion object {
+        /** What a compensation step puts before the name of the step it undoes. */
         const val COMPENSATION_PREFIX = "Compensate"
     }
 }

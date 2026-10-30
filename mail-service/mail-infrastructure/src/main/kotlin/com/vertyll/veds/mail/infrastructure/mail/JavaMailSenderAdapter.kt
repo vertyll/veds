@@ -10,10 +10,6 @@ import org.springframework.stereotype.Component
 internal class JavaMailSenderAdapter(
     private val mailSender: JavaMailSender,
 ) : MailSenderPort {
-    private companion object {
-        private const val CHARSET_UTF8 = "UTF-8"
-    }
-
     override fun sendHtml(
         from: String,
         to: String,
@@ -33,5 +29,9 @@ internal class JavaMailSenderAdapter(
         }
 
         mailSender.send(message)
+    }
+
+    private companion object {
+        private const val CHARSET_UTF8 = "UTF-8"
     }
 }

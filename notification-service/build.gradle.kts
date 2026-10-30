@@ -89,6 +89,11 @@ subprojects {
     tasks.withType<Detekt>().configureEach {
         config.setFrom(files("${rootProject.projectDir}/../config/detekt/detekt.yml"))
         buildUponDefaultConfig = true
+        allRules = true
+    }
+
+    tasks.matching { it.name == "detekt" }.configureEach {
+        dependsOn(tasks.matching { it.name == "detektMain" || it.name == "detektTest" })
     }
 
     tasks.matching { it.name == "check" }.configureEach {

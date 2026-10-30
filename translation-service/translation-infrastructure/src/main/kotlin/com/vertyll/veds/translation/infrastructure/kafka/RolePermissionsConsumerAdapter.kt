@@ -24,12 +24,6 @@ internal class RolePermissionsConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val TOPIC = "role-permissions-changed"
-        const val GROUP_PREFIX = "translation-service:"
-        const val GLOBAL_SCOPE = "GLOBAL"
-    }
-
     @KafkaListener(topics = [TOPIC])
     @Transactional
     fun onRolePermissionsChanged(
@@ -64,5 +58,11 @@ internal class RolePermissionsConsumerAdapter(
         entity.unrestricted = event.unrestricted
         entity.updatedAt = Instant.now()
         repository.save(entity)
+    }
+
+    private companion object {
+        const val TOPIC = "role-permissions-changed"
+        const val GROUP_PREFIX = "translation-service:"
+        const val GLOBAL_SCOPE = "GLOBAL"
     }
 }

@@ -21,10 +21,6 @@ import java.util.concurrent.TimeUnit
 internal class TranslationController(
     private val queries: TranslationQueryUseCase,
 ) {
-    private companion object {
-        private const val CACHE_MINUTES = 5L
-    }
-
     @GetMapping("/{language}")
     @Operation(summary = "Get every effective translation for one language")
     fun snapshot(
@@ -43,4 +39,8 @@ internal class TranslationController(
     @GetMapping("/languages")
     @Operation(summary = "List the languages the application offers")
     fun languages(): ResponseEntity<List<LanguageResponse>> = ResponseEntity.ok(queries.languages())
+
+    private companion object {
+        private const val CACHE_MINUTES = 5L
+    }
 }

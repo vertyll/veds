@@ -147,9 +147,9 @@ internal class ProjectCommandServiceTest {
 
     private fun givenManagedProject(version: Long? = 0L) =
         project(ownerId = creator.id, version = version)
-            .also {
-                projects.given(it)
-                members.given(ProjectMember.create(projectId = it.id, userId = creator.id, roleId = managerRole.id))
+            .also { project ->
+                projects.given(project)
+                members.given(ProjectMember.create(projectId = project.id, userId = creator.id, roleId = managerRole.id))
             }
 
     @Test
@@ -215,9 +215,9 @@ internal class ProjectCommandServiceTest {
     @Test
     fun `archiving an already archived project is refused`() {
         val existing =
-            project(ownerId = creator.id, isActive = false).also {
-                projects.given(it)
-                members.given(ProjectMember.create(projectId = it.id, userId = creator.id, roleId = managerRole.id))
+            project(ownerId = creator.id, isActive = false).also { project ->
+                projects.given(project)
+                members.given(ProjectMember.create(projectId = project.id, userId = creator.id, roleId = managerRole.id))
             }
 
         val error = assertFailsWith<ApiException> { service.archiveProject(existing.id, creator.id, version = 0L) }

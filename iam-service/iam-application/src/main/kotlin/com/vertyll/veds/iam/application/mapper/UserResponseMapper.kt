@@ -6,7 +6,7 @@ import com.vertyll.veds.iam.domain.model.User
 internal object UserResponseMapper {
     fun toResponse(user: User): UserResponse =
         UserResponse(
-            id = user.id!!,
+            id = user.storedId,
             keycloakId = user.keycloakId?.toString(),
             firstName = user.firstName,
             lastName = user.lastName,

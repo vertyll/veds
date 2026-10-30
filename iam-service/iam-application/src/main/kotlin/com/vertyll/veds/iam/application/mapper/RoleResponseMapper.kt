@@ -7,7 +7,7 @@ import com.vertyll.veds.iam.domain.model.RoleType
 internal object RoleResponseMapper {
     fun toResponse(role: Role): RoleResponse =
         RoleResponse(
-            id = role.id!!,
+            id = role.storedId,
             name = role.name,
             description = role.description,
             permissions = role.permissions.map { it.name }.sorted(),

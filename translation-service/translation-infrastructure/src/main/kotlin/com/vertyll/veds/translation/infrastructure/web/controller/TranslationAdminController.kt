@@ -36,10 +36,6 @@ internal class TranslationAdminController(
     private val commands: TranslationCommandUseCase,
     private val queries: TranslationQueryUseCase,
 ) {
-    private companion object {
-        private const val DEFAULT_PAGE_SIZE = "50"
-    }
-
     @GetMapping("/keys")
     @Operation(summary = "List keys with their values in every language")
     @Suppress("LongParameterList")
@@ -94,5 +90,9 @@ internal class TranslationAdminController(
                 editor = CurrentUser.idOf(jwt),
             )
         return ResponseEntity.ok(value)
+    }
+
+    private companion object {
+        private const val DEFAULT_PAGE_SIZE = "50"
     }
 }

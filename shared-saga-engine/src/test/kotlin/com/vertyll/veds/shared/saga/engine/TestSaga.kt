@@ -22,11 +22,9 @@ internal data class TestSaga(
     override val updatedAt: Instant = Instant.now(),
     override val version: Long? = null,
 ) : Saga<TestSaga> {
-    /**
-     * Every transition refreshes [updatedAt], exactly as `BaseSaga` does. The watchdog selects on
-     * that column alone, so a fixture that let it go stale would report retries the real engine
-     * never performs.
-     */
+    // Every transition refreshes [updatedAt], exactly as `BaseSaga` does. The watchdog selects on
+    // that column alone, so a fixture that let it go stale would report retries the real engine
+    // never performs.
     private fun transition(
         status: SagaStatus,
         lastError: String? = this.lastError,

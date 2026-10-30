@@ -44,7 +44,7 @@ class ProjectInvitationCommandService(
     ): ProjectInvitationResponse {
         val project = authorization.requirePermission(projectId, actorId, ProjectPermission.INVITE_USERS)
 
-        invitationRepository.findPendingByProjectIdAndEmail(projectId, command.email)?.let {
+        if (invitationRepository.findPendingByProjectIdAndEmail(projectId, command.email) != null) {
             throw ApiException(ProjectError.INVITATION_ALREADY_SENT)
         }
 
@@ -110,7 +110,7 @@ class ProjectInvitationCommandService(
     ): ProjectInvitationResponse {
         val invitation = loadPendingInvitationFor(invitationId, actor.email)
 
-        if (memberRepository.findByProjectIdAndUserId(invitation.projectId, actor.id) != null) {
+        if (memberRepository.findByProjectIdAndUserId(projectId = invitation.projectId, userId = actor.id) != null) {
             throw ApiException(ProjectError.MEMBER_ALREADY_JOINED)
         }
 

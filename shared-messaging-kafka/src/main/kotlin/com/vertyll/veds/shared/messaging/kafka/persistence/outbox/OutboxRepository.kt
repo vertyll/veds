@@ -17,10 +17,13 @@ import java.time.Instant
  */
 @Repository
 interface OutboxRepository : JpaRepository<OutboxEntity, Long> {
+    /** The messages in [status]. */
     fun findByStatus(status: OutboxStatus): List<OutboxEntity>
 
+    /** The messages published for the saga [sagaId]. */
     fun findBySagaId(sagaId: String): List<OutboxEntity>
 
+    /** The message with [eventId], if there is one. */
     fun findByEventId(eventId: String): OutboxEntity?
 
     /**

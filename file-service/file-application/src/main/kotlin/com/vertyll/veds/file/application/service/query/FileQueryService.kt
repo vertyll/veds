@@ -11,6 +11,8 @@ import com.vertyll.veds.file.domain.repository.StoredFileRepository
 import com.vertyll.veds.sharederror.ApiException
 import java.util.UUID
 
+private const val FILE_ID_PARAM = "fileId"
+
 class FileQueryService(
     private val fileRepository: StoredFileRepository,
     private val storage: ObjectStoragePort,
@@ -27,10 +29,15 @@ class FileQueryService(
         val file = requireReadableFile(fileId, actor)
 
         if (!file.isAvailable) {
-            throw ApiException(FileError.FILE_NOT_AVAILABLE, mapOf("fileId" to file.id.toString()))
+            throw ApiException(FileError.FILE_NOT_AVAILABLE, mapOf(FILE_ID_PARAM to file.id.toString()))
         }
 
-        val presigned = storage.presignDownload(file.objectKey, file.originalName, file.contentType)
+        val presigned =
+            storage.presignDownload(
+                objectKey = file.objectKey,
+                originalName = file.originalName,
+                contentType = file.contentType,
+            )
 
         return DownloadTicketResponse(
             fileId = file.id,
@@ -56,10 +63,10 @@ class FileQueryService(
     ): StoredFile {
         val file =
             fileRepository.findById(fileId)
-                ?: throw ApiException(FileError.FILE_NOT_FOUND, mapOf("fileId" to fileId.toString()))
+                ?: throw ApiException(FileError.FILE_NOT_FOUND, mapOf(FILE_ID_PARAM to fileId.toString()))
 
         if (!file.isOwnedBy(actor.id)) {
-            throw ApiException(FileError.FILE_NOT_FOUND, mapOf("fileId" to fileId.toString()))
+            throw ApiException(FileError.FILE_NOT_FOUND, mapOf(FILE_ID_PARAM to fileId.toString()))
         }
         return file
     }

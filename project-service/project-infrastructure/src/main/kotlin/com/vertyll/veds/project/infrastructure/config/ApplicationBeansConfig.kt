@@ -49,13 +49,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@Suppress("TooManyFunctions", "LongParameterList", "kotlin:S107")
+@Suppress("kotlin:S107")
 internal class ApplicationBeansConfig {
-    private companion object {
-        private val ALL_METHODS: (String) -> Boolean = { true }
-        private val NO_METHODS: (String) -> Boolean = { false }
-    }
-
     @Bean
     fun mailFeedbackUseCase(
         transactions: TransactionalUseCaseFactory,
@@ -317,4 +312,9 @@ internal class ApplicationBeansConfig {
     @Bean
     fun translationCompletenessValidator(supportedLanguages: SupportedLanguagesPort): TranslationCompletenessValidator =
         TranslationCompletenessValidator(supportedLanguages)
+
+    private companion object {
+        private val ALL_METHODS: (String) -> Boolean = { true }
+        private val NO_METHODS: (String) -> Boolean = { false }
+    }
 }

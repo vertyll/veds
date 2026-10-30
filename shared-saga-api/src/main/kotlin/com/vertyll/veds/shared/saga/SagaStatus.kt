@@ -12,18 +12,25 @@ package com.vertyll.veds.shared.saga
  * "abandoned".
  */
 enum class SagaStatus {
+    /** The saga is running its steps. */
     STARTED,
 
+    /** The saga waits for another service to answer. */
     AWAITING_RESPONSE,
 
+    /** Every step succeeded. */
     COMPLETED,
 
+    /** A step failed, and nothing is left to undo. */
     FAILED,
 
+    /** The saga is undoing the steps already done. */
     COMPENSATING,
 
+    /** Every completed step has been undone. */
     COMPENSATED,
 
+    /** A compensation failed, so an operator has to step in. */
     COMPENSATION_FAILED,
     ;
 

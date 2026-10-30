@@ -14,10 +14,6 @@ import reactor.core.publisher.Mono
 internal class JsonAuthenticationEntryPoint(
     private val objectMapper: ObjectMapper,
 ) : ServerAuthenticationEntryPoint {
-    private companion object {
-        private const val NOT_AUTHENTICATED = "common.not_authenticated"
-    }
-
     override fun commence(
         exchange: ServerWebExchange,
         e: AuthenticationException,
@@ -39,4 +35,8 @@ internal class JsonAuthenticationEntryPoint(
             val buffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(problem))
             response.writeWith(Mono.just(buffer))
         }
+
+    private companion object {
+        private const val NOT_AUTHENTICATED = "common.not_authenticated"
+    }
 }

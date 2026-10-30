@@ -49,10 +49,10 @@ internal class SingleFlightRefreshTokenProvider(
                         val access = refreshed.accessToken
                         val issuedAt = access.issuedAt ?: clock.instant()
                         SharedRefreshes.TokenPair(
-                            access.tokenValue,
-                            refreshed.refreshToken?.tokenValue ?: refreshToken.tokenValue,
-                            issuedAt,
-                            access.expiresAt ?: issuedAt,
+                            accessToken = access.tokenValue,
+                            refreshToken = refreshed.refreshToken?.tokenValue ?: refreshToken.tokenValue,
+                            issuedAt = issuedAt,
+                            expiresAt = access.expiresAt ?: issuedAt,
                         )
                     }
             }.map { tokens ->
@@ -80,7 +80,7 @@ internal class SingleFlightRefreshTokenProvider(
         refreshes.values.removeIf { it.startedAt.isBefore(oldest) }
     }
 
-    private class Refresh(
+    private data class Refresh(
         val startedAt: Instant,
         val result: Mono<OAuth2AuthorizedClient>,
     )

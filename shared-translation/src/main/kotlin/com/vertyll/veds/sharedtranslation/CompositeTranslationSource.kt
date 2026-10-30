@@ -3,7 +3,8 @@ package com.vertyll.veds.sharedtranslation
 /**
  * A [TranslationSource] over several languages.
  *
- * @property fallbackDefaults values the owning services declared, packaged at
+ * @param snapshots the current translations, by language.
+ * @param fallbackDefaults values the owning services declared, packaged at
  *           build time. Not a per-key fallback — a key missing from both still
  *           renders as the key — but enough to keep e-mails going out with
  *           sensible text when the catalogue service is unreachable at start-up.

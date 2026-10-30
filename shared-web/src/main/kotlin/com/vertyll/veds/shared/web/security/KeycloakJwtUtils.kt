@@ -29,6 +29,6 @@ object KeycloakJwtUtils {
             current = (current as? Map<*, *>)?.get(part)
         }
 
-        return (current as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+        return (current as? List<*>)?.filterIsInstance<String>().orEmpty()
     }
 }

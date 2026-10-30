@@ -13,8 +13,8 @@ data class ObjectStorageProperties(
     val uploadUrlValidity: Duration = Duration.ofMinutes(DEFAULT_UPLOAD_URL_MINUTES),
     val downloadUrlValidity: Duration = Duration.ofMinutes(DEFAULT_DOWNLOAD_URL_MINUTES),
 ) {
-    companion object {
-        const val DEFAULT_UPLOAD_URL_MINUTES = 15L
-        const val DEFAULT_DOWNLOAD_URL_MINUTES = 5L
+    private companion object {
+        private const val DEFAULT_UPLOAD_URL_MINUTES = 15L
+        private const val DEFAULT_DOWNLOAD_URL_MINUTES = 5L
     }
 }

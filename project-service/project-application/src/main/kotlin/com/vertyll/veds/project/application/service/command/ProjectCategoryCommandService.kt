@@ -64,7 +64,7 @@ class ProjectCategoryCommandService(
 
         val category = loadOwnedCategory(projectId, categoryId)
 
-        VersionGuard.requireMatch(category.version, version) {
+        VersionGuard.requireMatch(currentVersion = category.version, expectedVersion = version) {
             ApiException(ProjectError.VERSION_MISMATCH)
         }
 

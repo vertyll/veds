@@ -2,7 +2,6 @@ package com.vertyll.veds.shared.saga.engine
 
 import com.vertyll.veds.shared.saga.SagaStepStatus
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
@@ -23,21 +22,15 @@ internal class SagaCompensationEngineTest {
 
     private val stepFactory =
         object : SagaCompensationStepFactory<TestStep> {
-            override fun createCompensationStep(
-                sagaId: String,
-                stepName: String,
-                status: SagaStepStatus,
-                createdAt: Instant,
-                completedAt: Instant?,
-                compensationStepId: Long?,
-            ) = TestStep(
-                sagaId = sagaId,
-                stepName = stepName,
-                status = status,
-                createdAt = createdAt,
-                completedAt = completedAt,
-                compensationStepId = compensationStepId,
-            )
+            override fun createCompensationStep(draft: CompensationStepDraft) =
+                TestStep(
+                    sagaId = draft.sagaId,
+                    stepName = draft.stepName,
+                    status = draft.status,
+                    createdAt = draft.createdAt,
+                    completedAt = draft.completedAt,
+                    compensationStepId = draft.compensationStepId,
+                )
         }
 
     private fun engine(event: DecodedCompensationEvent<Command>) =

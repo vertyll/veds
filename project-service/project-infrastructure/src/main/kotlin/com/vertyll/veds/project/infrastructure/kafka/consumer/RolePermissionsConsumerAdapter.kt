@@ -24,11 +24,6 @@ internal class RolePermissionsConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val GROUP_PREFIX = "project-service:"
-        const val PROJECT_SCOPE = "PROJECT"
-    }
-
     @KafkaListener(topics = [ProjectKafkaTopics.Consumed.ROLE_PERMISSIONS_CHANGED])
     @Transactional
     fun onRolePermissionsChanged(
@@ -73,4 +68,9 @@ internal class RolePermissionsConsumerAdapter(
     }
 
     private fun defaultTranslation(code: ProjectRoleCode) = Translation(language = LanguageTag.of("en"), name = code.value)
+
+    private companion object {
+        const val GROUP_PREFIX = "project-service:"
+        const val PROJECT_SCOPE = "PROJECT"
+    }
 }

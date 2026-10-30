@@ -23,6 +23,8 @@ import com.vertyll.veds.translation.domain.repository.TranslationKeyRepository
 import com.vertyll.veds.translation.domain.repository.TranslationValueRepository
 import java.util.UUID
 
+private const val LANGUAGE_PARAM = "language"
+
 @Suppress("LongParameterList")
 class TranslationCommandService(
     private val keyRepository: TranslationKeyRepository,
@@ -50,7 +52,7 @@ class TranslationCommandService(
                         mapOf("key" to entry.key, "owner" to existing.sourceService),
                     )
                 } else {
-                    existing.redeclaredBy(command.sourceService, entry.description)
+                    existing.redeclaredBy(service = command.sourceService, newDescription = entry.description)
                 }
             keyRepository.save(key)
 
@@ -90,9 +92,9 @@ class TranslationCommandService(
             valueRepository.find(command.key, tag)
                 ?: TranslationValue(key = command.key, language = tag)
 
-        requireSameArguments(command.key, tag, current.defaultValue, command.value)
+        requireSameArguments(key = command.key, tag = tag, defaultValue = current.defaultValue, newValue = command.value)
 
-        VersionGuard.requireMatch(current.version, version) {
+        VersionGuard.requireMatch(currentVersion = current.version, expectedVersion = version) {
             ApiException(TranslationError.VERSION_MISMATCH)
         }
 
@@ -109,7 +111,7 @@ class TranslationCommandService(
             valueRepository.find(command.key, tag)
                 ?: throw ApiException(
                     TranslationError.VALUE_NOT_FOUND,
-                    mapOf("key" to command.key, "language" to command.language),
+                    mapOf("key" to command.key, LANGUAGE_PARAM to command.language),
                 )
 
         return TranslationValueMapper.toResponse(valueRepository.save(current.overrideCleared(editor)))
@@ -134,14 +136,14 @@ class TranslationCommandService(
                 unknownLanguages += row.language
                 return@forEach
             }
-            val failure = IcuPatternValidator.validate(tag.value, row.value)
+            val failure = IcuPatternValidator.validate(language = tag.value, pattern = row.value)
             if (failure != null) {
                 rejected += RejectedPatternResponse(key = row.key, language = tag.value, reason = failure)
                 return@forEach
             }
 
             val current = valueRepository.find(row.key, tag) ?: TranslationValue(key = row.key, language = tag)
-            val argumentDrift = argumentDrift(tag, current.defaultValue, row.value)
+            val argumentDrift = argumentDrift(tag = tag, defaultValue = current.defaultValue, newValue = row.value)
             if (argumentDrift != null) {
                 rejected += RejectedPatternResponse(key = row.key, language = tag.value, reason = argumentDrift)
                 return@forEach
@@ -175,17 +177,19 @@ class TranslationCommandService(
             .sorted()
             .flatMap { key ->
                 knownLanguages
+                    .asSequence()
                     .sortedBy { it.value }
                     .filter { valueRepository.find(key, it)?.effectiveValue.isNullOrBlank() }
                     .map { MissingTranslationResponse(key = key, language = it.value) }
+                    .toList()
             }
 
     private fun requireKnownLanguage(raw: String): LanguageTag {
         val tag =
             LanguageTag.parse(raw)
-                ?: throw ApiException(TranslationError.LANGUAGE_NOT_FOUND, mapOf("language" to raw))
+                ?: throw ApiException(TranslationError.LANGUAGE_NOT_FOUND, mapOf(LANGUAGE_PARAM to raw))
         languageRepository.findByTag(tag)
-            ?: throw ApiException(TranslationError.LANGUAGE_NOT_FOUND, mapOf("language" to raw))
+            ?: throw ApiException(TranslationError.LANGUAGE_NOT_FOUND, mapOf(LANGUAGE_PARAM to raw))
         return tag
     }
 
@@ -198,8 +202,8 @@ class TranslationCommandService(
         defaultValue: String?,
         newValue: String,
     ): String? {
-        val expected = defaultValue?.let { IcuPatternValidator.argumentsOf(tag.value, it) } ?: return null
-        val actual = IcuPatternValidator.argumentsOf(tag.value, newValue)
+        val expected = defaultValue?.let { IcuPatternValidator.argumentsOf(language = tag.value, pattern = it) } ?: return null
+        val actual = IcuPatternValidator.argumentsOf(language = tag.value, pattern = newValue)
         if (expected == actual) return null
 
         val missing = expected - actual
@@ -219,7 +223,7 @@ class TranslationCommandService(
         val drift = argumentDrift(tag, defaultValue, newValue) ?: return
         throw ApiException(
             TranslationError.UNKNOWN_ARGUMENTS,
-            mapOf("key" to key, "language" to tag.value, "reason" to drift),
+            mapOf("key" to key, LANGUAGE_PARAM to tag.value, "reason" to drift),
         )
     }
 
@@ -228,11 +232,11 @@ class TranslationCommandService(
         tag: LanguageTag,
         value: String,
     ) {
-        val failure = IcuPatternValidator.validate(tag.value, value)
+        val failure = IcuPatternValidator.validate(language = tag.value, pattern = value)
         if (failure != null) {
             throw ApiException(
                 TranslationError.INVALID_ICU_PATTERN,
-                mapOf("key" to key, "language" to tag.value, "reason" to failure),
+                mapOf("key" to key, LANGUAGE_PARAM to tag.value, "reason" to failure),
             )
         }
     }

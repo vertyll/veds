@@ -15,6 +15,7 @@ import java.net.URI
 object Problems {
     private const val TYPE_PREFIX = "urn:veds:error:"
 
+    /** A problem detail with [status], the catalogue key [code], and the optional [instance] and [properties]. */
     fun of(
         status: HttpStatus,
         code: String,
@@ -24,7 +25,7 @@ object Problems {
         ProblemDetail.forStatus(status).apply {
             type = URI.create(TYPE_PREFIX + code)
             title = status.reasonPhrase
-            instance?.let { this.instance = URI.create(it) }
+            if (instance != null) this.instance = URI.create(instance)
             setProperty("code", code)
             properties.forEach { (name, value) -> setProperty(name, value) }
         }

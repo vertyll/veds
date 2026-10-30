@@ -11,7 +11,7 @@ internal class PermissionCatalogueConfig {
     @Bean
     fun translationPermissionCatalogue(): PermissionCatalogue =
         permissions("translation") {
-            permission("TRANSLATIONS_VIEW", "View the translation catalogue", RoleScope.GLOBAL)
-            permission("TRANSLATIONS_EDIT", "Edit translations and import them in bulk", RoleScope.GLOBAL)
+            permission(name = "TRANSLATIONS_VIEW", description = "View the translation catalogue", scope = RoleScope.GLOBAL)
+            permission(name = "TRANSLATIONS_EDIT", description = "Edit translations and import them in bulk", scope = RoleScope.GLOBAL)
         }
 }

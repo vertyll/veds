@@ -24,6 +24,8 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 
+private const val FILE_ID_PARAM = "fileId"
+
 @Suppress("LongParameterList")
 class FileCommandService(
     private val fileRepository: StoredFileRepository,
@@ -31,10 +33,6 @@ class FileCommandService(
     private val eventPublisher: FileEventPublisherPort,
     private val logger: UseCaseLogger,
 ) : FileCommandUseCase {
-    private companion object {
-        private val ABANDONED_AFTER: Duration = Duration.ofHours(6)
-    }
-
     override fun requestUpload(
         command: RequestUploadCommand,
         actor: Actor,
@@ -86,12 +84,12 @@ class FileCommandService(
         val file = requireOwnedFile(command.fileId, actor)
 
         if (file.status != UploadStatus.PENDING) {
-            throw ApiException(FileError.UPLOAD_NOT_PENDING, mapOf("fileId" to file.id.toString()))
+            throw ApiException(FileError.UPLOAD_NOT_PENDING, mapOf(FILE_ID_PARAM to file.id.toString()))
         }
 
         val actualSize =
             storage.sizeOf(file.objectKey)
-                ?: throw ApiException(FileError.OBJECT_MISSING_IN_STORAGE, mapOf("fileId" to file.id.toString()))
+                ?: throw ApiException(FileError.OBJECT_MISSING_IN_STORAGE, mapOf(FILE_ID_PARAM to file.id.toString()))
 
         if (!file.scope.permitsSize(actualSize)) {
             storage.delete(file.objectKey)
@@ -102,7 +100,12 @@ class FileCommandService(
         }
 
         val confirmed = fileRepository.save(file.confirmed(actualSize))
-        eventPublisher.publishFileConfirmed(confirmed.id, confirmed.scope, confirmed.scopeId, confirmed.ownerId)
+        eventPublisher.publishFileConfirmed(
+            fileId = confirmed.id,
+            scope = confirmed.scope,
+            scopeId = confirmed.scopeId,
+            ownerId = confirmed.ownerId,
+        )
 
         return FileResponse.from(confirmed)
     }
@@ -114,7 +117,7 @@ class FileCommandService(
         val file = requireOwnedFile(command.fileId, actor)
 
         if (!file.isAvailable) {
-            throw ApiException(FileError.FILE_NOT_AVAILABLE, mapOf("fileId" to file.id.toString()))
+            throw ApiException(FileError.FILE_NOT_AVAILABLE, mapOf(FILE_ID_PARAM to file.id.toString()))
         }
 
         return FileResponse.from(fileRepository.save(file.attachedTo(command.scopeId)))
@@ -161,10 +164,10 @@ class FileCommandService(
     ): StoredFile {
         val file =
             fileRepository.findById(fileId)
-                ?: throw ApiException(FileError.FILE_NOT_FOUND, mapOf("fileId" to fileId.toString()))
+                ?: throw ApiException(FileError.FILE_NOT_FOUND, mapOf(FILE_ID_PARAM to fileId.toString()))
 
         if (!file.isOwnedBy(actor.id)) {
-            throw ApiException(FileError.FILE_NOT_FOUND, mapOf("fileId" to fileId.toString()))
+            throw ApiException(FileError.FILE_NOT_FOUND, mapOf(FILE_ID_PARAM to fileId.toString()))
         }
         return file
     }
@@ -177,5 +180,9 @@ class FileCommandService(
         val extension = originalName.substringAfterLast('.', "").lowercase().filter { it.isLetterOrDigit() }
         val suffix = if (extension.isEmpty()) "" else ".$extension"
         return "${scope.lowercase()}/$fileId$suffix"
+    }
+
+    private companion object {
+        private val ABANDONED_AFTER: Duration = Duration.ofHours(6)
     }
 }

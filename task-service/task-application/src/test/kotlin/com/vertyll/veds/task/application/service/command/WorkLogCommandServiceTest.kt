@@ -46,16 +46,16 @@ internal class WorkLogCommandServiceTest {
     private val project = projectRef().also { directory.saveProject(it) }
     private val projectId = project.projectId
 
+    private val author = actorWithRole("MEMBER")
+    private val existingTask = task(projectId, createdBy = author.id).also { tasks.given(it) }
+
+    private val day = LocalDate.of(2026, 9, 1)
+
     private fun actorWithRole(roleCode: String): Actor {
         val id = Uuid.generateV7().toJavaUuid()
         directory.saveMembership(membership(projectId, id, roleCode))
         return Actor(id = id, email = "$roleCode@example.com", firstName = "Test", lastName = "User")
     }
-
-    private val author = actorWithRole("MEMBER")
-    private val existingTask = task(projectId, createdBy = author.id).also { tasks.given(it) }
-
-    private val day = LocalDate.of(2026, 9, 1)
 
     @Test
     fun `an entry is stored against its task, author and day`() {

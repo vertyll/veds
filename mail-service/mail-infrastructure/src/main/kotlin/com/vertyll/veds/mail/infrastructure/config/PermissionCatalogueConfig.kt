@@ -11,7 +11,7 @@ internal class PermissionCatalogueConfig {
     @Bean
     fun mailPermissionCatalogue(): PermissionCatalogue =
         permissions("mail") {
-            permission("MAIL_LOGS_VIEW", "Read the record of what the system sent", RoleScope.GLOBAL)
-            permission("MAIL_SEND", "Send mail through the service", RoleScope.GLOBAL)
+            permission(name = "MAIL_LOGS_VIEW", description = "Read the record of what the system sent", scope = RoleScope.GLOBAL)
+            permission(name = "MAIL_SEND", description = "Send mail through the service", scope = RoleScope.GLOBAL)
         }
 }

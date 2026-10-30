@@ -8,8 +8,11 @@ package com.vertyll.veds.sharedauthz
  * restores permissions somebody deliberately took away.
  */
 data class StockRole(
+    /** The name of the role. */
     val name: String,
+    /** Where the role applies. */
     val scope: RoleScope,
+    /** The permissions the role grants. */
     val permissions: Set<String>,
 ) {
     init {

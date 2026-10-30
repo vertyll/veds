@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
  * precondition failure looks like on the wire.
  */
 object ErrorHttpStatusMapper {
+    /** The HTTP status [kind] becomes. */
     fun toStatus(kind: ErrorKind): HttpStatus =
         when (kind) {
             ErrorKind.NOT_FOUND -> HttpStatus.NOT_FOUND

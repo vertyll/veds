@@ -12,13 +12,22 @@ import java.time.Instant
  * the engine did not put it in.
  */
 data class SagaSnapshot(
+    /** The identifier of the saga. */
     val id: String,
+    /** The kind of saga. */
     val type: String,
+    /** Where the saga stands. */
     val status: SagaStatus,
+    /** The data the saga carries, serialized. */
     val payload: String,
+    /** The failure that stopped the saga, if one did. */
     val lastError: String? = null,
+    /** When the saga started. */
     val startedAt: Instant = Instant.now(),
+    /** When the saga finished, if it has. */
     val completedAt: Instant? = null,
+    /** When the saga last changed. */
     val updatedAt: Instant = Instant.now(),
+    /** The optimistic-locking version of the stored saga. */
     val version: Long? = null,
 )

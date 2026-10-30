@@ -16,16 +16,8 @@ object ProjectAccessPolicy {
             ROLE_GRANT,
         )
 
-    fun evaluate(request: AccessRequest): AccessDecision {
-        for (rule in RULES) {
-            return when (val decision = rule.evaluate(request)) {
-                is AccessDecision.Deny -> decision
-                is AccessDecision.Permit -> decision
-                null -> continue
-            }
-        }
-        return AccessDecision.Deny(ProjectError.PROJECT_ACCESS_DENIED)
-    }
+    fun evaluate(request: AccessRequest): AccessDecision =
+        RULES.firstNotNullOfOrNull { it.evaluate(request) } ?: AccessDecision.Deny(ProjectError.PROJECT_ACCESS_DENIED)
 
     fun permits(
         project: Project,

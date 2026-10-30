@@ -34,9 +34,9 @@ internal class InMemoryProjectDirectory : ProjectDirectoryRepository {
     override fun findStatuses(projectId: UUID) = statuses.values.filter { it.projectId == projectId }
 
     override fun saveMembership(membership: ProjectMembershipRef) =
-        membership.also {
-            memberships.removeAll { existing -> existing.projectId == it.projectId && existing.userId == it.userId }
-            memberships += it
+        membership.also { saved ->
+            memberships.removeAll { existing -> existing.projectId == saved.projectId && existing.userId == saved.userId }
+            memberships += saved
         }
 
     override fun removeMembership(

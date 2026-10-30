@@ -13,6 +13,9 @@ data class Role(
     val updatedAt: Instant = Instant.now(),
     val version: Long? = null,
 ) {
+    val storedId: Long
+        get() = checkNotNull(id) { "role '$name' has no id" }
+
     fun grants(permissionName: String): Boolean = unrestricted || permissions.any { it.name == permissionName }
 
     fun withPermissions(granted: Set<Permission>): Role = copy(permissions = granted, updatedAt = Instant.now())

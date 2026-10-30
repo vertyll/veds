@@ -6,9 +6,8 @@ package com.vertyll.veds.shared.web.http
  *
  * The convention is: the JPA `@Version` column of an aggregate is exposed
  * as a **weak** ETag (`W/"<version>"`); clients echo the value back on
- * mutating requests via `If-Match`, and the adapter feeds the parsed
- * version into [OptimisticLockingValidatorUtils.validate] before applying
- * the change.
+ * mutating requests via `If-Match`, and the adapter passes the parsed
+ * version to the use case, which checks it before applying the change.
  */
 object ETagUtils {
     private const val WEAK_PREFIX = "W/\""
@@ -46,7 +45,7 @@ object ETagUtils {
             str.startsWith(STRONG_QUOTE) &&
             str.endsWith(STRONG_QUOTE)
         ) {
-            return str.substring(1, str.length - 1)
+            return str.substring(startIndex = 1, endIndex = str.length - 1)
         }
         return str
     }

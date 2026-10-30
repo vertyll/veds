@@ -18,6 +18,7 @@ import java.util.Locale
 class MessageResolver(
     private val source: TranslationSource,
 ) {
+    /** The message [key] in [language] formatted with [arguments], or [key] itself when there is no usable pattern. */
     fun resolve(
         key: String,
         language: String,
@@ -34,6 +35,7 @@ class MessageResolver(
         }
     }
 
+    /** Whether [key] has a pattern in [language]. */
     fun hasTranslation(
         key: String,
         language: String,

@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-@Suppress("TooManyFunctions")
 internal class KafkaProjectEventPublisherAdapter(
     private val kafkaOutboxProcessor: KafkaOutboxProcessor,
     private val avroPayloadSerializer: AvroPayloadSerializer,

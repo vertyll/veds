@@ -49,7 +49,7 @@ class TaskQueryService(
                 sortDescending = params.sortDescending,
             )
 
-        val page = queryPort.searchTasks(criteria, PageRequest(params.page, params.size), language)
+        val page = queryPort.searchTasks(criteria, PageRequest(page = params.page, size = params.size), language)
 
         return PagedResponse(
             items = page.content,

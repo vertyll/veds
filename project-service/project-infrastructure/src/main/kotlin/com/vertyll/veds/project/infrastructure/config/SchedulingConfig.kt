@@ -21,11 +21,6 @@ internal class SchedulingConfig(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        private const val SAGA_CLEANUP_DAYS = 30L
-        private const val STUCK_SAGA_THRESHOLD_HOURS = 24L
-    }
-
     @Scheduled(cron = "0 */30 * * * ?")
     fun expireOverdueInvitations() {
         val expired = invitationService.expireOverdueInvitations()
@@ -70,12 +65,17 @@ internal class SchedulingConfig(
         stuckSagas.forEach { saga ->
             try {
                 sagaProcessPort.markSagaFailed(
-                    saga.id,
-                    "Saga timed out after $STUCK_SAGA_THRESHOLD_HOURS hours without completion",
+                    sagaId = saga.id,
+                    errorMessage = "Saga timed out after $STUCK_SAGA_THRESHOLD_HOURS hours without completion",
                 )
             } catch (e: Exception) {
                 logger.error("Failed to compensate stuck saga {}: {}", saga.id, e.message, e)
             }
         }
+    }
+
+    private companion object {
+        private const val SAGA_CLEANUP_DAYS = 30L
+        private const val STUCK_SAGA_THRESHOLD_HOURS = 24L
     }
 }

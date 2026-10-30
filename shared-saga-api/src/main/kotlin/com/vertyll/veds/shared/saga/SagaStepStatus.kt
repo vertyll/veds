@@ -8,14 +8,19 @@ package com.vertyll.veds.shared.saga
  * compensation causes the damage it was meant to repair.
  */
 enum class SagaStepStatus {
+    /** The step is running. */
     STARTED,
 
+    /** The step succeeded. */
     COMPLETED,
 
+    /** The step failed. */
     FAILED,
 
+    /** The step has been undone. */
     COMPENSATED,
 
+    /** Undoing the step failed. */
     COMPENSATION_FAILED,
 
     /**

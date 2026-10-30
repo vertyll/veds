@@ -4,20 +4,35 @@ config:
 
 comments:
   active: true
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+  UndocumentedPublicProperty:
+    active: false
 
 complexity:
   active: true
-  TooManyFunctions:
+  ComplexInterface:
+    active: false
+  CyclomaticComplexMethod:
+    active: false
+  LabeledExpression:
     active: false
   LargeClass:
     active: false
   LongMethod:
     active: false
-  CyclomaticComplexMethod:
+  LongParameterList:
+    active: true
+    ignoreAnnotated: ['Entity', 'Embeddable', 'MappedSuperclass', 'Bean', 'Query']
+    ignoreDefaultParameters: true
+  NamedArguments:
     active: false
-
-coroutines:
-  active: true
+  ReplaceSafeCallChainWithRun:
+    active: false
+  TooManyFunctions:
+    active: false
 
 empty-blocks:
   active: true
@@ -26,29 +41,83 @@ empty-blocks:
 
 exceptions:
   active: true
-  SwallowedException:
-    active: false
-  TooGenericExceptionThrown:
-    active: false
   TooGenericExceptionCaught:
     active: false
 
 naming:
   active: true
+  BooleanPropertyNaming:
+    active: false
+  FunctionNameMaxLength:
+    active: false
+  FunctionNameMinLength:
+    active: false
 
 performance:
   active: true
+  SpreadOperator:
+    active: false
 
 potential-bugs:
   active: true
+  CastNullableToNonNullableType:
+    active: true
+    excludes: ['**/persistence/query/**']
+  CastToNullableType:
+    active: false
+  LateinitUsage:
+    active: true
+    ignoreAnnotated: ['PersistenceContext']
+  MissingUseCall:
+    active: true
+    ignoreClass: ['java.io.ByteArrayInputStream', 'java.io.ByteArrayOutputStream', 'org.springframework.context.ConfigurableApplicationContext']
+  NullableToStringCall:
+    active: false
+  UnnamedParameterUse:
+    active: true
+    excludes: ['**/test/**']
 
 style:
   active: true
+  CascadingCallWrapping:
+    active: false
+  DataClassContainsFunctions:
+    active: false
+  DataClassShouldBeImmutable:
+    active: true
+    ignoreAnnotated: ['Embeddable']
+  AbstractClassCanBeConcreteClass:
+    active: true
+    ignoreAnnotated: ['MappedSuperclass']
+  AbstractClassCanBeInterface:
+    active: true
+    ignoreAnnotated: ['SpringBootTest']
+  ForbiddenVoid:
+    active: true
+    ignoreUsageInGenerics: true
+  MultilineRawStringIndentation:
+    active: true
+    indentSize: 0
   MaxLineLength:
     active: true
     maxLineLength: 140
     excludeCommentStatements: false
-  ThrowsCount:
-    active: false
+  MultilineLambdaItParameter:
+    active: true
   ReturnCount:
     active: false
+  ThrowsCount:
+    active: false
+  UnnecessaryParentheses:
+    active: true
+    allowForUnclearPrecedence: true
+  UseDataClass:
+    active: true
+    ignoreAnnotated: ['Entity', 'Embeddable', 'MappedSuperclass']
+  VarCouldBeVal:
+    active: true
+    ignoreAnnotated: ['LocalServerPort']
+    ignoreLateinitVar: true
+
+coroutines:
+  active: true

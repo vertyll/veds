@@ -34,10 +34,10 @@ internal class InMemoryUserRepository : UserRepository {
         pageRequest: PageRequest,
     ): PageResult<User> {
         val matching =
-            stored.values.filter {
-                it.email.contains(term, ignoreCase = true) ||
-                    it.firstName.contains(term, ignoreCase = true) ||
-                    it.lastName.contains(term, ignoreCase = true)
+            stored.values.filter { user ->
+                user.email.contains(term, ignoreCase = true) ||
+                    user.firstName.contains(term, ignoreCase = true) ||
+                    user.lastName.contains(term, ignoreCase = true)
             }
         return PageResult(content = matching, page = 0, size = matching.size, totalElements = matching.size.toLong())
     }

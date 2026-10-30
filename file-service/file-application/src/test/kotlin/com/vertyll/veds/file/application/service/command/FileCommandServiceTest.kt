@@ -55,6 +55,8 @@ class FileCommandServiceTest {
             }
         }
 
+    private val deleted = mutableListOf<String>()
+
     private val storage =
         object : ObjectStoragePort {
             override fun presignUpload(
@@ -74,8 +76,6 @@ class FileCommandServiceTest {
                 deleted += objectKey
             }
         }
-
-    private val deleted = mutableListOf<String>()
 
     private val publisher =
         object : FileEventPublisherPort {

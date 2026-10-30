@@ -11,13 +11,6 @@ import org.slf4j.LoggerFactory
 internal class ProjectSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJpaEntity, ProjectCompensationCommand> {
     private val logger = LoggerFactory.getLogger(ProjectSagaCompensator::class.java)
 
-    private companion object {
-        private const val INVITATION_ID_KEY = "invitationId"
-        private const val PROJECT_ID_KEY = "projectId"
-        private const val MAIL_FAILED_REASON = "Invitation e-mail could not be delivered"
-        private const val ARCHIVAL_FAILED_REASON = "Downstream cleanup after project archival failed"
-    }
-
     override fun compensateStep(
         saga: SagaJpaEntity,
         step: SagaStepJpaEntity,
@@ -73,5 +66,12 @@ internal class ProjectSagaCompensator : SagaCompensator<SagaJpaEntity, SagaStepJ
             payload[key]
                 ?: error("Missing '$key' in step payload for step ${step.id} (keys: ${payload.keys})")
         return raw.toString()
+    }
+
+    private companion object {
+        private const val INVITATION_ID_KEY = "invitationId"
+        private const val PROJECT_ID_KEY = "projectId"
+        private const val MAIL_FAILED_REASON = "Invitation e-mail could not be delivered"
+        private const val ARCHIVAL_FAILED_REASON = "Downstream cleanup after project archival failed"
     }
 }

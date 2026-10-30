@@ -19,10 +19,6 @@ internal class SagaCompensationService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val CONSUMER_GROUP = "project-service:saga-compensation"
-    }
-
     @KafkaListener(topics = [SagaConfig.SAGA_COMPENSATION_TOPIC])
     @Transactional
     fun handleCompensationEvent(
@@ -34,5 +30,9 @@ internal class SagaCompensationService(
             return
         }
         sagaCompensationEngine.handleCompensationEvent(payload)
+    }
+
+    private companion object {
+        const val CONSUMER_GROUP = "project-service:saga-compensation"
     }
 }

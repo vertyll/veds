@@ -64,7 +64,7 @@ class ProjectStatusCommandService(
 
         val status = loadOwnedStatus(projectId, statusId)
 
-        VersionGuard.requireMatch(status.version, version) {
+        VersionGuard.requireMatch(currentVersion = status.version, expectedVersion = version) {
             ApiException(ProjectError.VERSION_MISMATCH)
         }
 

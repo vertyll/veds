@@ -383,7 +383,7 @@ internal class HostedSignInTest {
             .tokenType(OAuth2AccessToken.TokenType.BEARER)
             .expiresIn(lifetimeSeconds)
             .scopes(setOf("openid", "profile", "email"))
-            .apply { refreshToken?.let { refreshToken(it) } }
+            .apply { if (refreshToken != null) refreshToken(refreshToken) }
             .additionalParameters(mapOf(OidcParameterNames.ID_TOKEN to ID_TOKEN))
             .build()
 
@@ -459,7 +459,7 @@ internal class HostedSignInTest {
 
         @JvmStatic
         @AfterAll
-        fun stop() {
+        private fun stop() {
             service.disposeNow()
             redisContainer.stop()
         }

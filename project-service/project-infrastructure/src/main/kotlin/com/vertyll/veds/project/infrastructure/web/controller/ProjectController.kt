@@ -42,10 +42,6 @@ internal class ProjectController(
     private val projectServiceCommands: ProjectCommandUseCase,
     private val projectServiceQueries: ProjectQueryUseCase,
 ) {
-    private companion object {
-        private const val DEFAULT_PAGE_SIZE = "20"
-    }
-
     @GetMapping
     @Operation(summary = "List projects visible to the current user")
     @Suppress("LongParameterList")
@@ -153,5 +149,9 @@ internal class ProjectController(
     ): ResponseEntity<T> {
         val etag = ETagUtils.buildWeakETag(version) ?: return ResponseEntity.ok(body)
         return ResponseEntity.ok().eTag(etag).body(body)
+    }
+
+    private companion object {
+        private const val DEFAULT_PAGE_SIZE = "20"
     }
 }

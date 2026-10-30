@@ -42,11 +42,11 @@ data class KafkaOutboxProperties(
      */
     val stuckThreshold: Duration = Duration.ofMinutes(DEFAULT_STUCK_THRESHOLD_MINUTES),
 ) {
-    companion object {
-        const val DEFAULT_POLL_INTERVAL_SECONDS: Long = 5
-        const val DEFAULT_BATCH_SIZE: Int = 100
-        const val DEFAULT_MAX_RETRIES: Int = 5
-        const val DEFAULT_RETRY_COOLDOWN_MINUTES: Long = 1
-        const val DEFAULT_STUCK_THRESHOLD_MINUTES: Long = 5
+    private companion object {
+        private const val DEFAULT_POLL_INTERVAL_SECONDS: Long = 5
+        private const val DEFAULT_BATCH_SIZE: Int = 100
+        private const val DEFAULT_MAX_RETRIES: Int = 5
+        private const val DEFAULT_RETRY_COOLDOWN_MINUTES: Long = 1
+        private const val DEFAULT_STUCK_THRESHOLD_MINUTES: Long = 5
     }
 }

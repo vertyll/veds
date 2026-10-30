@@ -24,10 +24,6 @@ internal class UserJpaRepositoryIntegrationTest(
 ) : IntegrationTestBase() {
     private val keycloakId: UUID = Uuid.generateV7().toJavaUuid()
 
-    private companion object {
-        private const val EMAIL = "entity-graph-probe@example.com"
-    }
-
     @BeforeEach
     fun resetSharedState() {
         users.findByEmail(EMAIL).ifPresent { users.delete(it) }
@@ -84,5 +80,9 @@ internal class UserJpaRepositoryIntegrationTest(
         persistUser()
 
         assertTrue(users.findAll(PageRequest.of(0, 10)).totalElements >= 1)
+    }
+
+    private companion object {
+        private const val EMAIL = "entity-graph-probe@example.com"
     }
 }

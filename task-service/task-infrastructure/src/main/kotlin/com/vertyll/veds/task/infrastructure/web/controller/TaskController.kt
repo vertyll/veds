@@ -42,16 +42,11 @@ import java.util.UUID
 @RestController
 @RequestMapping("/tasks")
 @Tag(name = "Tasks", description = "Task management APIs")
-@Suppress("TooManyFunctions")
 @AuthorizedInUseCase("TaskAuthorizationService — the decision needs project membership and the task's own state")
 internal class TaskController(
     private val taskCommands: TaskCommandUseCase,
     private val taskQueries: TaskQueryUseCase,
 ) {
-    private companion object {
-        private const val DEFAULT_PAGE_SIZE = "25"
-    }
-
     @GetMapping("/project/{projectId}")
     @Operation(summary = "List tasks in a project")
     @Suppress("LongParameterList")
@@ -201,5 +196,9 @@ internal class TaskController(
     ): ResponseEntity<T> {
         val etag = ETagUtils.buildWeakETag(version) ?: return ResponseEntity.ok(body)
         return ResponseEntity.ok().eTag(etag).body(body)
+    }
+
+    private companion object {
+        private const val DEFAULT_PAGE_SIZE = "25"
     }
 }

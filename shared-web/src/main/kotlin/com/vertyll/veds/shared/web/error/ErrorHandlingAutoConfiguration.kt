@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @ConditionalOnClass(RestControllerAdvice::class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 class ErrorHandlingAutoConfiguration {
+    /** The handler every service shares, unless it defines its own. */
     @Bean
     @ConditionalOnMissingBean
     fun sharedGlobalExceptionHandler(): GlobalExceptionHandler = GlobalExceptionHandler()

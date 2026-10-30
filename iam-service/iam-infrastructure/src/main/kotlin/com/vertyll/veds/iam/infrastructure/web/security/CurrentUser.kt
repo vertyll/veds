@@ -22,6 +22,7 @@ internal object CurrentUser {
             throw ApiException(
                 IamError.TOKEN_CLAIM_MISSING,
                 mapOf(CLAIM_PARAM to "sub", "reason" to (e.message ?: "not a UUID")),
+                cause = e,
             )
         }
     }

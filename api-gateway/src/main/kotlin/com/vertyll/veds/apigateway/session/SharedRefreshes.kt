@@ -136,23 +136,21 @@ internal class SharedRefreshes(
                 val fields = value.split(SEPARATOR)
                 if (fields.size != FIELDS) return null
                 return TokenPair(
-                    fields[0],
-                    fields[1],
-                    Instant.ofEpochMilli(fields[2].toLong()),
-                    Instant.ofEpochMilli(fields.last().toLong()),
+                    accessToken = fields[0],
+                    refreshToken = fields[1],
+                    issuedAt = Instant.ofEpochMilli(fields[2].toLong()),
+                    expiresAt = Instant.ofEpochMilli(fields.last().toLong()),
                 )
             }
         }
     }
 
-    companion object {
+    private companion object {
         private val LOCK_TTL = Duration.ofSeconds(10)
         private val RESULT_TTL = Duration.ofSeconds(30)
         private val WAIT_INTERVAL = Duration.ofMillis(100)
         private const val WAIT_ATTEMPTS = 50
         private const val SEPARATOR = "\n"
-
-        fun inProcessOnly(): SharedRefreshes = SharedRefreshes(null, RedisKeyProperties(""))
 
         private fun sha256(value: String): String =
             HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.toByteArray(StandardCharsets.UTF_8)))

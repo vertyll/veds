@@ -21,7 +21,7 @@ internal class SagaCompensationRunnerTest {
     private val sagas = InMemorySagaRepository()
     private val steps = InMemoryStepRepository()
 
-    /** Records what compensation was asked to undo, and in which order. */
+    // Records what compensation was asked to undo, and in which order.
     private val compensated = mutableListOf<String>()
     private var failOn: String? = null
 
@@ -32,7 +32,7 @@ internal class SagaCompensationRunnerTest {
                 step: TestStep,
                 context: SagaCompensationContext<Command>,
             ) {
-                if (step.stepName == failOn) throw IllegalStateException("remote service refused")
+                if (step.stepName == failOn) error("remote service refused")
                 compensated += step.stepName
                 context.publishCompensationEvent(saga.id, step.id, Command(step.stepName))
             }

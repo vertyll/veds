@@ -27,7 +27,7 @@ data class SharedOpenApiProperties(
     /** Overrides the generated description when a service wants its own wording. */
     val description: String? = null,
 ) {
-    companion object {
-        const val DEFAULT_VERSION: String = "0.0.1-SNAPSHOT"
+    private companion object {
+        private const val DEFAULT_VERSION: String = "0.0.1-SNAPSHOT"
     }
 }

@@ -15,26 +15,15 @@ import com.vertyll.veds.project.domain.model.Translation
 import com.vertyll.veds.project.domain.model.resolveFor
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import jakarta.persistence.TypedQuery
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
 
+private const val PROJECT_ID_PARAM = "projectId"
+
 @Component
 internal class ProjectQueryAdapter : ProjectQueryPort {
-    private companion object {
-        private const val MEMBER_ID = 0
-        private const val MEMBER_PROJECT_ID = 1
-        private const val MEMBER_USER_ID = 2
-        private const val MEMBER_EMAIL = 3
-        private const val MEMBER_FIRST_NAME = 4
-        private const val MEMBER_LAST_NAME = 5
-        private const val MEMBER_AVATAR_FILE_ID = 6
-        private const val MEMBER_ROLE_ID = 7
-        private const val MEMBER_ROLE_CODE = 8
-        private const val MEMBER_ASSIGNED_AT = 9
-        private const val MEMBER_VERSION = 10
-    }
-
     @PersistenceContext
     private lateinit var entityManager: EntityManager
 
@@ -48,9 +37,9 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                            p.hiddenWorkLogEnabled
                     FROM ProjectJpaEntity p
                     WHERE p.id = :projectId
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
-                ).setParameter("projectId", projectId)
+                ).setParameter(PROJECT_ID_PARAM, projectId)
                 .resultList
 
         return rows.firstOrNull()?.let { r ->
@@ -92,7 +81,7 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                 OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:searchTerm AS string), '%'))
                 OR LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', CAST(:searchTerm AS string), '%'))
             )
-            """
+            """.trimIndent()
 
         val order =
             when (criteria.sortBy) {
@@ -111,7 +100,7 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                     FROM ProjectJpaEntity p
                     $where
                     ORDER BY $order
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
                 ).applyCriteria(criteria)
                 .setFirstResult(pageRequest.offset.toInt())
@@ -161,12 +150,12 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                     JOIN ProjectRoleJpaEntity r ON r.id = m.roleId
                     WHERE m.projectId = :projectId
                     ORDER BY m.assignedAt
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
-                ).setParameter("projectId", projectId)
+                ).setParameter(PROJECT_ID_PARAM, projectId)
                 .resultList
 
-        val roleNames = translationsOf("project_role_translation", "project_role_id", language)
+        val roleNames = translationsOf(table = "project_role_translation", ownerColumn = "project_role_id", language = language)
         val rolePermissions = permissionsByRole(rows.mapTo(mutableSetOf()) { it[MEMBER_ROLE_ID] as UUID })
 
         return rows.map { r ->
@@ -215,12 +204,12 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                     SELECT c.id, c.projectId, c.color, c.isActive, c.version
                     FROM ProjectCategoryJpaEntity c
                     WHERE c.projectId = :projectId
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
-                ).setParameter("projectId", projectId)
+                ).setParameter(PROJECT_ID_PARAM, projectId)
                 .resultList
 
-        val all = allTranslationsOf("project_category_translation", "project_category_id")
+        val all = allTranslationsOf(table = "project_category_translation", ownerColumn = "project_category_id")
 
         return rows.map { r ->
             val id = r[0] as UUID
@@ -250,12 +239,12 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                     SELECT s.id, s.projectId, s.color, s.isActive, s.version
                     FROM ProjectStatusJpaEntity s
                     WHERE s.projectId = :projectId
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
-                ).setParameter("projectId", projectId)
+                ).setParameter(PROJECT_ID_PARAM, projectId)
                 .resultList
 
-        val all = allTranslationsOf("project_status_translation", "project_status_id")
+        val all = allTranslationsOf(table = "project_status_translation", ownerColumn = "project_status_id")
 
         return rows.map { r ->
             val id = r[0] as UUID
@@ -288,11 +277,11 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
             .groupBy { it[0] as UUID }
             .mapValues { (_, group) ->
                 group
-                    .map {
+                    .map { entry ->
                         Translation(
-                            language = LanguageTag.of(it[1] as String),
-                            name = it[2] as String,
-                            description = it[3] as String?,
+                            language = LanguageTag.of(entry[1] as String),
+                            name = entry[2] as String,
+                            description = entry[3] as String?,
                         )
                     }.toSet()
             }
@@ -307,10 +296,24 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
             .mapNotNull { (id, translations) -> translations.firstOrNull { it.language == language }?.let { id to it } }
             .toMap()
 
-    private fun <T> jakarta.persistence.TypedQuery<T>.applyCriteria(criteria: ProjectSearchCriteria) =
+    private fun <T> TypedQuery<T>.applyCriteria(criteria: ProjectSearchCriteria) =
         setParameter("requesterId", criteria.requesterId)
             .setParameter("includePublic", criteria.includePublic)
             .setParameter("onlyActive", criteria.onlyActive)
             .setParameter("typeId", criteria.typeId)
             .setParameter("searchTerm", criteria.searchTerm)
+
+    private companion object {
+        private const val MEMBER_ID = 0
+        private const val MEMBER_PROJECT_ID = 1
+        private const val MEMBER_USER_ID = 2
+        private const val MEMBER_EMAIL = 3
+        private const val MEMBER_FIRST_NAME = 4
+        private const val MEMBER_LAST_NAME = 5
+        private const val MEMBER_AVATAR_FILE_ID = 6
+        private const val MEMBER_ROLE_ID = 7
+        private const val MEMBER_ROLE_CODE = 8
+        private const val MEMBER_ASSIGNED_AT = 9
+        private const val MEMBER_VERSION = 10
+    }
 }

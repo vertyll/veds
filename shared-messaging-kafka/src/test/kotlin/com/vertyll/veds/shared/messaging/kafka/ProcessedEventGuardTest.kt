@@ -39,7 +39,7 @@ class ProcessedEventGuardTest {
             override fun exists(
                 eventId: String,
                 consumerGroup: String,
-            ): Boolean = (eventId to consumerGroup) in ledger
+            ): Boolean = Pair(eventId, consumerGroup) in ledger
         }
 
     private val factory =

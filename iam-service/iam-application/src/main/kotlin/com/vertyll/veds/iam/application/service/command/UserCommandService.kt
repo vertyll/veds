@@ -21,7 +21,7 @@ class UserCommandService(
     ): UserResponse {
         val user = userRepository.findById(id) ?: throw ApiException(IamError.USER_NOT_FOUND)
 
-        VersionGuard.requireMatch(user.version, version) {
+        VersionGuard.requireMatch(currentVersion = user.version, expectedVersion = version) {
             ApiException(IamError.USER_VERSION_MISMATCH)
         }
 

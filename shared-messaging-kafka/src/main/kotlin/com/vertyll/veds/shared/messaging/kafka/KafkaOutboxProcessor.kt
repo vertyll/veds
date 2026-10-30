@@ -44,11 +44,6 @@ class KafkaOutboxProcessor(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        private const val UNKNOWN_ERROR = "Unknown error"
-        private const val EVENT_ID_HEADER = "eventId"
-    }
-
     /**
      * Scheduled poll fired every `application.outbox.poll-interval-ms`
      * (default `5000`). Claims a batch of messages via
@@ -144,5 +139,10 @@ class KafkaOutboxProcessor(
             )
 
         return outboxRepository.save(message)
+    }
+
+    private companion object {
+        private const val UNKNOWN_ERROR = "Unknown error"
+        private const val EVENT_ID_HEADER = "eventId"
     }
 }

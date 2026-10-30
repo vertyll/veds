@@ -8,9 +8,9 @@ internal class InMemoryRoleRepository : RoleRepository {
     private var nextId = 100L
 
     fun given(vararg roles: Role) =
-        roles.forEach {
-            stored += it
-            nextId = maxOf(nextId, (it.id ?: 0L) + 1)
+        roles.forEach { role ->
+            stored += role
+            nextId = maxOf(nextId, (role.id ?: 0L) + 1)
         }
 
     override fun save(role: Role): Role {

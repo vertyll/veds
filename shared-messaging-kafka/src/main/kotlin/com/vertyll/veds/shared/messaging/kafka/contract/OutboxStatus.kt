@@ -13,8 +13,13 @@ package com.vertyll.veds.shared.messaging.kafka.contract
  * ```
  */
 enum class OutboxStatus {
+    /** Waiting to be published, for the first time or again after a failure. */
     PENDING,
+
+    /** Claimed by a dispatcher. */
     PROCESSING,
+
+    /** Accepted by the broker. */
     COMPLETED,
 
     /** Terminal — max retries exhausted, requires manual intervention. */

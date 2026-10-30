@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface ProcessedEventRepository : JpaRepository<ProcessedEventEntity, Long> {
+    /** Whether [consumerGroup] has already handled the event [eventId]. */
     fun existsByEventIdAndConsumerGroup(
         eventId: String,
         consumerGroup: String,

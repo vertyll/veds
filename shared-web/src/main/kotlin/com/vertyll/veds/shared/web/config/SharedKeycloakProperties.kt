@@ -34,11 +34,17 @@ data class SharedKeycloakProperties(
     /** Attributes of the cookies the gateway sets. */
     val cookie: CookieProperties,
 ) {
+    /** The attributes of the refresh-token cookie. */
     data class CookieProperties(
+        /** The name of the cookie. */
         val refreshTokenCookieName: String,
+        /** Whether scripts are kept from reading the cookie. */
         val httpOnly: Boolean,
+        /** Whether the cookie travels over HTTPS only. */
         val secure: Boolean,
+        /** The `SameSite` attribute of the cookie. */
         val sameSite: String,
+        /** The `Path` attribute of the cookie. */
         val path: String,
     )
 }

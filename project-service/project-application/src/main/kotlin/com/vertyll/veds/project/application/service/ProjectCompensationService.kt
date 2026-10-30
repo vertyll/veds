@@ -15,11 +15,11 @@ class ProjectCompensationService(
     override fun compensate(command: ProjectCompensationCommand) {
         when (command) {
             is ProjectCompensationCommand.RevokeInvitation -> {
-                revokeInvitation(command.invitationId, command.reason)
+                revokeInvitation(invitationId = command.invitationId, reason = command.reason)
             }
 
             is ProjectCompensationCommand.RestoreProject -> {
-                restoreProject(command.projectId, command.reason)
+                restoreProject(projectId = command.projectId, reason = command.reason)
             }
         }
     }

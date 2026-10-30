@@ -3,10 +3,12 @@ package com.vertyll.veds.sharedtranslation
 /**
  * One translation key as declared by the service that owns it.
  *
+ * @property key the key the service looks its text up by.
  * @property defaultValues what the owning service ships. Seeded as
  *           `default_value` and never allowed to overwrite an administrator's
  *           edit — the two are separate columns precisely so that a redeployment
  *           cannot undo somebody's correction.
+ * @property description what the text is for, shown to whoever translates it.
  */
 data class TranslationKeyDefinition(
     val key: String,

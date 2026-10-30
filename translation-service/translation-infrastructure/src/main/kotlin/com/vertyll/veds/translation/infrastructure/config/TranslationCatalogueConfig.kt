@@ -5,6 +5,9 @@ import com.vertyll.veds.sharedtranslation.translations
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+private const val DESCRIPTION_PL = "Opis"
+private const val DESCRIPTION_EN = "Description"
+
 @Configuration
 internal class TranslationCatalogueConfig {
     @Bean
@@ -103,8 +106,8 @@ internal class TranslationCatalogueConfig {
                 en("Service")
             }
             key("translation.export.column.description") {
-                pl("Opis")
-                en("Description")
+                pl(DESCRIPTION_PL)
+                en(DESCRIPTION_EN)
             }
             key("admin.tabs.roles") {
                 pl("Role")
@@ -127,8 +130,8 @@ internal class TranslationCatalogueConfig {
                 en("Role")
             }
             key("admin.roles.description") {
-                pl("Opis")
-                en("Description")
+                pl(DESCRIPTION_PL)
+                en(DESCRIPTION_EN)
             }
             key("admin.roles.permissions") {
                 pl("Uprawnienia")
@@ -147,8 +150,8 @@ internal class TranslationCatalogueConfig {
                 en("Right")
             }
             key("admin.rights.description") {
-                pl("Opis")
-                en("Description")
+                pl(DESCRIPTION_PL)
+                en(DESCRIPTION_EN)
             }
             key("admin.rights.granted_by") {
                 pl("Nadawane przez role")

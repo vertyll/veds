@@ -30,7 +30,7 @@ internal class OutboxDispatchTest {
         override fun send(message: Message<*>): CompletableFuture<SendResult<String, ByteArray>> {
             failWith?.let { return CompletableFuture.failedFuture(it) }
             sent += message
-            val topic = message.headers[KafkaHeaders.TOPIC] as String
+            val topic = requireNotNull(message.headers[KafkaHeaders.TOPIC]) { "a message names its topic" } as String
             return CompletableFuture.completedFuture(
                 SendResult(
                     ProducerRecord(topic, "key", byteArrayOf()),

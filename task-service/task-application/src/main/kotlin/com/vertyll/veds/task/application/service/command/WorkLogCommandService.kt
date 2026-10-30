@@ -60,7 +60,7 @@ class WorkLogCommandService(
         version: Long?,
     ): WorkLogEntryResponse {
         val entry = ownedBy(actor, entryId)
-        VersionGuard.requireMatch(entry.version, version) { ApiException(TaskError.VERSION_MISMATCH) }
+        VersionGuard.requireMatch(currentVersion = entry.version, expectedVersion = version) { ApiException(TaskError.VERSION_MISMATCH) }
 
         val edited =
             entryRepository.save(
@@ -104,7 +104,7 @@ class WorkLogCommandService(
             entryRepository.findById(entryId)
                 ?: throw ApiException(TaskError.WORK_LOG_NOT_FOUND, mapOf("entryId" to entryId.toString()))
 
-        authorization.requireTaskPermission(entry.taskId, actor.id, TaskPermission.LOG_WORK)
+        authorization.requireTaskPermission(taskId = entry.taskId, actorId = actor.id, permission = TaskPermission.LOG_WORK)
 
         if (!entry.isAuthoredBy(actor.id)) {
             throw ApiException(

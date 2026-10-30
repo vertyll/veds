@@ -32,19 +32,19 @@ internal class PermissionCatalogueController(
             RegisterPermissionCatalogueCommand(
                 module = request.module,
                 permissions =
-                    request.permissions.map {
+                    request.permissions.map { permission ->
                         RegisterPermissionCatalogueCommand.PermissionDeclaration(
-                            name = it.name,
-                            description = it.description,
-                            scope = RoleScope.fromString(it.scope) ?: error("unknown permission scope '${it.scope}'"),
+                            name = permission.name,
+                            description = permission.description,
+                            scope = RoleScope.fromString(permission.scope) ?: error("unknown permission scope '${permission.scope}'"),
                         )
                     },
                 stockRoles =
-                    request.stockRoles.map {
+                    request.stockRoles.map { role ->
                         RegisterPermissionCatalogueCommand.StockRoleDeclaration(
-                            name = it.name,
-                            scope = RoleScope.fromString(it.scope) ?: error("unknown role scope '${it.scope}'"),
-                            permissions = it.permissions,
+                            name = role.name,
+                            scope = RoleScope.fromString(role.scope) ?: error("unknown role scope '${role.scope}'"),
+                            permissions = role.permissions,
                         )
                     },
             ),

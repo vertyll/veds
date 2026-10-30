@@ -20,13 +20,6 @@ internal class MailFeedbackConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val MAIL_SENT = "mail-sent"
-        const val MAIL_FAILED = "mail-failed"
-        const val CONSUMER_GROUP_MAIL_SENT = "project-service:mail-sent"
-        const val CONSUMER_GROUP_MAIL_FAILED = "project-service:mail-failed"
-    }
-
     @KafkaListener(topics = [MAIL_SENT])
     @Transactional
     fun handleMailSent(
@@ -76,5 +69,12 @@ internal class MailFeedbackConsumerAdapter(
             return false
         }
         return true
+    }
+
+    private companion object {
+        const val MAIL_SENT = "mail-sent"
+        const val MAIL_FAILED = "mail-failed"
+        const val CONSUMER_GROUP_MAIL_SENT = "project-service:mail-sent"
+        const val CONSUMER_GROUP_MAIL_FAILED = "project-service:mail-failed"
     }
 }

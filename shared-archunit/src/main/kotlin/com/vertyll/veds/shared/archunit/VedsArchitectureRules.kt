@@ -24,6 +24,10 @@ import com.tngtech.archunit.library.Architectures.layeredArchitecture
  * A service applies them by extending `VedsArchitectureTest`.
  */
 object VedsArchitectureRules {
+    private const val DOMAIN = "Domain"
+    private const val APPLICATION = "Application"
+    private const val INFRASTRUCTURE = "Infrastructure"
+
     private val MAPPING_ANNOTATIONS =
         arrayOf(
             "org.springframework.web.bind.annotation.RequestMapping",
@@ -34,11 +38,9 @@ object VedsArchitectureRules {
             "org.springframework.web.bind.annotation.DeleteMapping",
         )
 
-    /**
-     * The four kinds of authorization decision an endpoint may declare: a named permission, a
-     * refusal the use case takes on the resource's state, a query narrowed to the caller, or no
-     * authentication at all.
-     */
+    // The four kinds of authorization decision an endpoint may declare: a named permission, a
+    // refusal the use case takes on the resource's state, a query narrowed to the caller, or no
+    // authentication at all.
     private val AUTHORIZATION_ANNOTATIONS =
         arrayOf(
             "org.springframework.security.access.prepost.PreAuthorize",
@@ -60,66 +62,6 @@ object VedsArchitectureRules {
             "io.confluent..",
             "org.slf4j..",
         )
-
-    fun layering(base: String): ArchRule =
-        layeredArchitecture()
-            .consideringOnlyDependenciesInLayers()
-            .layer(DOMAIN)
-            .definedBy("$base.domain..")
-            .layer(APPLICATION)
-            .definedBy("$base.application..")
-            .layer(INFRASTRUCTURE)
-            .definedBy("$base.infrastructure..")
-            .whereLayer(INFRASTRUCTURE)
-            .mayNotBeAccessedByAnyLayer()
-            .whereLayer(APPLICATION)
-            .mayOnlyBeAccessedByLayers(INFRASTRUCTURE)
-            .whereLayer(DOMAIN)
-            .mayOnlyBeAccessedByLayers(APPLICATION, INFRASTRUCTURE)
-            .because("the dependency rule points inwards: infrastructure knows the inside, the inside knows nothing of it")
-
-    fun domainIsFrameworkFree(base: String): ArchRule =
-        noClasses()
-            .that()
-            .resideInAPackage("$base.domain..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage(*FRAMEWORK_PACKAGES)
-            .because("the domain is the one layer that must outlive any framework choice")
-
-    fun applicationIsFrameworkFree(base: String): ArchRule =
-        noClasses()
-            .that()
-            .resideInAPackage("$base.application..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage(*FRAMEWORK_PACKAGES)
-            .because("use cases are constructible without a container, which is what makes them unit-testable")
-
-    fun jpaEntitiesLiveInPersistence(base: String): ArchRule =
-        classes()
-            .that()
-            .areAnnotatedWith("jakarta.persistence.Entity")
-            .should()
-            .resideInAPackage("$base.infrastructure.persistence.entity..")
-            .because("persistence is an adapter detail, not a place the domain may leak into")
-
-    fun controllersLiveInWebAdapter(base: String): ArchRule =
-        classes()
-            .that()
-            .areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
-            .should()
-            .resideInAPackage("$base.infrastructure.web..")
-            .because("HTTP is one delivery mechanism among several, so it belongs in its own adapter")
-
-    fun everyEndpointDeclaresItsAuthorization(): ArchRule =
-        methods()
-            .that(areMappedToHttp)
-            .should(declareAnAuthorizationDecision)
-            .because(
-                "an endpoint nobody guarded is indistinguishable from one guarded somewhere else, " +
-                    "and the difference only surfaces when a caller reaches what they should not",
-            )
 
     private val areMappedToHttp =
         object : DescribedPredicate<JavaMethod>("mapped to an HTTP request") {
@@ -145,10 +87,77 @@ object VedsArchitectureRules {
             }
         }
 
+    /** Dependencies between the layers of the service under [base] point inwards. */
+    fun layering(base: String): ArchRule =
+        layeredArchitecture()
+            .consideringOnlyDependenciesInLayers()
+            .layer(DOMAIN)
+            .definedBy("$base.domain..")
+            .layer(APPLICATION)
+            .definedBy("$base.application..")
+            .layer(INFRASTRUCTURE)
+            .definedBy(infrastructureOf(base))
+            .whereLayer(INFRASTRUCTURE)
+            .mayNotBeAccessedByAnyLayer()
+            .whereLayer(APPLICATION)
+            .mayOnlyBeAccessedByLayers(INFRASTRUCTURE)
+            .whereLayer(DOMAIN)
+            .mayOnlyBeAccessedByLayers(APPLICATION, INFRASTRUCTURE)
+            .because("the dependency rule points inwards: infrastructure knows the inside, the inside knows nothing of it")
+
+    /** The domain under [base] depends on no framework. */
+    fun domainIsFrameworkFree(base: String): ArchRule =
+        noClasses()
+            .that()
+            .resideInAPackage("$base.domain..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(*FRAMEWORK_PACKAGES)
+            .because("the domain is the one layer that must outlive any framework choice")
+
+    /** The application layer under [base] depends on no framework. */
+    fun applicationIsFrameworkFree(base: String): ArchRule =
+        noClasses()
+            .that()
+            .resideInAPackage("$base.application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(*FRAMEWORK_PACKAGES)
+            .because("use cases are constructible without a container, which is what makes them unit-testable")
+
+    /** JPA entities under [base] sit in the persistence adapter. */
+    fun jpaEntitiesLiveInPersistence(base: String): ArchRule =
+        classes()
+            .that()
+            .areAnnotatedWith("jakarta.persistence.Entity")
+            .should()
+            .resideInAPackage("$base.infrastructure.persistence.entity..")
+            .because("persistence is an adapter detail, not a place the domain may leak into")
+
+    /** Controllers under [base] sit in the web adapter. */
+    fun controllersLiveInWebAdapter(base: String): ArchRule =
+        classes()
+            .that()
+            .areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
+            .should()
+            .resideInAPackage("$base.infrastructure.web..")
+            .because("HTTP is one delivery mechanism among several, so it belongs in its own adapter")
+
+    /** Every endpoint says who may call it, instead of relying on a default. */
+    fun everyEndpointDeclaresItsAuthorization(): ArchRule =
+        methods()
+            .that(areMappedToHttp)
+            .should(declareAnAuthorizationDecision)
+            .because(
+                "an endpoint nobody guarded is indistinguishable from one guarded somewhere else, " +
+                    "and the difference only surfaces when a caller reaches what they should not",
+            )
+
+    /** Only the infrastructure under [base] touches Kafka. */
     fun kafkaOnlyInInfrastructure(base: String): ArchRule =
         noClasses()
             .that()
-            .resideOutsideOfPackage("$base.infrastructure..")
+            .resideOutsideOfPackage(infrastructureOf(base))
             .and()
             .areNotAnnotatedWith("org.springframework.boot.autoconfigure.SpringBootApplication")
             .should()
@@ -156,6 +165,7 @@ object VedsArchitectureRules {
             .resideInAnyPackage("org.apache.kafka..", "org.springframework.kafka..")
             .because("the broker is a delivery detail; the inside states intent through a port and the outbox carries it")
 
+    /** The application ports under [base] are interfaces. */
     fun portsAreInterfaces(base: String): ArchRule =
         classes()
             .that()
@@ -164,6 +174,7 @@ object VedsArchitectureRules {
             .beInterfaces()
             .because("a port is a contract the outside implements, never a class the inside instantiates")
 
+    /** The repository ports under [base] are interfaces. */
     fun repositoryPortsAreInterfaces(base: String): ArchRule =
         classes()
             .that()
@@ -172,14 +183,18 @@ object VedsArchitectureRules {
             .beInterfaces()
             .because("the domain states what it needs; the adapter decides how")
 
+    /** Adapters under [base] sit in the infrastructure layer. */
     fun adaptersLiveInInfrastructure(base: String): ArchRule =
         classes()
             .that()
             .haveSimpleNameEndingWith("Adapter")
             .should()
-            .resideInAPackage("$base.infrastructure..")
+            .resideInAPackage(infrastructureOf(base))
             .because("an adapter is by definition the outside edge")
 
+    private fun infrastructureOf(base: String) = "$base.infrastructure.."
+
+    /** Every rule of this object for the service under [base]. */
     fun all(base: String): List<ArchRule> =
         listOf(
             layering(base),
@@ -193,12 +208,11 @@ object VedsArchitectureRules {
             adaptersLiveInInfrastructure(base),
         )
 
+    /** Fails when [classes] break any rule for the service under [base]. */
     fun check(
         classes: JavaClasses,
         base: String,
-    ) = all(base).forEach { it.check(classes) }
-
-    private const val DOMAIN = "Domain"
-    private const val APPLICATION = "Application"
-    private const val INFRASTRUCTURE = "Infrastructure"
+    ) {
+        all(base).forEach { it.check(classes) }
+    }
 }

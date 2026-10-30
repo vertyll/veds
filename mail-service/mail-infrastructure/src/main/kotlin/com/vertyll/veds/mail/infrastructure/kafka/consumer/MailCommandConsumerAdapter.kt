@@ -21,10 +21,6 @@ internal class MailCommandConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val CONSUMER_GROUP = "mail-service:mail-requested"
-    }
-
     @KafkaListener(topics = [MailKafkaTopics.MAIL_REQUESTED])
     @Transactional
     fun consume(
@@ -51,5 +47,9 @@ internal class MailCommandConsumerAdapter(
             logger.error("Error processing message from topic {}", record.topic(), e)
             throw e
         }
+    }
+
+    private companion object {
+        const val CONSUMER_GROUP = "mail-service:mail-requested"
     }
 }

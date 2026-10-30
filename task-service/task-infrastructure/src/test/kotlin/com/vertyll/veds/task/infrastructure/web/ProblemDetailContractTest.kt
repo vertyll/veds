@@ -19,10 +19,6 @@ import java.util.UUID
 internal class ProblemDetailContractTest(
     private val mockMvc: MockMvc,
 ) : IntegrationTestBase() {
-    private companion object {
-        private const val LANGUAGE_HEADER = "X-Lang"
-    }
-
     private fun caller() = jwt().jwt { it.subject(UUID.randomUUID().toString()).claim("email", "caller@example.com") }
 
     @Test
@@ -95,5 +91,9 @@ internal class ProblemDetailContractTest(
             .andExpect(jsonPath("$.data").doesNotExist())
             .andExpect(jsonPath("$.message").doesNotExist())
             .andExpect(jsonPath("$.timestamp").doesNotExist())
+    }
+
+    private companion object {
+        private const val LANGUAGE_HEADER = "X-Lang"
     }
 }

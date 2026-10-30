@@ -4,8 +4,8 @@ import java.io.Serializable
 import java.util.UUID
 
 internal data class ProjectMembershipRefId(
-    var projectId: UUID? = null,
-    var userId: UUID? = null,
+    val projectId: UUID? = null,
+    val userId: UUID? = null,
 ) : Serializable {
     companion object {
         private const val serialVersionUID: Long = 1L

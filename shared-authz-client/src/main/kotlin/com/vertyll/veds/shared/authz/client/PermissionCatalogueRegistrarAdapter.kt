@@ -18,6 +18,7 @@ class PermissionCatalogueRegistrarAdapter(
 ) {
     private val client: RestClient = RestClient.builder().baseUrl(properties.baseUrl).build()
 
+    /** Sends [catalogue] to iam-service. */
     fun register(catalogue: PermissionCatalogue) {
         client
             .post()

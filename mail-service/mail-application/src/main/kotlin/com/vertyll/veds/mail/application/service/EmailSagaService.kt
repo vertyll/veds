@@ -10,6 +10,8 @@ import com.vertyll.veds.mail.domain.model.EmailTemplate
 import com.vertyll.veds.shared.saga.SagaProcessPort
 import com.vertyll.veds.shared.saga.SagaStepStatus
 
+private const val SUBJECT_KEY = "subject"
+
 class EmailSagaService(
     private val sagaProcess: SagaProcessPort,
     private val emailService: EmailUseCase,
@@ -49,7 +51,7 @@ class EmailSagaService(
                     payload =
                         mapOf(
                             "to" to to,
-                            "subject" to subject,
+                            SUBJECT_KEY to subject,
                             "templateName" to templateName,
                             "variables" to variables,
                             "replyTo" to replyTo,
@@ -58,83 +60,88 @@ class EmailSagaService(
                         ),
                 ).id
 
-        try {
-            sagaProcess.recordSagaStep(
-                sagaId = sagaId,
-                stepName = SagaStepNames.PROCESS_TEMPLATE,
-                status = SagaStepStatus.COMPLETED,
-                payload = mapOf("templateName" to templateName, "variables" to variables),
-            )
+        val outcome =
+            try {
+                sagaProcess.recordSagaStep(
+                    sagaId = sagaId,
+                    stepName = SagaStepNames.PROCESS_TEMPLATE,
+                    status = SagaStepStatus.COMPLETED,
+                    payload = mapOf("templateName" to templateName, "variables" to variables),
+                )
 
-            val success = emailService.sendEmail(to, template, variables, replyTo)
+                val success = emailService.sendEmail(to, template, variables, replyTo)
 
-            val status = if (success) SagaStepStatus.COMPLETED else SagaStepStatus.FAILED
-            val stepPayload =
+                val status = if (success) SagaStepStatus.COMPLETED else SagaStepStatus.FAILED
+                val stepPayload =
+                    if (success) {
+                        mapOf("to" to to, SUBJECT_KEY to subject, "emailId" to sagaId)
+                    } else {
+                        mapOf("to" to to, SUBJECT_KEY to subject, "error" to "Failed to send email")
+                    }
+
+                sagaProcess.recordSagaStep(sagaId, SagaStepNames.SEND_EMAIL, status, stepPayload)
+
                 if (success) {
-                    mapOf("to" to to, "subject" to subject, "emailId" to sagaId)
+                    sagaProcess.markSagaCompleted(sagaId)
+                    EmailOutcome.Sent
                 } else {
-                    mapOf("to" to to, "subject" to subject, "error" to "Failed to send email")
+                    EmailOutcome.Failed("Failed to send email")
                 }
-
-            sagaProcess.recordSagaStep(sagaId, SagaStepNames.SEND_EMAIL, status, stepPayload)
-
-            if (success) {
-                sagaProcess.markSagaCompleted(sagaId)
+            } catch (e: Exception) {
+                logger.error("Error in email saga: ${e.message}", e)
+                sagaProcess.recordSagaStep(sagaId, SagaStepNames.SEND_EMAIL, SagaStepStatus.FAILED, mapOf("error" to e.message))
+                EmailOutcome.Failed(e.message ?: e.javaClass.name)
             }
 
-            publishFeedback(
-                success = success,
-                to = to,
-                subject = subject,
-                originSagaId = originSagaId,
-                originalEventId = originalEventId ?: sagaId,
-                error = if (!success) "Failed to send email" else null,
-            )
-
-            return success
-        } catch (e: Exception) {
-            logger.error("Error in email saga: ${e.message}", e)
-            sagaProcess.recordSagaStep(sagaId, SagaStepNames.SEND_EMAIL, SagaStepStatus.FAILED, mapOf("error" to e.message))
-            publishFeedback(
-                success = false,
-                to = to,
-                subject = subject,
-                originSagaId = originSagaId,
-                originalEventId = originalEventId ?: sagaId,
-                error = e.message ?: "Unknown error",
-            )
-            return false
+        originSagaId?.let {
+            publishFeedback(it, SentEmail(to, subject, originalEventId ?: sagaId), outcome)
         }
+
+        return outcome == EmailOutcome.Sent
     }
 
     private fun publishFeedback(
-        success: Boolean,
-        to: String,
-        subject: String,
-        originSagaId: String?,
-        originalEventId: String,
-        error: String?,
+        originSagaId: String,
+        email: SentEmail,
+        outcome: EmailOutcome,
     ) {
-        if (originSagaId == null) return
         runCatching {
-            if (success) {
-                mailFeedbackPublisher.publishMailSent(
-                    originSagaId = originSagaId,
-                    to = to,
-                    subject = subject,
-                    originalEventId = originalEventId,
-                )
-            } else {
-                mailFeedbackPublisher.publishMailFailed(
-                    originSagaId = originSagaId,
-                    to = to,
-                    subject = subject,
-                    originalEventId = originalEventId,
-                    error = error ?: "Unknown error",
-                )
+            when (outcome) {
+                EmailOutcome.Sent -> {
+                    mailFeedbackPublisher.publishMailSent(
+                        originSagaId = originSagaId,
+                        to = email.to,
+                        subject = email.subject,
+                        originalEventId = email.originalEventId,
+                    )
+                }
+
+                is EmailOutcome.Failed -> {
+                    mailFeedbackPublisher.publishMailFailed(
+                        originSagaId = originSagaId,
+                        to = email.to,
+                        subject = email.subject,
+                        originalEventId = email.originalEventId,
+                        error = outcome.reason,
+                    )
+                }
             }
         }.onFailure { e ->
             logger.error("Failed to publish feedback event for saga $originSagaId", e)
         }
     }
+}
+
+private data class SentEmail(
+    val to: String,
+    val subject: String,
+    val originalEventId: String,
+)
+
+private sealed interface EmailOutcome {
+    data object Sent : EmailOutcome
+
+    data class Failed(
+        val reason: String,
+    ) : EmailOutcome
 }

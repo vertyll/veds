@@ -8,5 +8,6 @@ package com.vertyll.veds.sharedtranslation
  * every deploy silently revert the administrators' work.
  */
 fun interface TranslationCatalogueRegistrar {
+    /** Sends [catalogue] to translation-service. */
     fun register(catalogue: TranslationCatalogue)
 }

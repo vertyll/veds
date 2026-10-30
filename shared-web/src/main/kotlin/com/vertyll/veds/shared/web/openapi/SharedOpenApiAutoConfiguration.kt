@@ -26,11 +26,6 @@ import org.springframework.core.env.Environment
 @ConditionalOnClass(OpenAPI::class)
 @EnableConfigurationProperties(SharedOpenApiProperties::class)
 internal class SharedOpenApiAutoConfiguration {
-    private companion object {
-        private const val BEARER_SCHEME = "bearer-jwt"
-        private const val FALLBACK_NAME = "veds-service"
-    }
-
     /**
      * `spring.application.name` reaches Kotlin as a platform type, so the analyzer reads the
      * second elvis as dead. It is not: a service that sets no name gets [FALLBACK_NAME].
@@ -61,5 +56,10 @@ internal class SharedOpenApiAutoConfiguration {
                         .bearerFormat("JWT"),
                 ),
             ).addSecurityItem(SecurityRequirement().addList(BEARER_SCHEME))
+    }
+
+    private companion object {
+        private const val BEARER_SCHEME = "bearer-jwt"
+        private const val FALLBACK_NAME = "veds-service"
     }
 }

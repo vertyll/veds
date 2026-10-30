@@ -6,6 +6,7 @@ import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
@@ -40,7 +41,7 @@ class PermissionCatalogueRegistrationRunner(
         worker.execute { registerUntilAccepted(worker) }
     }
 
-    private fun registerUntilAccepted(worker: java.util.concurrent.ScheduledExecutorService) {
+    private fun registerUntilAccepted(worker: ScheduledExecutorService) {
         val pending = catalogues.filterNot(::register)
 
         if (pending.isEmpty()) {

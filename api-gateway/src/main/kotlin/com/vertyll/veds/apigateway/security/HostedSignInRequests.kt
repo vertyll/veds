@@ -17,29 +17,6 @@ import reactor.core.publisher.Mono
 internal class HostedSignInRequests(
     registrations: ReactiveClientRegistrationRepository,
 ) : ServerOAuth2AuthorizationRequestResolver {
-    companion object {
-        const val AUTHORIZE_PATH = "/auth/authorize"
-        private const val KC_ACTION = "kc_action"
-        private val ALLOWED_ACTIONS = setOf("CONFIGURE_TOTP", "UPDATE_PASSWORD")
-
-        /**
-         * Keycloak's action removing one credential, named by its id; Keycloak asks to confirm and removes it only when
-         * it is the person's own.
-         */
-        private val DELETE_CREDENTIAL =
-            Regex("delete_credential:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
-        private const val UI_LOCALES = "ui_locales"
-
-        /**
-         * A BCP 47 language tag, such as `pl` or `en-GB`. The languages themselves are the translation service's data;
-         * Keycloak shows a page in its default language when it has none of the ones asked for.
-         */
-        private val LANGUAGE_TAG = Regex("[a-z]{2,3}(-[A-Za-z0-9]{2,8})*")
-        private const val THEME = "theme"
-        private const val UI_THEME = "ui_theme"
-        private val ALLOWED_THEMES = setOf("light", "dark")
-    }
-
     private val delegate =
         DefaultServerOAuth2AuthorizationRequestResolver(registrations).apply {
             setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce())
@@ -74,5 +51,24 @@ internal class HostedSignInRequests(
                 }.attributes { attributes -> returnTo?.let { attributes[ReturnPage.ATTRIBUTE] = it } }
                 .build()
         }
+    }
+
+    private companion object {
+        private const val AUTHORIZE_PATH = "/auth/authorize"
+        private const val KC_ACTION = "kc_action"
+        private val ALLOWED_ACTIONS = setOf("CONFIGURE_TOTP", "UPDATE_PASSWORD")
+
+        // Keycloak's action removing one credential, named by its id; Keycloak asks to confirm and removes it only when
+        // it is the person's own.
+        private val DELETE_CREDENTIAL =
+            Regex("delete_credential:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+        private const val UI_LOCALES = "ui_locales"
+
+        // A BCP 47 language tag, such as `pl` or `en-GB`. The languages themselves are the translation service's data;
+        // Keycloak shows a page in its default language when it has none of the ones asked for.
+        private val LANGUAGE_TAG = Regex("[a-z]{2,3}(-[A-Za-z0-9]{2,8})*")
+        private const val THEME = "theme"
+        private const val UI_THEME = "ui_theme"
+        private val ALLOWED_THEMES = setOf("light", "dark")
     }
 }

@@ -35,10 +35,6 @@ internal class TranslationSpreadsheetController(
     private val commands: TranslationCommandUseCase,
     private val spreadsheet: TranslationSpreadsheet,
 ) {
-    private companion object {
-        private const val FILE_NAME = "translations.xlsx"
-    }
-
     @GetMapping("/export")
     @Operation(summary = "Download the whole catalogue as a spreadsheet")
     fun export(
@@ -76,5 +72,9 @@ internal class TranslationSpreadsheetController(
                 ImportTranslationsCommand(entries = entries, importedBy = CurrentUser.idOf(jwt)),
             )
         return ResponseEntity.ok(report)
+    }
+
+    private companion object {
+        private const val FILE_NAME = "translations.xlsx"
     }
 }

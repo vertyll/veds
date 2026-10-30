@@ -183,6 +183,10 @@ Every service exposes Spring Boot Actuator at `/actuator/health`.
 ./gradlew detekt         # static analysis
 ```
 
+`detekt` runs with type resolution and every rule on: `config/detekt/detekt.yml` lists what is switched off, so a rule
+that comes with a new version of detekt is seen at the upgrade. `config/detekt/detekt-libraries.yml` adds, for the
+`shared-*` libraries, that their public API is documented.
+
 `check` additionally runs `checkHexagonalDependencies`, which fails the build if a framework reaches a service's
 application layer. See [Hexagonal Layering](hexagonal-layering.md).
 

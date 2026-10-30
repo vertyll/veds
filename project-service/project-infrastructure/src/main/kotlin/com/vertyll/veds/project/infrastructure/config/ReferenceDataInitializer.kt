@@ -19,43 +19,6 @@ internal class ReferenceDataInitializer(
     private val roleRepository: ProjectRoleRepository,
     private val typeRepository: ProjectTypeRepository,
 ) : ApplicationRunner {
-    private companion object {
-        private val logger = LoggerFactory.getLogger(ReferenceDataInitializer::class.java)
-
-        private val ROLE_TRANSLATIONS =
-            mapOf(
-                ProjectRoleCode.MANAGER to
-                    setOf(
-                        Translation(LanguageTag.of("pl"), "Menedżer", "Zarządza projektem, członkami i zadaniami"),
-                        Translation(LanguageTag.of("en"), "Manager", "Manages the project, its members and tasks"),
-                    ),
-                ProjectRoleCode.MEMBER to
-                    setOf(
-                        Translation(LanguageTag.of("pl"), "Członek", "Pracuje nad zadaniami w projekcie"),
-                        Translation(LanguageTag.of("en"), "Member", "Works on tasks within the project"),
-                    ),
-                ProjectRoleCode.CLIENT to
-                    setOf(
-                        Translation(LanguageTag.of("pl"), "Klient", "Podgląda postęp projektu"),
-                        Translation(LanguageTag.of("en"), "Client", "Follows the progress of the project"),
-                    ),
-            )
-
-        private val TYPE_TRANSLATIONS =
-            mapOf(
-                ProjectTypeCode.TICKETS to
-                    setOf(
-                        Translation(LanguageTag.of("pl"), "Zgłoszenia", "Projekt oparty na zgłoszeniach"),
-                        Translation(LanguageTag.of("en"), "Tickets", "Ticket-driven project"),
-                    ),
-                ProjectTypeCode.BACKLOG to
-                    setOf(
-                        Translation(LanguageTag.of("pl"), "Backlog", "Projekt oparty na backlogu zadań"),
-                        Translation(LanguageTag.of("en"), "Backlog", "Backlog-driven project"),
-                    ),
-            )
-    }
-
     @Transactional
     override fun run(args: ApplicationArguments) {
         seedRoles()
@@ -95,5 +58,50 @@ internal class ReferenceDataInitializer(
             )
             logger.info("Created default project type: {}", code)
         }
+    }
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(ReferenceDataInitializer::class.java)
+
+        private val ROLE_TRANSLATIONS =
+            mapOf(
+                ProjectRoleCode.MANAGER to
+                    setOf(
+                        Translation(
+                            language = LanguageTag.of("pl"),
+                            name = "Menedżer",
+                            description = "Zarządza projektem, członkami i zadaniami",
+                        ),
+                        Translation(
+                            language = LanguageTag.of("en"),
+                            name = "Manager",
+                            description = "Manages the project, its members and tasks",
+                        ),
+                    ),
+                ProjectRoleCode.MEMBER to
+                    setOf(
+                        Translation(language = LanguageTag.of("pl"), name = "Członek", description = "Pracuje nad zadaniami w projekcie"),
+                        Translation(language = LanguageTag.of("en"), name = "Member", description = "Works on tasks within the project"),
+                    ),
+                ProjectRoleCode.CLIENT to
+                    setOf(
+                        Translation(language = LanguageTag.of("pl"), name = "Klient", description = "Podgląda postęp projektu"),
+                        Translation(language = LanguageTag.of("en"), name = "Client", description = "Follows the progress of the project"),
+                    ),
+            )
+
+        private val TYPE_TRANSLATIONS =
+            mapOf(
+                ProjectTypeCode.TICKETS to
+                    setOf(
+                        Translation(language = LanguageTag.of("pl"), name = "Zgłoszenia", description = "Projekt oparty na zgłoszeniach"),
+                        Translation(language = LanguageTag.of("en"), name = "Tickets", description = "Ticket-driven project"),
+                    ),
+                ProjectTypeCode.BACKLOG to
+                    setOf(
+                        Translation(language = LanguageTag.of("pl"), name = "Backlog", description = "Projekt oparty na backlogu zadań"),
+                        Translation(language = LanguageTag.of("en"), name = "Backlog", description = "Backlog-driven project"),
+                    ),
+            )
     }
 }

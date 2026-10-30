@@ -4,6 +4,8 @@ import com.vertyll.veds.shared.messaging.kafka.contract.OutboxMessage
 import com.vertyll.veds.shared.messaging.kafka.contract.OutboxMessageFactory
 
 internal class TestOutboxMessageFactory : OutboxMessageFactory {
+    private var counter = 0
+
     override fun create(
         topic: String,
         key: String,
@@ -18,6 +20,4 @@ internal class TestOutboxMessageFactory : OutboxMessageFactory {
             payload = payload,
             sagaId = sagaId,
         )
-
-    private var counter = 0
 }

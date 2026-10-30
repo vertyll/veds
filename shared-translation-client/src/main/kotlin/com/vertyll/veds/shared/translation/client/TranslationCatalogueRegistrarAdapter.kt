@@ -29,11 +29,11 @@ class TranslationCatalogueRegistrarAdapter(
                 RegisterCataloguePayload(
                     sourceService = catalogue.sourceService,
                     entries =
-                        catalogue.definitions.map {
+                        catalogue.definitions.map { definition ->
                             CatalogueEntryPayload(
-                                key = it.key,
-                                description = it.description,
-                                defaultValues = it.defaultValues,
+                                key = definition.key,
+                                description = definition.description,
+                                defaultValues = definition.defaultValues,
                             )
                         },
                 ),

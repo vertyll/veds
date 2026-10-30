@@ -38,11 +38,11 @@ internal class OwnCatalogueRegistrationRunner(
         RegisterCatalogueCommand(
             sourceService = sourceService,
             entries =
-                definitions.map {
+                definitions.map { definition ->
                     CatalogueEntryCommand(
-                        key = it.key,
-                        description = it.description,
-                        defaultValues = it.defaultValues,
+                        key = definition.key,
+                        description = definition.description,
+                        defaultValues = definition.defaultValues,
                     )
                 },
         )

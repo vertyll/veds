@@ -8,10 +8,17 @@ package com.vertyll.veds.sharedtranslation
 class TranslationValuesBuilder {
     private val values = linkedMapOf<String, String>()
 
-    fun pl(value: String) = language("pl", value)
+    /** Sets the Polish text of the key. */
+    fun pl(value: String) {
+        language("pl", value)
+    }
 
-    fun en(value: String) = language("en", value)
+    /** Sets the English text of the key. */
+    fun en(value: String) {
+        language("en", value)
+    }
 
+    /** Sets the text of the key in the language [code]; a language may be set once. */
     fun language(
         code: String,
         value: String,

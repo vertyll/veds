@@ -14,11 +14,6 @@ internal class StompNotificationPushAdapter(
 ) : NotificationPushPort {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        private const val NOTIFICATIONS_DESTINATION = "/queue/notifications"
-        private const val UNREAD_DESTINATION = "/queue/notifications.unread"
-    }
-
     override fun push(
         recipientId: UUID,
         notification: NotificationResponse,
@@ -39,5 +34,10 @@ internal class StompNotificationPushAdapter(
         } catch (e: Exception) {
             logger.warn("Push to {} failed, notification already persisted: {}", recipientId, e.message)
         }
+    }
+
+    private companion object {
+        private const val NOTIFICATIONS_DESTINATION = "/queue/notifications"
+        private const val UNREAD_DESTINATION = "/queue/notifications.unread"
     }
 }

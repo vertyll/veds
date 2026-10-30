@@ -1,12 +1,12 @@
 package com.vertyll.veds.notification.application.service.query
 
 import com.vertyll.veds.notification.application.dto.NotificationResponse
+import com.vertyll.veds.notification.application.dto.NotificationSearchParams
 import com.vertyll.veds.notification.application.dto.NotificationSettingsResponse
 import com.vertyll.veds.notification.application.dto.PagedResponse
 import com.vertyll.veds.notification.application.dto.PaginationMeta
 import com.vertyll.veds.notification.application.port.inbound.query.NotificationQueryUseCase
 import com.vertyll.veds.notification.domain.model.NotificationSearchCriteria
-import com.vertyll.veds.notification.domain.model.NotificationType
 import com.vertyll.veds.notification.domain.model.PageRequest
 import com.vertyll.veds.notification.domain.repository.NotificationRepository
 import com.vertyll.veds.notification.domain.repository.NotificationSettingsRepository
@@ -16,25 +16,20 @@ class NotificationQueryService(
     private val notificationRepository: NotificationRepository,
     private val settingsRepository: NotificationSettingsRepository,
 ) : NotificationQueryUseCase {
-    @Suppress("LongParameterList")
     override fun list(
+        params: NotificationSearchParams,
         actorId: UUID,
-        onlyUnread: Boolean,
-        projectId: UUID?,
-        type: NotificationType?,
         page: Int,
         size: Int,
     ): PagedResponse<NotificationResponse> {
-        val result =
-            notificationRepository.search(
-                NotificationSearchCriteria(
-                    recipientId = actorId,
-                    onlyUnread = onlyUnread,
-                    projectId = projectId,
-                    type = type,
-                ),
-                PageRequest(page, size),
+        val criteria =
+            NotificationSearchCriteria(
+                recipientId = actorId,
+                onlyUnread = params.onlyUnread,
+                projectId = params.projectId,
+                type = params.type,
             )
+        val result = notificationRepository.search(criteria, PageRequest(page, size))
 
         return PagedResponse(
             items = result.content.map(NotificationResponse::from),

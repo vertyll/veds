@@ -12,6 +12,7 @@ import java.util.Locale
  * when a service declares them and again when an administrator saves one.
  */
 object IcuPatternValidator {
+    /** Throws [IllegalArgumentException] when [pattern] of [key] in [language] is not a valid ICU pattern. */
     fun requireValid(
         key: String,
         language: String,
@@ -21,6 +22,7 @@ object IcuPatternValidator {
         require(failure == null) { "invalid ICU pattern for '$key' [$language]: $failure" }
     }
 
+    /** Why [pattern] is not a valid ICU pattern in [language], or `null` when it is. */
     fun validate(
         language: String,
         pattern: String,
@@ -34,6 +36,7 @@ object IcuPatternValidator {
             e.message ?: e.toString()
         }
 
+    /** The names of the arguments [pattern] uses in [language]. */
     fun argumentsOf(
         language: String,
         pattern: String,

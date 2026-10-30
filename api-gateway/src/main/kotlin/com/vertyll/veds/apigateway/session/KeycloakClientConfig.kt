@@ -42,11 +42,6 @@ import java.time.Clock
  */
 @Configuration
 internal class KeycloakClientConfig {
-    companion object {
-        const val SIGN_IN = "keycloak"
-        private const val AUDIENCE_SCOPE_SUFFIX = "-audience"
-    }
-
     @Bean
     fun clientRegistrationRepository(
         sharedConfig: SharedKeycloakProperties,
@@ -108,7 +103,7 @@ internal class KeycloakClientConfig {
     fun tokenExchangeResponseClient(): ReactiveOAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
         WebClientReactiveTokenExchangeTokenResponseClient().apply {
             addParametersConverter { request ->
-                LinkedMultiValueMap<String, String>().apply { add("audience", request.clientRegistration.registrationId) }
+                LinkedMultiValueMap(mapOf("audience" to listOf(request.clientRegistration.registrationId)))
             }
         }
 
@@ -120,28 +115,34 @@ internal class KeycloakClientConfig {
         tokenExchangeResponseClient: ReactiveOAuth2AccessTokenResponseClient<TokenExchangeGrantRequest>,
         idTokenDecoderFactory: ReactiveJwtDecoderFactory<ClientRegistration>,
         sharedRefreshes: SharedRefreshes,
-    ): ReactiveOAuth2AuthorizedClientManager =
-        DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrations, authorizedClients).apply {
-            setAuthorizedClientProvider(
-                DelegatingReactiveOAuth2AuthorizedClientProvider(
-                    ReactiveOAuth2AuthorizedClientProviderBuilder.builder().authorizationCode().build(),
-                    SingleFlightRefreshTokenProvider(
-                        RefreshTokenReactiveOAuth2AuthorizedClientProvider().apply {
-                            setAccessTokenResponseClient(refreshTokenResponseClient)
-                            setAuthorizationSuccessHandler(
-                                RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler().apply {
-                                    setJwtDecoderFactory(idTokenDecoderFactory)
-                                },
-                            )
-                        },
-                        sharedRefreshes,
-                        Clock.systemUTC(),
-                    ),
-                    TokenExchangeReactiveOAuth2AuthorizedClientProvider().apply {
-                        setAccessTokenResponseClient(tokenExchangeResponseClient)
-                        setSubjectTokenResolver { context -> callerAccessToken(context.getPrincipal()) }
-                    },
-                ),
+    ): ReactiveOAuth2AuthorizedClientManager {
+        val refreshedUser =
+            RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler().apply {
+                setJwtDecoderFactory(idTokenDecoderFactory)
+            }
+        val refresh =
+            RefreshTokenReactiveOAuth2AuthorizedClientProvider().apply {
+                setAccessTokenResponseClient(refreshTokenResponseClient)
+                setAuthorizationSuccessHandler(refreshedUser)
+            }
+        val tokenExchange =
+            TokenExchangeReactiveOAuth2AuthorizedClientProvider().apply {
+                setAccessTokenResponseClient(tokenExchangeResponseClient)
+                setSubjectTokenResolver { context -> callerAccessToken(context.getPrincipal()) }
+            }
+        val clientProvider =
+            DelegatingReactiveOAuth2AuthorizedClientProvider(
+                ReactiveOAuth2AuthorizedClientProviderBuilder.builder().authorizationCode().build(),
+                SingleFlightRefreshTokenProvider(refresh, sharedRefreshes, Clock.systemUTC()),
+                tokenExchange,
             )
+        return DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrations, authorizedClients).apply {
+            setAuthorizedClientProvider(clientProvider)
         }
+    }
+
+    companion object {
+        const val SIGN_IN = "keycloak"
+        private const val AUDIENCE_SCOPE_SUFFIX = "-audience"
+    }
 }

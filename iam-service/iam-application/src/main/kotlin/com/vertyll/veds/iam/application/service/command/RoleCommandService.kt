@@ -39,7 +39,7 @@ class RoleCommandService(
                 ),
             )
 
-        if (saved.scope == RoleScope.GLOBAL) identityProvider.createRole(name, command.description)
+        if (saved.scope == RoleScope.GLOBAL) identityProvider.createRole(roleName = name, description = command.description)
         eventPublisher.publishChanged(saved)
         return RoleResponseMapper.toResponse(saved)
     }
@@ -51,7 +51,7 @@ class RoleCommandService(
     ): RoleResponse {
         val role = roleRepository.findByName(name) ?: throw ApiException(IamError.ROLE_NOT_FOUND)
 
-        VersionGuard.requireMatch(role.version, version) {
+        VersionGuard.requireMatch(currentVersion = role.version, expectedVersion = version) {
             ApiException(IamError.VERSION_MISMATCH)
         }
 
@@ -70,7 +70,7 @@ class RoleCommandService(
         val role = roleRepository.findByName(name) ?: throw ApiException(IamError.ROLE_NOT_FOUND)
         if (RoleType.fromString(role.name) != null) throw ApiException(IamError.ROLE_IS_SYSTEM)
         if (role.unrestricted) throw ApiException(IamError.LAST_UNRESTRICTED_ROLE)
-        if (userRepository.countByRole(role.id!!) > 0) throw ApiException(IamError.ROLE_STILL_ASSIGNED)
+        if (userRepository.countByRole(role.storedId) > 0) throw ApiException(IamError.ROLE_STILL_ASSIGNED)
 
         roleRepository.delete(role)
         if (role.scope == RoleScope.GLOBAL) identityProvider.deleteRole(role.name)
@@ -84,7 +84,7 @@ class RoleCommandService(
     ) {
         val user = userRepository.findById(userId) ?: throw ApiException(IamError.USER_NOT_FOUND)
 
-        VersionGuard.requireMatch(user.version, version) {
+        VersionGuard.requireMatch(currentVersion = user.version, expectedVersion = version) {
             ApiException(IamError.VERSION_MISMATCH)
         }
 
@@ -102,14 +102,14 @@ class RoleCommandService(
     ) {
         val user = userRepository.findById(userId) ?: throw ApiException(IamError.USER_NOT_FOUND)
 
-        VersionGuard.requireMatch(user.version, version) {
+        VersionGuard.requireMatch(currentVersion = user.version, expectedVersion = version) {
             ApiException(IamError.VERSION_MISMATCH)
         }
 
         val role = roleRepository.findByName(roleName) ?: throw ApiException(IamError.ROLE_NOT_FOUND)
         requireSomebodyKeepsEveryPermission(role)
 
-        val updated = user.withoutRole(role.id!!)
+        val updated = user.withoutRole(role.storedId)
         userRepository.save(updated)
 
         updated.keycloakId?.let { identityProvider.removeRole(it.toString(), roleName) }
@@ -122,10 +122,10 @@ class RoleCommandService(
             roleRepository
                 .findAll()
                 .filter { it.unrestricted && it.id != role.id }
-                .any { userRepository.countByRole(it.id!!) > 0 }
+                .any { userRepository.countByRole(it.storedId) > 0 }
         if (stillUnrestricted) return
 
-        if (userRepository.countByRole(role.id!!) <= 1) throw ApiException(IamError.LAST_UNRESTRICTED_ROLE)
+        if (userRepository.countByRole(role.storedId) <= 1) throw ApiException(IamError.LAST_UNRESTRICTED_ROLE)
     }
 
     private fun resolve(

@@ -21,22 +21,22 @@ internal class NotificationSettingsPersistenceAdapter(
                     emailEnabledTypes = settings.emailEnabledTypes.toMutableSet(),
                     version = settings.version,
                 ),
-            ).let {
+            ).let { entity ->
                 NotificationSettings(
-                    userId = it.userId,
-                    mutedTypes = it.mutedTypes.toSet(),
-                    emailEnabledTypes = it.emailEnabledTypes.toSet(),
-                    version = it.version,
+                    userId = entity.userId,
+                    mutedTypes = entity.mutedTypes.toSet(),
+                    emailEnabledTypes = entity.emailEnabledTypes.toSet(),
+                    version = entity.version,
                 )
             }
 
     override fun findByUserId(userId: UUID): NotificationSettings =
-        repository.findByIdOrNull(userId)?.let {
+        repository.findByIdOrNull(userId)?.let { entity ->
             NotificationSettings(
-                userId = it.userId,
-                mutedTypes = it.mutedTypes.toSet(),
-                emailEnabledTypes = it.emailEnabledTypes.toSet(),
-                version = it.version,
+                userId = entity.userId,
+                mutedTypes = entity.mutedTypes.toSet(),
+                emailEnabledTypes = entity.emailEnabledTypes.toSet(),
+                version = entity.version,
             )
         } ?: NotificationSettings.defaultFor(userId)
 }

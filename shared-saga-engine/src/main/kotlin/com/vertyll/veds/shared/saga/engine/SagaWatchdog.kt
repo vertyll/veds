@@ -54,7 +54,7 @@ open class SagaWatchdog<S : Saga<S>, T : SagaStep<T>>(
         logger.warn("SagaWatchdog: {} saga(s) timed out in AWAITING_RESPONSE — failing", timedOut.size)
         timedOut.forEach { saga ->
             runCatching {
-                sagaEngine.failSaga(saga.id, "timeout")
+                sagaEngine.failSaga(sagaId = saga.id, error = "timeout")
             }.onFailure { e ->
                 logger.error("SagaWatchdog: failed to time out saga '${saga.id}': ${e.message}", e)
             }

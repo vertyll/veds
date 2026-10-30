@@ -80,7 +80,7 @@ class ProjectCommandService(
             roleCode = managerRole.code.value,
         )
 
-        return ProjectResponse.from(project, authorization.effectivePermissions(project.id, actor.id))
+        return ProjectResponse.from(project, authorization.effectivePermissions(projectId = project.id, actorId = actor.id))
     }
 
     override fun updateProject(
@@ -91,7 +91,7 @@ class ProjectCommandService(
     ): ProjectResponse {
         val project = authorization.requirePermission(projectId, actorId, ProjectPermission.EDIT_PROJECT)
 
-        VersionGuard.requireMatch(project.version, version) {
+        VersionGuard.requireMatch(currentVersion = project.version, expectedVersion = version) {
             ApiException(ProjectError.VERSION_MISMATCH)
         }
 
@@ -126,7 +126,7 @@ class ProjectCommandService(
     ) {
         val project = authorization.requirePermission(projectId, actorId, ProjectPermission.DELETE_PROJECT)
 
-        VersionGuard.requireMatch(project.version, version) {
+        VersionGuard.requireMatch(currentVersion = project.version, expectedVersion = version) {
             ApiException(ProjectError.VERSION_MISMATCH)
         }
 

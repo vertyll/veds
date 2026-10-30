@@ -92,8 +92,18 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 }
 
 tasks.withType<Detekt>().configureEach {
-    config.setFrom(files("${rootProject.projectDir}/../config/detekt/detekt.yml"))
+    config.setFrom(
+        files(
+            "${rootProject.projectDir}/../config/detekt/detekt.yml",
+            "${rootProject.projectDir}/../config/detekt/detekt-libraries.yml",
+        ),
+    )
     buildUponDefaultConfig = true
+    allRules = true
+}
+
+tasks.matching { it.name == "detekt" }.configureEach {
+    dependsOn(tasks.matching { it.name == "detektMain" || it.name == "detektTest" })
 }
 
 tasks.named("check") {

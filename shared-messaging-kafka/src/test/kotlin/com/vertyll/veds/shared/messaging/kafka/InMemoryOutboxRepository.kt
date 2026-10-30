@@ -24,9 +24,9 @@ internal class InMemoryOutboxRepository : OutboxRepositoryPort {
     var claimable: List<OutboxMessage> = emptyList()
 
     override fun save(message: OutboxMessage) =
-        message.also {
-            saved += it
-            transitions += it.eventId to it.status
+        message.also { stored ->
+            saved += stored
+            transitions += stored.eventId to stored.status
         }
 
     override fun findByStatus(status: OutboxStatus) = saved.filter { it.status == status }

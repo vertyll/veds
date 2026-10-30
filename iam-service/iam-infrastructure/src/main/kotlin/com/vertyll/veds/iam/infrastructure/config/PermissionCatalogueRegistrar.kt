@@ -24,19 +24,19 @@ internal class PermissionCatalogueRegistrar(
                 RegisterPermissionCatalogueCommand(
                     module = catalogue.module,
                     permissions =
-                        catalogue.definitions.map {
+                        catalogue.definitions.map { definition ->
                             RegisterPermissionCatalogueCommand.PermissionDeclaration(
-                                name = it.name,
-                                description = it.description,
-                                scope = RoleScope.valueOf(it.scope.name),
+                                name = definition.name,
+                                description = definition.description,
+                                scope = RoleScope.valueOf(definition.scope.name),
                             )
                         },
                     stockRoles =
-                        catalogue.stockRoles.map {
+                        catalogue.stockRoles.map { role ->
                             RegisterPermissionCatalogueCommand.StockRoleDeclaration(
-                                name = it.name,
-                                scope = RoleScope.valueOf(it.scope.name),
-                                permissions = it.permissions,
+                                name = role.name,
+                                scope = RoleScope.valueOf(role.scope.name),
+                                permissions = role.permissions,
                             )
                         },
                 ),

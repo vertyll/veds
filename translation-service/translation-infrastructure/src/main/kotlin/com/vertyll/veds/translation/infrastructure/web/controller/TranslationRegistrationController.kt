@@ -32,11 +32,11 @@ internal class TranslationRegistrationController(
                 RegisterCatalogueCommand(
                     sourceService = request.sourceService,
                     entries =
-                        request.entries.map {
+                        request.entries.map { entry ->
                             CatalogueEntryCommand(
-                                key = it.key,
-                                description = it.description,
-                                defaultValues = it.defaultValues,
+                                key = entry.key,
+                                description = entry.description,
+                                defaultValues = entry.defaultValues,
                             )
                         },
                 ),

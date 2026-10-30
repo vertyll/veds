@@ -35,15 +35,6 @@ import org.springframework.util.backoff.FixedBackOff
 internal class KafkaTemplateAutoConfiguration {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        private const val RETRY_INTERVAL_MS = 1000L
-
-        /** Suffix of the dead letter topic, matching `infra/kafka/topics.tf`. */
-        private const val DLT_SUFFIX = "-dlt"
-
-        private const val MAX_RETRIES = 3L
-    }
-
     /**
      * Byte-array producer factory used by the outbox: keys are strings,
      * values are pre-serialized bytes (Avro/JSON encoded by the caller).
@@ -59,12 +50,10 @@ internal class KafkaTemplateAutoConfiguration {
         return DefaultKafkaProducerFactory(configProps)
     }
 
-    /**
-     * Connection-security properties shared by every Kafka client built here.
-     * Empty for PLAINTEXT (local dev); for SSL adds the protocol and - when
-     * configured - the CA truststore (server-cert verification only, no
-     * client certificates / mTLS).
-     */
+    // Connection-security properties shared by every Kafka client built here.
+    // Empty for PLAINTEXT (local dev); for SSL adds the protocol and - when
+    // configured - the CA truststore (server-cert verification only, no
+    // client certificates / mTLS).
     private fun securityProps(properties: KafkaInfraProperties): Map<String, Any> {
         if (properties.security.protocol.equals("PLAINTEXT", ignoreCase = true)) {
             return emptyMap()
@@ -149,5 +138,14 @@ internal class KafkaTemplateAutoConfiguration {
         factory.setConsumerFactory(consumerFactory)
         factory.setCommonErrorHandler(kafkaErrorHandler)
         return factory
+    }
+
+    private companion object {
+        private const val RETRY_INTERVAL_MS = 1000L
+
+        // Suffix of the dead letter topic, matching `infra/kafka/topics.tf`.
+        private const val DLT_SUFFIX = "-dlt"
+
+        private const val MAX_RETRIES = 3L
     }
 }

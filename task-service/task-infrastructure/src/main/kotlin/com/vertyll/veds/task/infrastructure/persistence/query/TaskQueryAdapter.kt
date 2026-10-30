@@ -22,45 +22,11 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
+private const val TASK_ID_PARAM = "taskId"
+private const val READER_ID_PARAM = "readerId"
+
 @Component
-@Suppress("LongMethod")
 internal class TaskQueryAdapter : TaskQueryPort {
-    private companion object {
-        private const val COMMENT_ID = 0
-        private const val COMMENT_TASK_ID = 1
-        private const val COMMENT_AUTHOR_ID = 2
-        private const val COMMENT_CONTENT = 3
-        private const val COMMENT_CREATED_AT = 4
-        private const val COMMENT_UPDATED_AT = 5
-        private const val COMMENT_VERSION = 6
-        private const val COMMENT_AUTHOR_EMAIL = 7
-        private const val COMMENT_AUTHOR_FIRST_NAME = 8
-        private const val COMMENT_AUTHOR_LAST_NAME = 9
-        private const val COMMENT_AUTHOR_AVATAR = 10
-
-        private const val WORK_LOG_ID = 0
-        private const val WORK_LOG_TASK_ID = 1
-        private const val WORK_LOG_AUTHOR_ID = 2
-        private const val WORK_LOG_MINUTES = 3
-        private const val WORK_LOG_WORKED_ON = 4
-        private const val WORK_LOG_DESCRIPTION = 5
-        private const val WORK_LOG_CREATED_AT = 6
-        private const val WORK_LOG_UPDATED_AT = 7
-        private const val WORK_LOG_VERSION = 8
-        private const val WORK_LOG_AUTHOR_EMAIL = 9
-        private const val WORK_LOG_AUTHOR_FIRST_NAME = 10
-        private const val WORK_LOG_AUTHOR_LAST_NAME = 11
-        private const val WORK_LOG_AUTHOR_AVATAR = 12
-        private const val WORK_LOG_HIDDEN = 13
-
-        private const val ASSIGNEE_TASK_ID = 0
-        private const val ASSIGNEE_USER_ID = 1
-        private const val ASSIGNEE_EMAIL = 2
-        private const val ASSIGNEE_FIRST_NAME = 3
-        private const val ASSIGNEE_LAST_NAME = 4
-        private const val ASSIGNEE_AVATAR = 5
-    }
-
     @PersistenceContext
     private lateinit var entityManager: EntityManager
 
@@ -83,7 +49,7 @@ internal class TaskQueryAdapter : TaskQueryPort {
                 OR LOWER(COALESCE(t.description, '')) LIKE
                    LOWER(CONCAT('%', CAST(:searchTerm AS string), '%'))
             )
-            """
+            """.trimIndent()
 
         val order =
             when (criteria.sortBy) {
@@ -103,7 +69,7 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     FROM TaskJpaEntity t
                     $where
                     ORDER BY $order
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
                 ).applyCriteria(criteria)
                 .setFirstResult(pageRequest.offset.toInt())
@@ -162,9 +128,9 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     LEFT JOIN UserRefJpaEntity u ON u.userId = c.authorId
                     WHERE c.taskId = :taskId
                     ORDER BY c.createdAt
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
-                ).setParameter("taskId", taskId)
+                ).setParameter(TASK_ID_PARAM, taskId)
                 .resultList
 
         val attachments = attachmentsFor(rows.map { it[0] as UUID })
@@ -215,10 +181,10 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     """
                     SELECT COUNT(e) FROM WorkLogEntryJpaEntity e
                     WHERE e.taskId = :taskId $readableByCaller $chosen
-                    """,
+                    """.trimIndent(),
                     Long::class.javaObjectType,
-                ).setParameter("taskId", taskId)
-                .also { if (!readsHidden) it.setParameter("readerId", readerId) }
+                ).setParameter(TASK_ID_PARAM, taskId)
+                .also { if (!readsHidden) it.setParameter(READER_ID_PARAM, readerId) }
                 .singleResult
 
         val totalMinutes =
@@ -227,10 +193,10 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     """
                     SELECT COALESCE(SUM(e.minutes), 0) FROM WorkLogEntryJpaEntity e
                     WHERE e.taskId = :taskId $readableByCaller $chosen
-                    """,
+                    """.trimIndent(),
                     Long::class.javaObjectType,
-                ).setParameter("taskId", taskId)
-                .also { if (!readsHidden) it.setParameter("readerId", readerId) }
+                ).setParameter(TASK_ID_PARAM, taskId)
+                .also { if (!readsHidden) it.setParameter(READER_ID_PARAM, readerId) }
                 .singleResult
                 .toInt()
 
@@ -245,10 +211,10 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     LEFT JOIN UserRefJpaEntity u ON u.userId = e.authorId
                     WHERE e.taskId = :taskId $readableByCaller $chosen
                     ORDER BY e.workedOn DESC, e.createdAt DESC
-                    """,
+                    """.trimIndent(),
                     Array<Any>::class.java,
-                ).setParameter("taskId", taskId)
-                .also { if (!readsHidden) it.setParameter("readerId", readerId) }
+                ).setParameter(TASK_ID_PARAM, taskId)
+                .also { if (!readsHidden) it.setParameter(READER_ID_PARAM, readerId) }
                 .setFirstResult(pageRequest.page * pageRequest.size)
                 .setMaxResults(pageRequest.size)
                 .resultList
@@ -332,7 +298,7 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     FROM task_assignee a
                     LEFT JOIN user_ref u ON u.user_id = a.user_id
                     WHERE a.task_id IN (:ids)
-                    """,
+                    """.trimIndent(),
                 ).setParameter("ids", taskIds)
                 .resultList as List<Array<Any?>>
 
@@ -371,12 +337,14 @@ internal class TaskQueryAdapter : TaskQueryPort {
     private fun categoryLabels(
         projectId: UUID,
         language: LanguageTag,
-    ): Map<UUID, ResolvedLabelRow> = labelsOf("project_category_ref", "category_id", projectId, language)
+    ): Map<UUID, ResolvedLabelRow> =
+        labelsOf(table = "project_category_ref", idColumn = "category_id", projectId = projectId, language = language)
 
     private fun statusesFor(
         projectId: UUID,
         language: LanguageTag,
-    ): Map<UUID, ResolvedLabelRow> = labelsOf("project_status_ref", "status_id", projectId, language)
+    ): Map<UUID, ResolvedLabelRow> =
+        labelsOf(table = "project_status_ref", idColumn = "status_id", projectId = projectId, language = language)
 
     private fun labelsOf(
         table: String,
@@ -406,17 +374,17 @@ internal class TaskQueryAdapter : TaskQueryPort {
                         LIMIT 1
                     ) any_name ON TRUE
                     WHERE r.project_id = :projectId
-                    """,
+                    """.trimIndent(),
                 ).setParameter("projectId", projectId)
                 .setParameter("language", language.value)
                 .resultList as List<Array<Any?>>
 
-        return rows.associate {
-            (it[0] as UUID) to
+        return rows.associate { row ->
+            row[0] as UUID to
                 ResolvedLabelRow(
-                    name = it[1] as String,
-                    language = it[2] as String,
-                    color = it[3] as String,
+                    name = row[1] as String,
+                    language = row[2] as String,
+                    color = row[3] as String,
                 )
         }
     }
@@ -429,4 +397,40 @@ internal class TaskQueryAdapter : TaskQueryPort {
             .setParameter("categoryId", criteria.categoryId)
             .setParameter("assigneeId", criteria.assigneeId)
             .setParameter("searchTerm", criteria.searchTerm)
+
+    private companion object {
+        private const val COMMENT_ID = 0
+        private const val COMMENT_TASK_ID = 1
+        private const val COMMENT_AUTHOR_ID = 2
+        private const val COMMENT_CONTENT = 3
+        private const val COMMENT_CREATED_AT = 4
+        private const val COMMENT_UPDATED_AT = 5
+        private const val COMMENT_VERSION = 6
+        private const val COMMENT_AUTHOR_EMAIL = 7
+        private const val COMMENT_AUTHOR_FIRST_NAME = 8
+        private const val COMMENT_AUTHOR_LAST_NAME = 9
+        private const val COMMENT_AUTHOR_AVATAR = 10
+
+        private const val WORK_LOG_ID = 0
+        private const val WORK_LOG_TASK_ID = 1
+        private const val WORK_LOG_AUTHOR_ID = 2
+        private const val WORK_LOG_MINUTES = 3
+        private const val WORK_LOG_WORKED_ON = 4
+        private const val WORK_LOG_DESCRIPTION = 5
+        private const val WORK_LOG_CREATED_AT = 6
+        private const val WORK_LOG_UPDATED_AT = 7
+        private const val WORK_LOG_VERSION = 8
+        private const val WORK_LOG_AUTHOR_EMAIL = 9
+        private const val WORK_LOG_AUTHOR_FIRST_NAME = 10
+        private const val WORK_LOG_AUTHOR_LAST_NAME = 11
+        private const val WORK_LOG_AUTHOR_AVATAR = 12
+        private const val WORK_LOG_HIDDEN = 13
+
+        private const val ASSIGNEE_TASK_ID = 0
+        private const val ASSIGNEE_USER_ID = 1
+        private const val ASSIGNEE_EMAIL = 2
+        private const val ASSIGNEE_FIRST_NAME = 3
+        private const val ASSIGNEE_LAST_NAME = 4
+        private const val ASSIGNEE_AVATAR = 5
+    }
 }

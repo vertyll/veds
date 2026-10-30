@@ -15,8 +15,8 @@ internal class RecordingSagaProcess : SagaProcessPort {
         payload: Map<String, Any?>,
     ): SagaSnapshot =
         SagaSnapshot(id = "saga-1", type = sagaType.value, status = SagaStatus.STARTED, payload = payload.toString())
-            .also {
-                sagas[it.id] = it
+            .also { saga ->
+                sagas[saga.id] = saga
                 trail += "start(${sagaType.value})"
             }
 

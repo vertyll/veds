@@ -15,16 +15,6 @@ import org.springframework.transaction.annotation.Transactional
 internal class RoleInitializer(
     private val roleRepository: RoleRepository,
 ) : ApplicationRunner {
-    private companion object {
-        private val logger = LoggerFactory.getLogger(RoleInitializer::class.java)
-
-        private val ROLE_DESCRIPTIONS =
-            mapOf(
-                RoleType.USER to "iam.role.user.description",
-                RoleType.ADMIN to "iam.role.admin.description",
-            )
-    }
-
     @Transactional
     override fun run(args: ApplicationArguments) {
         ROLE_DESCRIPTIONS.forEach { (roleType, description) ->
@@ -53,5 +43,15 @@ internal class RoleInitializer(
 
         roleRepository.save(existing.copy(unrestricted = true))
         logger.info("Restored the administrator role's unrestricted grant")
+    }
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(RoleInitializer::class.java)
+
+        private val ROLE_DESCRIPTIONS =
+            mapOf(
+                RoleType.USER to "iam.role.user.description",
+                RoleType.ADMIN to "iam.role.admin.description",
+            )
     }
 }

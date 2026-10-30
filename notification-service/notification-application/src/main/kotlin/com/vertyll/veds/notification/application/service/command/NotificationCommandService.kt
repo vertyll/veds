@@ -166,7 +166,7 @@ class NotificationCommandService(
     ): NotificationSettingsResponse {
         val current = settingsRepository.findByUserId(actorId)
 
-        VersionGuard.requireMatch(current.version, version) {
+        VersionGuard.requireMatch(currentVersion = current.version, expectedVersion = version) {
             ApiException(NotificationError.VERSION_MISMATCH)
         }
 

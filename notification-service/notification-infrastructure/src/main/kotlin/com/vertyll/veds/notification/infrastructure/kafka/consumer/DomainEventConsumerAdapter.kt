@@ -23,21 +23,12 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Component
-@Suppress("TooManyFunctions")
 internal class DomainEventConsumerAdapter(
     private val avroPayloadDeserializer: AvroPayloadDeserializer,
     private val notifications: NotificationCommandUseCase,
     private val processedEventGuard: ProcessedEventGuard,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-
-    private companion object {
-        private const val GROUP_PREFIX = "notification-service:"
-        private const val PARAM_PROJECT = "projectName"
-        private const val PARAM_TASK = "taskName"
-        private const val PARAM_ACTOR = "actorId"
-        private const val PARAM_EXCERPT = "excerpt"
-    }
 
     @KafkaListener(topics = [NotificationKafkaTopics.Consumed.PROJECT_MEMBER_INVITED])
     @Transactional
@@ -195,5 +186,13 @@ internal class DomainEventConsumerAdapter(
             logger.error("Failed to handle {}: {} - will be retried / sent to DLT", topic, e.message, e)
             throw e
         }
+    }
+
+    private companion object {
+        private const val GROUP_PREFIX = "notification-service:"
+        private const val PARAM_PROJECT = "projectName"
+        private const val PARAM_TASK = "taskName"
+        private const val PARAM_ACTOR = "actorId"
+        private const val PARAM_EXCERPT = "excerpt"
     }
 }

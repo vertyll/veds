@@ -23,11 +23,6 @@ internal class RolePermissionsConsumerAdapter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private companion object {
-        const val GROUP_PREFIX = "task-service:"
-        const val PROJECT_SCOPE = "PROJECT"
-    }
-
     @KafkaListener(topics = [TaskKafkaTopics.Consumed.ROLE_PERMISSIONS_CHANGED])
     @Transactional
     fun onRolePermissionsChanged(
@@ -60,5 +55,10 @@ internal class RolePermissionsConsumerAdapter(
                 unrestricted = event.unrestricted,
             ),
         )
+    }
+
+    private companion object {
+        const val GROUP_PREFIX = "task-service:"
+        const val PROJECT_SCOPE = "PROJECT"
     }
 }

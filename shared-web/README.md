@@ -15,7 +15,6 @@ See [Shared Modules](../docs/shared-modules.md) for how this module relates to t
 | `KeycloakJwtAuthenticationConverter`         | Realm roles to Spring authorities, servlet flavor                      |
 | `ReactiveKeycloakJwtAuthenticationConverter` | The same mapping for the reactive gateway                              |
 | `ETagUtils`                                  | Builds and parses the weak `ETag` exposed from a JPA `@Version` column |
-| `OptimisticLockingValidatorUtils`            | Verifies a client-supplied `If-Match` version before a write           |
 | `SharedKeycloakProperties`                   | The `application.shared.keycloak.*` settings                           |
 
 `shared-web-config.yml` ships the Keycloak and OAuth2 defaults; an `EnvironmentPostProcessor`

@@ -52,6 +52,7 @@ Thumbs.db
 
 ### Logs ###
 *.log
+*.hprof
 logs/
 
 ### Environment files ###

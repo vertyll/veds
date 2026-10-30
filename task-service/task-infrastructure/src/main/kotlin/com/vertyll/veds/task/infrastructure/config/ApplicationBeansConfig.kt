@@ -32,13 +32,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@Suppress("TooManyFunctions", "LongParameterList")
 internal class ApplicationBeansConfig {
-    private companion object {
-        private val ALL_METHODS: (String) -> Boolean = { true }
-        private val NO_METHODS: (String) -> Boolean = { false }
-    }
-
     @Bean
     fun fileProjectionUseCase(
         transactions: TransactionalUseCaseFactory,
@@ -193,4 +187,9 @@ internal class ApplicationBeansConfig {
             ),
             ALL_METHODS,
         )
+
+    private companion object {
+        private val ALL_METHODS: (String) -> Boolean = { true }
+        private val NO_METHODS: (String) -> Boolean = { false }
+    }
 }

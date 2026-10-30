@@ -11,13 +11,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 internal class WebSocketConfig(
     private val principalHandshakeHandler: PrincipalHandshakeHandler,
 ) : WebSocketMessageBrokerConfigurer {
-    companion object {
-        const val ENDPOINT = "/ws/notifications"
-        const val USER_DESTINATION_PREFIX = "/user"
-
-        const val QUEUE_PREFIX = "/queue"
-    }
-
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry
             .addEndpoint(ENDPOINT)
@@ -28,5 +21,12 @@ internal class WebSocketConfig(
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
         registry.enableSimpleBroker(QUEUE_PREFIX)
         registry.setUserDestinationPrefix(USER_DESTINATION_PREFIX)
+    }
+
+    private companion object {
+        private const val ENDPOINT = "/ws/notifications"
+        private const val USER_DESTINATION_PREFIX = "/user"
+
+        private const val QUEUE_PREFIX = "/queue"
     }
 }

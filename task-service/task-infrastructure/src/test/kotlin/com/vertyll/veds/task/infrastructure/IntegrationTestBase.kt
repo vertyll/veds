@@ -23,14 +23,14 @@ abstract class IntegrationTestBase protected constructor() {
                 .withDatabaseName("task_service_test")
                 .withUsername("postgres")
                 .withPassword("postgres")
-                .also { it.start() }
+                .apply { start() }
 
         private val kafka: KafkaContainer =
             KafkaContainer(
                 DockerImageName.parse("apache/kafka-native:4.4.0"),
             ).withStartupTimeout(Duration.ofMinutes(2))
                 .withStartupAttempts(3)
-                .also { it.start() }
+                .apply { start() }
 
         @JvmStatic
         @DynamicPropertySource

@@ -14,6 +14,9 @@ import com.vertyll.veds.task.domain.service.AccessDecision
 import com.vertyll.veds.task.domain.service.TaskAccessPolicy
 import java.util.UUID
 
+private const val PROJECT_ID_PARAM = "projectId"
+private const val TASK_ID_PARAM = "taskId"
+
 class TaskAuthorizationService(
     private val projectDirectory: ProjectDirectoryRepository,
     private val taskRepository: TaskRepository,
@@ -26,13 +29,13 @@ class TaskAuthorizationService(
     ): ProjectRef {
         val project =
             projectDirectory.findProject(projectId)
-                ?: throw ApiException(TaskError.PROJECT_NOT_KNOWN, mapOf("projectId" to projectId.toString()))
+                ?: throw ApiException(TaskError.PROJECT_NOT_KNOWN, mapOf(PROJECT_ID_PARAM to projectId.toString()))
 
         val membership = projectDirectory.findMembership(projectId, actorId)
 
         return when (val decision = TaskAccessPolicy.evaluate(project, membership, grantsOf(membership), permission)) {
             is AccessDecision.Permit -> project
-            is AccessDecision.Deny -> throw ApiException(decision.reason, mapOf("projectId" to projectId.toString()))
+            is AccessDecision.Deny -> throw ApiException(decision.reason, mapOf(PROJECT_ID_PARAM to projectId.toString()))
         }
     }
 
@@ -43,25 +46,25 @@ class TaskAuthorizationService(
     ): Task {
         val task =
             taskRepository.findById(taskId)
-                ?: throw ApiException(TaskError.TASK_NOT_FOUND, mapOf("taskId" to taskId.toString()))
+                ?: throw ApiException(TaskError.TASK_NOT_FOUND, mapOf(TASK_ID_PARAM to taskId.toString()))
 
         val project =
             projectDirectory.findProject(task.projectId)
-                ?: throw ApiException(TaskError.PROJECT_NOT_KNOWN, mapOf("projectId" to task.projectId.toString()))
+                ?: throw ApiException(TaskError.PROJECT_NOT_KNOWN, mapOf(PROJECT_ID_PARAM to task.projectId.toString()))
 
-        val membership = projectDirectory.findMembership(task.projectId, actorId)
+        val membership = projectDirectory.findMembership(projectId = task.projectId, userId = actorId)
         val role = grantsOf(membership)
 
         if (!TaskAccessPolicy.evaluate(project, membership, role, TaskPermission.VIEW_TASKS, task).isPermitted) {
-            throw ApiException(TaskError.TASK_NOT_FOUND, mapOf("taskId" to taskId.toString()))
+            throw ApiException(TaskError.TASK_NOT_FOUND, mapOf(TASK_ID_PARAM to taskId.toString()))
         }
         if (!TaskAccessPolicy.canSeeRestrictedTask(task, role, actorId)) {
-            throw ApiException(TaskError.TASK_NOT_FOUND, mapOf("taskId" to taskId.toString()))
+            throw ApiException(TaskError.TASK_NOT_FOUND, mapOf(TASK_ID_PARAM to taskId.toString()))
         }
 
         return when (val decision = TaskAccessPolicy.evaluate(project, membership, role, permission, task)) {
             is AccessDecision.Permit -> task
-            is AccessDecision.Deny -> throw ApiException(decision.reason, mapOf("taskId" to taskId.toString()))
+            is AccessDecision.Deny -> throw ApiException(decision.reason, mapOf(TASK_ID_PARAM to taskId.toString()))
         }
     }
 

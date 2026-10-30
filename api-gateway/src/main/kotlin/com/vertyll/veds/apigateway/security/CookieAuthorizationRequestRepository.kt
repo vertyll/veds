@@ -30,16 +30,6 @@ internal class CookieAuthorizationRequestRepository(
     private val cipher: SessionCipher,
     private val sharedConfig: SharedKeycloakProperties,
 ) : ServerAuthorizationRequestRepository<OAuth2AuthorizationRequest> {
-    companion object {
-        const val COOKIE = "KEYCLOAK_AUTH_REQUEST"
-        private const val SAME_SITE_LAX = "Lax"
-        private val LIFETIME: Duration = Duration.ofMinutes(10)
-        private val ALLOWED_CLASSES =
-            ObjectInputFilter.Config.createFilter(
-                "org.springframework.security.oauth2.core.**;java.util.*;java.lang.*;!*",
-            )
-    }
-
     private val log = LoggerFactory.getLogger(javaClass)
     private val encoder = Base64.getUrlEncoder().withoutPadding()
     private val decoder = Base64.getUrlDecoder()
@@ -101,4 +91,14 @@ internal class CookieAuthorizationRequestRepository(
             .path(sharedConfig.cookie.path)
             .maxAge(maxAge)
             .build()
+
+    private companion object {
+        private const val COOKIE = "KEYCLOAK_AUTH_REQUEST"
+        private const val SAME_SITE_LAX = "Lax"
+        private val LIFETIME: Duration = Duration.ofMinutes(10)
+        private val ALLOWED_CLASSES =
+            ObjectInputFilter.Config.createFilter(
+                "org.springframework.security.oauth2.core.**;java.util.*;java.lang.*;!*",
+            )
+    }
 }
