@@ -11,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.messaging.Message
+import org.springframework.scheduling.config.ScheduledTaskRegistrar
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertContentEquals
@@ -224,6 +225,42 @@ internal class OutboxDispatchTest {
 
         assertEquals(OutboxStatus.PENDING, repository.latest("e-1").status)
         assertEquals(1, repository.latest("e-1").retryCount)
+    }
+
+    /** A poller stopped while it waits keeps the interrupt for its caller and counts the attempt as failed. */
+    @Test
+    fun `an interrupted wait for the broker counts as a failed attempt and keeps the interrupt`() {
+        givenClaimable(testOutboxMessage(eventId = "e-1"))
+        val silentProcessor =
+            KafkaOutboxProcessor(
+                outboxRepository = repository,
+                outboxMessageFactory = TestOutboxMessageFactory(),
+                kafkaTemplate = SilentKafkaTemplate(),
+                properties = properties,
+                dispatchTx = OutboxDispatchTx(repository),
+            )
+
+        Thread.currentThread().interrupt()
+        silentProcessor.pollAndDispatch()
+
+        assertTrue(Thread.interrupted(), "the interrupt should be kept for the caller")
+        assertEquals(OutboxStatus.PENDING, repository.latest("e-1").status)
+        assertEquals(1, repository.latest("e-1").retryCount)
+    }
+
+    @Test
+    fun `the poller runs again the poll interval after a poll ends`() {
+        val registrar = ScheduledTaskRegistrar()
+
+        KafkaOutboxProcessor(
+            outboxRepository = repository,
+            outboxMessageFactory = TestOutboxMessageFactory(),
+            kafkaTemplate = RecordingKafkaTemplate(),
+            properties = KafkaOutboxProperties(pollInterval = Duration.ofSeconds(7)),
+            dispatchTx = OutboxDispatchTx(repository),
+        ).configureTasks(registrar)
+
+        assertEquals(listOf(Duration.ofSeconds(7)), registrar.fixedDelayTaskList.map { it.intervalDuration })
     }
 
     @Test
