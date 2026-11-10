@@ -10,9 +10,6 @@ spring:
       hibernate:
         format_sql: false
 
-  flyway:
-    clean-disabled: true
-
 springdoc:
   api-docs:
     enabled: false

@@ -1,6 +1,9 @@
 package com.vertyll.veds.shared.messaging.kafka
 
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
 
 /**
  * Type-safe configuration for the shared Kafka infrastructure.
@@ -9,16 +12,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * own Kafka configuration so existing `application-*.yml` files remain compatible.
  */
 @ConfigurationProperties(prefix = "spring.kafka")
+@Validated
 data class KafkaInfraProperties(
     /** Comma-separated list of Kafka broker addresses (host:port). */
+    @field:NotBlank
     val bootstrapServers: String,
     /** Client properties passed through to Kafka, including `schema.registry.url` for Avro. */
     val properties: Map<String, String>,
     /** How clients authenticate to the brokers. */
+    @field:Valid
     val security: Security,
     /** The trust settings of the TLS listener. */
     val ssl: Ssl,
     /** The settings of this service as a consumer. */
+    @field:Valid
     val consumer: Consumer,
 ) {
     /** Schema Registry endpoint used by the Avro serializer and deserializer. */
@@ -28,8 +35,10 @@ data class KafkaInfraProperties(
     /** The settings of a service as a Kafka consumer. */
     data class Consumer(
         /** Kafka consumer group id used by this service. */
+        @field:NotBlank
         val groupId: String,
         /** Where to start reading when no committed offset exists. */
+        @field:NotBlank
         val autoOffsetReset: String,
     )
 
@@ -39,7 +48,12 @@ data class KafkaInfraProperties(
      * (SPRING_KAFKA_SECURITY_PROTOCOL / KAFKA_SECURITY_PROTOCOL via yml).
      */
     data class Security(
-        /** PLAINTEXT (local dev) or SSL (cluster listener :9094). */
+        /**
+         * PLAINTEXT (local dev) or SSL (cluster listener :9094). The base configuration gives
+         * no default, so a deployment that forgets to name it fails to start rather than
+         * falling back to plain text.
+         */
+        @field:NotBlank
         val protocol: String,
     )
 

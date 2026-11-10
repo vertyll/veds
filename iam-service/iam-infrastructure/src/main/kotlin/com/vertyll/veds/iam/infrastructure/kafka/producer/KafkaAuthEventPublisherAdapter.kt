@@ -48,7 +48,8 @@ internal class KafkaAuthEventPublisherAdapter(
             sagaId = sagaId,
             eventId = eventId,
         )
-        logger.info("Saved mail request to outbox for: $to (sagaId: $sagaId)")
+        logger.info("Saved {} mail request to outbox (sagaId: {})", templateName, sagaId)
+        logger.debug("Recipient of the {} mail request: {}", templateName, to)
     }
 
     override fun publishUserRegistered(

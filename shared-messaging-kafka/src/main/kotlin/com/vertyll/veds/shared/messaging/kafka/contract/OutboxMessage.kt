@@ -8,7 +8,7 @@ import java.time.Instant
  * The contract is **immutable from the caller's perspective**: all properties
  * are `val` and every state transition is expressed as a domain method that
  * returns the new message instance (e.g. [markProcessing], [markCompleted],
- * [markRetryScheduled], [markDeadLettered]). Concrete adapters decide whether
+ * [markRetryScheduled], [markReleased], [markDeadLettered]). Concrete adapters decide whether
  * to mutate the underlying row in place (JPA dirty-tracking with `var`
  * private-set fields) or return a freshly copied document (MongoDB,
  * Cassandra). The outbox processor never observes the difference — it always
@@ -75,6 +75,13 @@ interface OutboxMessage {
      * configured retry cooldown elapses.
      */
     fun markRetryScheduled(error: String): OutboxMessage
+
+    /**
+     * Returns a claimed message to [OutboxStatus.PENDING] without an attempt
+     * having been made: [retryCount] and [lastRetryAt] stay as they were, so
+     * the next poll may claim it again at once.
+     */
+    fun markReleased(): OutboxMessage
 
     /**
      * Transitions the message to [OutboxStatus.DEAD_LETTERED]. Terminal —

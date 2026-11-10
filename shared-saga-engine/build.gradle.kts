@@ -67,6 +67,9 @@ dependencies {
     // Exposed: services extend the base entities and repositories
     api(libs.bundles.saga.engine.api)
 
+    // The constraints on the configuration properties; the service brings the validator that checks them
+    compileOnly(libs.jakarta.validation.api)
+
     kapt(libs.spring.boot.configuration.processor)
 
     testImplementation(libs.bundles.test.common)

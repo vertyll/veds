@@ -2,8 +2,10 @@ package com.vertyll.veds.apigateway.session
 
 import com.vertyll.veds.apigateway.config.GatewayOAuthProperties
 import com.vertyll.veds.shared.web.config.SharedKeycloakProperties
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.reactive.JwkSetUriReactiveJwtDecoderBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.security.oauth2.client.DelegatingReactiveOAuth2AuthorizedClientProvider
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder
@@ -17,6 +19,7 @@ import org.springframework.security.oauth2.client.endpoint.TokenExchangeGrantReq
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveRefreshTokenTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveTokenExchangeTokenResponseClient
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenValidator
 import org.springframework.security.oauth2.client.oidc.authentication.ReactiveOidcIdTokenDecoderFactory
 import org.springframework.security.oauth2.client.registration.ClientRegistration
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
@@ -27,11 +30,16 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.core.OAuth2Token
+import org.springframework.security.oauth2.core.converter.ClaimTypeConverter
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames
 import org.springframework.security.oauth2.core.oidc.OidcScopes
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm
+import org.springframework.security.oauth2.jwt.JwtValidators
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory
 import org.springframework.security.oauth2.server.resource.authentication.AbstractOAuth2TokenAuthenticationToken
 import org.springframework.util.LinkedMultiValueMap
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import java.time.Clock
 
@@ -39,9 +47,22 @@ import java.time.Clock
  * The gateway's OAuth2 clients: [SIGN_IN] signs the browser in, and one token-exchange
  * registration per service turns the person's token into one whose only audience is that
  * service, so a token leaked from one service opens no other.
+ *
+ * Every call to Keycloak, for tokens, for its signing keys or to end a session, goes through
+ * [keycloakWebClient], built on Boot's connector and so bounded by the connect and read timeouts
+ * under `spring.http.clients`: a Keycloak that stops answering fails a request instead of
+ * holding it open.
  */
 @Configuration
 internal class KeycloakClientConfig {
+    @Bean
+    fun keycloakWebClient(connector: ClientHttpConnector): WebClient = WebClient.builder().clientConnector(connector).build()
+
+    /** The keys that verify a bearer token are fetched with the same bounded client. */
+    @Bean
+    fun keycloakJwkSetClient(keycloakWebClient: WebClient): JwkSetUriReactiveJwtDecoderBuilderCustomizer =
+        JwkSetUriReactiveJwtDecoderBuilderCustomizer { builder -> builder.webClient(keycloakWebClient) }
+
     @Bean
     fun clientRegistrationRepository(
         sharedConfig: SharedKeycloakProperties,
@@ -88,20 +109,40 @@ internal class KeycloakClientConfig {
     @Bean
     fun authorizedClientRepository(): ServerOAuth2AuthorizedClientRepository = StartedSessionAuthorizedClientRepository()
 
+    /**
+     * Verifies the ID token at sign-in as [ReactiveOidcIdTokenDecoderFactory] does, RS256 with the
+     * default and OIDC validators and claim types, but fetches the keys with [keycloakWebClient],
+     * which that factory offers no way to set.
+     */
     @Bean
-    fun idTokenDecoderFactory(): ReactiveJwtDecoderFactory<ClientRegistration> = ReactiveOidcIdTokenDecoderFactory()
+    fun idTokenDecoderFactory(keycloakWebClient: WebClient): ReactiveJwtDecoderFactory<ClientRegistration> =
+        ReactiveJwtDecoderFactory { registration ->
+            NimbusReactiveJwtDecoder
+                .withJwkSetUri(
+                    requireNotNull(registration.providerDetails.jwkSetUri) { "${registration.registrationId} names no JWK Set URI" },
+                ).jwsAlgorithm(SignatureAlgorithm.RS256)
+                .webClient(keycloakWebClient)
+                .build()
+                .apply {
+                    setJwtValidator(JwtValidators.createDefaultWithValidators(OidcIdTokenValidator(registration)))
+                    setClaimSetConverter(ClaimTypeConverter(ReactiveOidcIdTokenDecoderFactory.createDefaultClaimTypeConverters()))
+                }
+        }
 
     @Bean
-    fun authorizationCodeTokenResponseClient(): ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> =
-        WebClientReactiveAuthorizationCodeTokenResponseClient()
+    fun authorizationCodeTokenResponseClient(
+        keycloakWebClient: WebClient,
+    ): ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> =
+        WebClientReactiveAuthorizationCodeTokenResponseClient().apply { setWebClient(keycloakWebClient) }
 
     @Bean
-    fun refreshTokenResponseClient(): ReactiveOAuth2AccessTokenResponseClient<OAuth2RefreshTokenGrantRequest> =
-        WebClientReactiveRefreshTokenTokenResponseClient()
+    fun refreshTokenResponseClient(keycloakWebClient: WebClient): ReactiveOAuth2AccessTokenResponseClient<OAuth2RefreshTokenGrantRequest> =
+        WebClientReactiveRefreshTokenTokenResponseClient().apply { setWebClient(keycloakWebClient) }
 
     @Bean
-    fun tokenExchangeResponseClient(): ReactiveOAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
+    fun tokenExchangeResponseClient(keycloakWebClient: WebClient): ReactiveOAuth2AccessTokenResponseClient<TokenExchangeGrantRequest> =
         WebClientReactiveTokenExchangeTokenResponseClient().apply {
+            setWebClient(keycloakWebClient)
             addParametersConverter { request ->
                 LinkedMultiValueMap(mapOf("audience" to listOf(request.clientRegistration.registrationId)))
             }

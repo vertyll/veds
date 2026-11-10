@@ -7,10 +7,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.support.MessageBuilder
-import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.scheduling.annotation.SchedulingConfigurer
+import org.springframework.scheduling.config.ScheduledTaskRegistrar
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 /**
  * Reusable Kafka outbox processor implementing the **transactional outbox**
@@ -21,7 +23,7 @@ import java.time.Instant
  * published twice by concurrent poller instances:
  *  1. **Claim** ([OutboxDispatchTx.claimBatch]) — `SELECT … FOR UPDATE SKIP
  *     LOCKED` + transition rows to `PROCESSING` in a short transaction.
- *  2. **Publish** ([dispatch]) — broker network IO outside any DB
+ *  2. **Publish** ([pollAndDispatch]) — broker network IO outside any DB
  *     transaction. Status transitions on success/failure happen in fresh
  *     `REQUIRES_NEW` transactions via [OutboxDispatchTx] so the broker call
  *     never holds a DB connection.
@@ -29,6 +31,12 @@ import java.time.Instant
  * The transactional helpers live in a separate bean ([OutboxDispatchTx]) so
  * the calls go through Spring's AOP proxy and actually open the requested
  * transaction (self-invocation on `this` would bypass the proxy).
+ *
+ * Order is kept per key: the claim skips a row while an older row with the
+ * same topic and key is in flight or waiting for a retry, and once a send in
+ * a batch fails, the rest of that batch's rows with the same topic and key go
+ * back to `PENDING` unsent, without counting an attempt. A consumer therefore
+ * never sees event N+1 of an aggregate before event N.
  *
  * Depends only on persistence-agnostic ports ([OutboxRepositoryPort] and
  * [OutboxMessageFactory]) so the outbox can be backed by any storage
@@ -41,18 +49,25 @@ class KafkaOutboxProcessor(
     private val kafkaTemplate: KafkaTemplate<String, ByteArray>,
     private val properties: KafkaOutboxProperties,
     private val dispatchTx: OutboxDispatchTx,
-) {
+) : SchedulingConfigurer {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
-     * Scheduled poll fired every `application.outbox.poll-interval-ms`
-     * (default `5000`). Claims a batch of messages via
-     * [OutboxDispatchTx.claimBatch] and dispatches each one to Kafka
-     * outside any DB transaction. Safe to run on multiple instances —
-     * `FOR UPDATE SKIP LOCKED` guarantees each row is claimed by exactly
-     * one poller.
+     * Schedules [pollAndDispatch] with a fixed delay of
+     * [KafkaOutboxProperties.pollInterval] (`application.outbox.poll-interval`,
+     * default `5s`) between the end of one poll and the start of the next.
      */
-    @Scheduled(fixedDelayString = $$"${application.outbox.poll-interval-ms:5000}")
+    override fun configureTasks(taskRegistrar: ScheduledTaskRegistrar) {
+        taskRegistrar.addFixedDelayTask(::pollAndDispatch, properties.pollInterval)
+    }
+
+    /**
+     * Claims a batch of messages via [OutboxDispatchTx.claimBatch] and
+     * dispatches each one to Kafka outside any DB transaction. Safe to run on
+     * multiple instances — `FOR UPDATE SKIP LOCKED` guarantees each row is
+     * claimed by exactly one poller, though order per key then holds only
+     * within one instance's batches.
+     */
     fun pollAndDispatch() {
         val now = Instant.now()
         val claimed =
@@ -65,10 +80,18 @@ class KafkaOutboxProcessor(
         if (claimed.isEmpty()) return
 
         logger.debug("Claimed {} outbox message(s) for dispatch", claimed.size)
-        claimed.forEach(::dispatch)
+        val heldBack = mutableSetOf<Pair<String, String>>()
+        claimed.forEach { message ->
+            val stream = message.topic to message.key
+            if (stream in heldBack) {
+                dispatchTx.release(message)
+            } else if (!publishedToKafka(message)) {
+                heldBack += stream
+            }
+        }
     }
 
-    private fun dispatch(message: OutboxMessage) {
+    private fun publishedToKafka(message: OutboxMessage): Boolean {
         try {
             val kafkaMessage =
                 MessageBuilder
@@ -78,7 +101,7 @@ class KafkaOutboxProcessor(
                     .setHeader(EVENT_ID_HEADER, message.eventId)
                     .build()
 
-            val result = kafkaTemplate.send(kafkaMessage).get()
+            val result = kafkaTemplate.send(kafkaMessage).get(properties.sendTimeout.toMillis(), TimeUnit.MILLISECONDS)
 
             logger.info(
                 "Published outbox message: eventId={}, topic={}, partition={}, offset={}",
@@ -88,29 +111,42 @@ class KafkaOutboxProcessor(
                 result.recordMetadata.offset(),
             )
             dispatchTx.markCompleted(message)
+            return true
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            recordFailedAttempt(message, e)
+            return false
         } catch (e: Exception) {
+            recordFailedAttempt(message, e)
+            return false
+        }
+    }
+
+    private fun recordFailedAttempt(
+        message: OutboxMessage,
+        e: Exception,
+    ) {
+        logger.error(
+            "Failed to publish outbox message: eventId={}, topic={}, attempt={}/{} — {}",
+            message.eventId,
+            message.topic,
+            message.retryCount + 1,
+            properties.maxRetries,
+            e.message,
+            e,
+        )
+        dispatchTx.rescheduleOrDeadLetter(
+            message = message,
+            error = e.message ?: UNKNOWN_ERROR,
+            maxRetries = properties.maxRetries,
+        )
+        if (message.retryCount + 1 >= properties.maxRetries) {
             logger.error(
-                "Failed to publish outbox message: eventId={}, topic={}, attempt={}/{} — {}",
+                "Dead-lettered outbox message after {} attempts: eventId={}, topic={}",
+                properties.maxRetries,
                 message.eventId,
                 message.topic,
-                message.retryCount + 1,
-                properties.maxRetries,
-                e.message,
-                e,
             )
-            dispatchTx.rescheduleOrDeadLetter(
-                message = message,
-                error = e.message ?: UNKNOWN_ERROR,
-                maxRetries = properties.maxRetries,
-            )
-            if (message.retryCount + 1 >= properties.maxRetries) {
-                logger.error(
-                    "Dead-lettered outbox message after {} attempts: eventId={}, topic={}",
-                    properties.maxRetries,
-                    message.eventId,
-                    message.topic,
-                )
-            }
         }
     }
 

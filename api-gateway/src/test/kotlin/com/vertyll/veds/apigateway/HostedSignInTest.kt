@@ -189,6 +189,22 @@ internal class HostedSignInTest {
     }
 
     @Test
+    fun `the probes are public and no other actuator endpoint is`() {
+        client
+            .get()
+            .uri("/actuator/health/liveness")
+            .exchange()
+            .expectStatus()
+            .isOk
+        client
+            .get()
+            .uri("/actuator/metrics")
+            .exchange()
+            .expectStatus()
+            .isUnauthorized
+    }
+
+    @Test
     fun `a callback with a state this browser was not given is refused`() {
         val browser = Browser()
         browser.send(client.get().uri("/auth/authorize"))

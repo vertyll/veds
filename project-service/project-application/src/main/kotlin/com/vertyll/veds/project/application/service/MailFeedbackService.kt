@@ -21,7 +21,8 @@ class MailFeedbackService(
             logger.debug("Saga '{}' not owned by project-service - ignoring MailSentEvent", sagaId)
             return
         }
-        logger.info("MailSentEvent for saga: {} (to: {})", sagaId, to)
+        logger.info("MailSentEvent for saga: {}", sagaId)
+        logger.debug("MailSentEvent for saga {} was sent to {}", sagaId, to)
         sagaProcessPort.markSagaCompleted(sagaId)
     }
 
@@ -39,7 +40,8 @@ class MailFeedbackService(
             logger.debug("Saga '{}' not owned by project-service - ignoring MailFailedEvent", sagaId)
             return
         }
-        logger.warn("MailFailedEvent for saga: {} (to: {}, error: {})", sagaId, to, error)
+        logger.warn("MailFailedEvent for saga: {} (error: {})", sagaId, error)
+        logger.debug("MailFailedEvent for saga {} was meant for {}", sagaId, to)
         sagaProcessPort.markSagaFailed(sagaId, "Mail delivery failed: $error")
     }
 }

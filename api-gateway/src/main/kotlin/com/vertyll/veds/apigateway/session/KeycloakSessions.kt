@@ -11,12 +11,12 @@ import reactor.core.publisher.Mono
 @Component
 internal class KeycloakSessions(
     private val sharedConfig: SharedKeycloakProperties,
+    private val keycloakWebClient: WebClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val client: WebClient by lazy { WebClient.builder().build() }
 
     fun revoke(refreshToken: String): Mono<Void> =
-        client
+        keycloakWebClient
             .post()
             .uri("${sharedConfig.serverUrl}/realms/${sharedConfig.realm}/protocol/openid-connect/logout")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)

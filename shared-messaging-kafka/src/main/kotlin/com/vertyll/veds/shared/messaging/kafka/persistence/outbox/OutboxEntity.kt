@@ -102,6 +102,11 @@ class OutboxEntity(
         return this
     }
 
+    override fun markReleased(): OutboxMessage {
+        status = OutboxStatus.PENDING
+        return this
+    }
+
     override fun markDeadLettered(error: String): OutboxMessage {
         status = OutboxStatus.DEAD_LETTERED
         errorMessage = error

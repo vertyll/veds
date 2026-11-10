@@ -11,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.messaging.Message
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -24,11 +25,15 @@ import kotlin.test.assertTrue
 internal class OutboxDispatchTest {
     private val sent = mutableListOf<Message<*>>()
     private var failWith: Exception? = null
+    private var refusedEventIds: Set<String> = emptySet()
 
     /** A broker that records what it was asked to publish, and can be told to refuse. */
     private inner class RecordingKafkaTemplate : KafkaTemplate<String, ByteArray>(DefaultKafkaProducerFactory(emptyMap())) {
         override fun send(message: Message<*>): CompletableFuture<SendResult<String, ByteArray>> {
             failWith?.let { return CompletableFuture.failedFuture(it) }
+            if (message.headers["eventId"] in refusedEventIds) {
+                return CompletableFuture.failedFuture(IllegalStateException("broker refused"))
+            }
             sent += message
             val topic = requireNotNull(message.headers[KafkaHeaders.TOPIC]) { "a message names its topic" } as String
             return CompletableFuture.completedFuture(
@@ -38,6 +43,11 @@ internal class OutboxDispatchTest {
                 ),
             )
         }
+    }
+
+    /** A broker that takes a message and never acknowledges it. */
+    private class SilentKafkaTemplate : KafkaTemplate<String, ByteArray>(DefaultKafkaProducerFactory(emptyMap())) {
+        override fun send(message: Message<*>): CompletableFuture<SendResult<String, ByteArray>> = CompletableFuture()
     }
 
     private val repository = InMemoryOutboxRepository()
@@ -167,13 +177,53 @@ internal class OutboxDispatchTest {
     /** One undeliverable row must not hold up the rest of the batch behind it. */
     @Test
     fun `a failure does not abandon the rest of the batch`() {
-        givenClaimable(testOutboxMessage(eventId = "e-1"), testOutboxMessage(eventId = "e-2"))
-        failWith = IllegalStateException("broker unavailable")
+        givenClaimable(
+            testOutboxMessage(eventId = "e-1", key = "project-1"),
+            testOutboxMessage(eventId = "e-2", key = "project-2"),
+        )
+        refusedEventIds = setOf("e-1")
 
         processor.pollAndDispatch()
 
         assertEquals(OutboxStatus.PENDING, repository.latest("e-1").status)
+        assertEquals(OutboxStatus.COMPLETED, repository.latest("e-2").status)
+    }
+
+    /**
+     * Events about one aggregate share a key, and a consumer must see them in the order they were
+     * written. A later event waits behind a failed earlier one, unsent and with no attempt counted.
+     */
+    @Test
+    fun `a failure holds back the rest of the batch with the same key`() {
+        givenClaimable(
+            testOutboxMessage(eventId = "e-1", key = "project-1"),
+            testOutboxMessage(eventId = "e-2", key = "project-1"),
+            testOutboxMessage(eventId = "e-3", key = "project-2"),
+        )
+        refusedEventIds = setOf("e-1")
+
+        processor.pollAndDispatch()
+
+        assertEquals(listOf("e-3"), sent.map { it.headers["eventId"] })
         assertEquals(OutboxStatus.PENDING, repository.latest("e-2").status)
+        assertEquals(0, repository.latest("e-2").retryCount)
+    }
+
+    /** A broker that never answers must not hold the poller, and the attempt counts as failed. */
+    @Test
+    fun `a send the broker never acknowledges is given up after the send timeout`() {
+        givenClaimable(testOutboxMessage(eventId = "e-1"))
+
+        KafkaOutboxProcessor(
+            outboxRepository = repository,
+            outboxMessageFactory = TestOutboxMessageFactory(),
+            kafkaTemplate = SilentKafkaTemplate(),
+            properties = KafkaOutboxProperties(sendTimeout = Duration.ofMillis(50)),
+            dispatchTx = OutboxDispatchTx(repository),
+        ).pollAndDispatch()
+
+        assertEquals(OutboxStatus.PENDING, repository.latest("e-1").status)
+        assertEquals(1, repository.latest("e-1").retryCount)
     }
 
     @Test

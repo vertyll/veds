@@ -11,12 +11,16 @@ import org.springframework.web.client.RestClient
  * HTTP rather than an event, for the same reason the translation catalogue uses
  * it: a rejected catalogue is a deployment mistake, and it belongs in the log of
  * the service that made it rather than failing quietly in a consumer elsewhere.
+ *
+ * The client is built from Boot's [RestClient.Builder], so the connect and read timeouts set under
+ * `spring.http.clients` bound every call.
  */
 @Component
 class PermissionCatalogueRegistrarAdapter(
     properties: AuthzClientProperties,
+    restClientBuilder: RestClient.Builder,
 ) {
-    private val client: RestClient = RestClient.builder().baseUrl(properties.baseUrl).build()
+    private val client: RestClient = restClientBuilder.baseUrl(properties.baseUrl).build()
 
     /** Sends [catalogue] to iam-service. */
     fun register(catalogue: PermissionCatalogue) {

@@ -34,6 +34,12 @@ interface OutboxRepository : JpaRepository<OutboxEntity, Long> {
      * The batch holds rows still awaiting their first or a further attempt, and
      * rows left in `PROCESSING` by an instance that died mid-dispatch — those
      * would otherwise sit there forever.
+     *
+     * A row is held back while an older row with the same topic and key is in
+     * flight (`PROCESSING`) or waiting out a retry (`PENDING` after a failed
+     * attempt), so the events about one aggregate reach Kafka in the order they
+     * were written. A dead-lettered row holds nothing back. Rows are taken in
+     * insertion order, by id.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
@@ -48,7 +54,16 @@ interface OutboxRepository : JpaRepository<OutboxEntity, Long> {
             (o.status = com.vertyll.veds.shared.messaging.kafka.contract.OutboxStatus.PROCESSING
                 AND o.processedAt < :stuckBefore)
         )
-        ORDER BY o.createdAt ASC
+        AND NOT EXISTS (
+            SELECT 1 FROM OutboxEntity older
+            WHERE older.topic = o.topic
+                AND older.key = o.key
+                AND older.id < o.id
+                AND (older.status = com.vertyll.veds.shared.messaging.kafka.contract.OutboxStatus.PROCESSING
+                    OR (older.status = com.vertyll.veds.shared.messaging.kafka.contract.OutboxStatus.PENDING
+                        AND older.retryCount > 0))
+        )
+        ORDER BY o.id ASC
         """,
     )
     fun lockBatchForDispatch(

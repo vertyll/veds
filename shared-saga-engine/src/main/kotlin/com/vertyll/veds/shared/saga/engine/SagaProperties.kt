@@ -4,6 +4,7 @@ import com.vertyll.veds.shared.saga.SagaStatus.AWAITING_RESPONSE
 import com.vertyll.veds.shared.saga.SagaStatus.COMPENSATING
 import com.vertyll.veds.shared.saga.SagaStatus.COMPENSATION_FAILED
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
 import java.time.Duration
 
 /**
@@ -21,6 +22,7 @@ import java.time.Duration
  * ```
  */
 @ConfigurationProperties(prefix = "application.saga")
+@Validated
 data class SagaProperties(
     /**
      * After a saga has been in
@@ -42,6 +44,12 @@ data class SagaProperties(
      */
     val compensationRetryCooldown: Duration = Duration.ofMinutes(DEFAULT_COMPENSATION_RETRY_COOLDOWN_MINUTES),
 ) {
+    init {
+        require(awaitResponseTimeout > Duration.ZERO) { "application.saga.await-response-timeout must be positive" }
+        require(watchdogInterval > Duration.ZERO) { "application.saga.watchdog-interval must be positive" }
+        require(!compensationRetryCooldown.isNegative) { "application.saga.compensation-retry-cooldown must not be negative" }
+    }
+
     private companion object {
         private const val DEFAULT_AWAIT_RESPONSE_TIMEOUT_MINUTES: Long = 30
         private const val DEFAULT_WATCHDOG_INTERVAL_MINUTES: Long = 1

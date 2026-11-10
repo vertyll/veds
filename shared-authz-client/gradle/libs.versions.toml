@@ -11,6 +11,8 @@ kotlin = "2.4.10"
 
 [libraries]
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api" }
+spring-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient" }
 springframework-web = { module = "org.springframework:spring-web" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }

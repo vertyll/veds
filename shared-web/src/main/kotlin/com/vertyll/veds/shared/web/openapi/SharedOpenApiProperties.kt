@@ -1,6 +1,8 @@
 package com.vertyll.veds.shared.web.openapi
 
+import jakarta.validation.constraints.NotBlank
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
 
 /**
  * Externalized configuration for the generated OpenAPI document.
@@ -19,10 +21,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * ```
  */
 @ConfigurationProperties(prefix = "application.shared.openapi")
+@Validated
 data class SharedOpenApiProperties(
     /** Document title. Falls back to `spring.application.name` when unset. */
     val title: String? = null,
     /** Version reported in the document. */
+    @field:NotBlank
     val version: String = DEFAULT_VERSION,
     /** Overrides the generated description when a service wants its own wording. */
     val description: String? = null,

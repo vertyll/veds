@@ -1,6 +1,8 @@
 package com.vertyll.veds.shared.authz.client
 
+import jakarta.validation.constraints.NotBlank
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
 import java.time.Duration
 
 /**
@@ -22,10 +24,16 @@ import java.time.Duration
  * ```
  */
 @ConfigurationProperties(prefix = "application.authz.client")
+@Validated
 data class AuthzClientProperties(
+    @field:NotBlank
     val baseUrl: String,
     val registrationRetryInterval: Duration = DEFAULT_REGISTRATION_RETRY_INTERVAL,
 ) {
+    init {
+        require(!registrationRetryInterval.isNegative) { "application.authz.client.registration-retry-interval must not be negative" }
+    }
+
     private companion object {
         private val DEFAULT_REGISTRATION_RETRY_INTERVAL: Duration = Duration.ofSeconds(15)
     }

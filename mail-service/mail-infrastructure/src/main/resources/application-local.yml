@@ -21,7 +21,6 @@ spring:
     properties:
       mail:
         smtp:
-          trust: "*"
           auth: false
           starttls:
             enable: false

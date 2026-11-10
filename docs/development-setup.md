@@ -173,7 +173,9 @@ An Insomnia collection is provided at `insomnia-collection.yaml`.
 
 ## Monitoring
 
-Every service exposes Spring Boot Actuator at `/actuator/health`.
+Every service exposes Spring Boot Actuator at `/actuator/health`, with the `liveness` and `readiness` groups. The
+gateway, the only public entry point, exposes `health` alone and lets only `/actuator/health/**` through
+unauthenticated; the services also expose `info` and `metrics`, which no route reaches from outside.
 
 ## Code style
 

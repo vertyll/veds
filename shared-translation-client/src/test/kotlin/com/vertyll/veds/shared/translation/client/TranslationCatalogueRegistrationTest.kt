@@ -5,6 +5,7 @@ import com.vertyll.veds.sharedtranslation.translations
 import org.awaitility.Awaitility.await
 import org.springframework.boot.DefaultApplicationArguments
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.RestClient
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.time.Duration
@@ -35,7 +36,7 @@ internal class TranslationCatalogueRegistrationTest {
             baseUrl = "http://${translation.address.hostString}:${translation.address.port}",
             registrationRetryInterval = Duration.ZERO,
         )
-    private val registrar = TranslationCatalogueRegistrarAdapter(properties)
+    private val registrar = TranslationCatalogueRegistrarAdapter(properties, RestClient.builder())
     private val catalogue =
         translations("task-service") {
             key("task.not_found") {

@@ -17,8 +17,9 @@ See [Shared Modules](../docs/shared-modules.md) for how this module relates to t
 | `ETagUtils`                                  | Builds and parses the weak `ETag` exposed from a JPA `@Version` column |
 | `SharedKeycloakProperties`                   | The `application.shared.keycloak.*` settings                           |
 
-`shared-web-config.yml` ships the Keycloak and OAuth2 defaults; an `EnvironmentPostProcessor`
-loads it so no service has to import it by hand.
+`shared-web-config.yml` ships the Keycloak and OAuth2 defaults, and the connect and read timeouts
+(`spring.http.clients`, 5 s and 10 s) every outgoing HTTP call built on Boot's clients inherits; an
+`EnvironmentPostProcessor` loads it so no service has to import it by hand.
 
 ## API documentation
 

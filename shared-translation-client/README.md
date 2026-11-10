@@ -11,7 +11,7 @@ See [Shared Modules](../docs/shared-modules.md) for how this module relates to t
 
 This is the one synchronous call in the system, and it is not on a request path; what happens when it fails is in
 [Service Dependencies](../docs/service-dependencies.md). `translation-service` itself does not take this module — it is
-the registry.
+the registry. The call is built on Boot's `RestClient.Builder`, so the timeouts of `spring.http.clients` bound it.
 
 ## API documentation
 

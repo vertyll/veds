@@ -58,8 +58,13 @@ dependencies {
 
     implementation(libs.spring.boot.starter)
     implementation(libs.springframework.web)
+    // Boot's RestClient.Builder, which carries the timeouts set under spring.http.clients
+    implementation(libs.spring.boot.restclient)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib.jdk8)
+
+    // The constraints on the configuration properties; the service brings the validator that checks them
+    compileOnly(libs.jakarta.validation.api)
 
     kapt(libs.spring.boot.configuration.processor)
 

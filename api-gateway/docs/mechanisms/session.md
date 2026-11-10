@@ -11,20 +11,31 @@ filter, which is why notification-service can authenticate its handshake from a 
 **Session store: Spring Session in Redis, encrypted.** Keycloak's tokens exceed the 4 KB cookie budget once encrypted,
 refresh-token rotation would mean rewriting the cookie on every proxied request, and a server-side record is what makes
 logout genuinely revoke access. It also lets any gateway replica serve any session. Sessions live under
-`veds:session:*`, and every attribute is sealed with AES-256-GCM, with a random nonce per write
+`veds:session:*`, and every attribute is written as JSON, with Spring Security's Jackson modules for the security
+context and the OAuth2 types, and sealed with AES-256-GCM, with a random nonce per write
 (`GATEWAY_SESSION_ENCRYPTION_KEY`, mandatory in production, so a misconfigured deployment fails to start rather than
-storing tokens in the clear) before it reaches Redis, so a copy of the data reveals no token; a value that no longer
-decrypts reads as absent and signs that browser out.
+storing tokens in the clear) before it reaches Redis, so a copy of the data reveals no token. JSON rather than Java
+serialization: reading Java-serialized bytes runs code the bytes choose, and ties a session to class versions. A value
+that no longer decrypts, or is not such JSON, reads as absent; a session whose own fields read as absent is deleted, and
+that browser signs in again.
+
+**Calls to Keycloak are bounded.** Token requests, the signing keys and the logout call share one `WebClient` on Boot's
+connector, with the connect and read timeouts of `spring.http.clients` (5 s and 10 s); routes to the services use
+`spring.cloud.gateway.server.webflux.httpclient` (5 s to connect, 30 s for a response), and Redis 2 s.
 
 **CSRF.** Once authentication travels in a cookie the browser attaches automatically, CSRF becomes a live concern that a
-`Bearer` header did not have. `VEDS_SESSION` is `SameSite=Strict`, so it is never sent on a cross-site request. The
+`Bearer` header did not have. The session cookie is `SameSite=Strict`, so it is never sent on a cross-site request. The
 pending authorization request therefore lives in its own cookie, which must be `Lax` — it is read on the callback, which
 *is* a cross-site redirect — and is encrypted like the session.
 
 | Cookie                  | SameSite | Lifetime | Why                                                                 |
 |-------------------------|----------|----------|---------------------------------------------------------------------|
-| `VEDS_SESSION`          | `Strict` | 7 days   | The only cookie the SPA relies on; CSRF defense                     |
+| `__Host-VEDS_SESSION`   | `Strict` | 7 days   | The only cookie the SPA relies on; CSRF defense                     |
 | `KEYCLOAK_AUTH_REQUEST` | `Lax`    | 10 min   | State, nonce and PKCE verifier; survives the redirect from Keycloak |
+
+In production the session cookie carries the `__Host-` prefix, so the browser accepts it only with `Secure`,
+`Path=/` and no `Domain`. Locally, over plain HTTP, the cookie is not `Secure`, and is named `VEDS_SESSION`, since a
+prefixed cookie without `Secure` would be refused.
 
 > [!IMPORTANT]
 >

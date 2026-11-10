@@ -1,6 +1,9 @@
 package com.vertyll.veds.apigateway.config
 
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
 
 /**
  * Cross-origin policy for the gateway.
@@ -20,10 +23,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * ```
  */
 @ConfigurationProperties(prefix = "application.gateway.cors")
+@Validated
 data class GatewayCorsProperties(
     /** Origins allowed to call the gateway with credentials. */
-    val allowedOrigins: List<String> = emptyList(),
+    @field:NotEmpty
+    val allowedOrigins: List<@NotBlank String> = emptyList(),
+    @field:NotEmpty
     val allowedMethods: List<String> = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"),
+    @field:NotEmpty
     val allowedHeaders: List<String> = listOf("*"),
     val allowCredentials: Boolean = true,
 )

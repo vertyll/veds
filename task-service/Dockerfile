@@ -38,6 +38,7 @@ USER veds
 EXPOSE 8080
 
 ENV SPRING_PROFILES_ACTIVE=prod \
+    SERVER_PORT=8080 \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

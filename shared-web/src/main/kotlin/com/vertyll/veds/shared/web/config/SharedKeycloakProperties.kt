@@ -2,7 +2,10 @@ package com.vertyll.veds.shared.web.config
 
 import com.vertyll.veds.shared.web.openapi.SharedOpenApiProperties
 import com.vertyll.veds.shared.web.security.KeycloakJwtAuthenticationConverter
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
 
 /**
  * Type-safe binding for the `application.shared.keycloak.*` namespace, whose defaults ship in
@@ -16,35 +19,39 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * prefixes both work, but only until one of them grows a field named after the other.
  */
 @ConfigurationProperties(prefix = "application.shared.keycloak")
+@Validated
 data class SharedKeycloakProperties(
     /** Base URL of the Keycloak server. */
+    @field:NotBlank
     val serverUrl: String,
     /** Realm every service authenticates against. */
+    @field:NotBlank
     val realm: String,
     /** Client id of the service account used for admin calls. */
+    @field:NotBlank
     val adminClientId: String,
     /** Secret of that service account. */
+    @field:NotBlank
     val adminClientSecret: String,
     /** Client id the gateway uses for the authorization-code flow. */
+    @field:NotBlank
     val gatewayClientId: String,
     /** Secret for that client. */
+    @field:NotBlank
     val gatewayClientSecret: String,
     /** Dotted path to the roles claim inside the access token. */
+    @field:NotBlank
     val rolesClaimPath: String,
     /** Attributes of the cookies the gateway sets. */
+    @field:Valid
     val cookie: CookieProperties,
 ) {
-    /** The attributes of the refresh-token cookie. */
+    /** The attributes the gateway's cookies share. */
     data class CookieProperties(
-        /** The name of the cookie. */
-        val refreshTokenCookieName: String,
-        /** Whether scripts are kept from reading the cookie. */
-        val httpOnly: Boolean,
-        /** Whether the cookie travels over HTTPS only. */
+        /** Whether the cookies travel over HTTPS only. */
         val secure: Boolean,
-        /** The `SameSite` attribute of the cookie. */
-        val sameSite: String,
-        /** The `Path` attribute of the cookie. */
+        /** The `Path` attribute of the cookies. */
+        @field:NotBlank
         val path: String,
     )
 }

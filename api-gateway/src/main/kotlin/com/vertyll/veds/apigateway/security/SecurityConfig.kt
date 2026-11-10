@@ -46,7 +46,7 @@ internal class SecurityConfig(
                     .permitAll()
                     .pathMatchers(*SWAGGER_ENDPOINTS)
                     .permitAll()
-                    .pathMatchers(ACTUATOR_ENDPOINTS)
+                    .pathMatchers(HEALTH_ENDPOINTS)
                     .permitAll()
                     .pathMatchers(*PROTECTED_AUTH_ENDPOINTS)
                     .authenticated()
@@ -121,7 +121,7 @@ internal class SecurityConfig(
                 "/swagger-ui/**",
             )
 
-        private const val ACTUATOR_ENDPOINTS = "/actuator/**"
+        private const val HEALTH_ENDPOINTS = "/actuator/health/**"
 
         private val PROTECTED_AUTH_ENDPOINTS =
             arrayOf(

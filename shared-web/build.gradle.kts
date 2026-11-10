@@ -79,6 +79,9 @@ dependencies {
     // Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it
     testImplementation("io.projectreactor:reactor-core")
 
+    // The constraints on the configuration properties; the service brings the validator that checks them
+    compileOnly(libs.jakarta.validation.api)
+
     kapt(libs.spring.boot.configuration.processor)
 
     testImplementation(libs.bundles.test.common)

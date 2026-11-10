@@ -58,7 +58,7 @@ sequenceDiagram
     G->>K: code + client secret + PKCE verifier
     K-->>G: access, refresh and ID token
     Note over G: tokens kept in the session, in Redis
-    G-->>B: Set-Cookie VEDS_SESSION (opaque, HttpOnly, SameSite=Strict)
+    G-->>B: Set-Cookie __Host-VEDS_SESSION (opaque, Secure, HttpOnly, SameSite=Strict)
     B->>G: GET /projects + cookie
     G->>K: token exchange (RFC 8693)
     K-->>G: token with aud = veds-project-service
@@ -208,11 +208,13 @@ gateway; flip `SERVER_SSL_ENABLED` when a process holds the certificate itself.
 | Leg                       | Setting                                                                                          |
 |---------------------------|--------------------------------------------------------------------------------------------------|
 | Browser → ingress/gateway | `SERVER_SSL_ENABLED`, `SERVER_SSL_BUNDLE`                                                        |
-| Ingress → gateway         | `forward-headers-strategy: framework` (keeps the https scheme in redirect URIs and `Set-Cookie`) |
+| Ingress → gateway         | `forward-headers-strategy: framework`, on the gateway only (keeps the https scheme in redirects) |
 | Gateway → Redis           | `spring.data.redis.ssl.enabled=true`, `REDIS_SSL_BUNDLE`                                         |
 | Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                    |
 | Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                    |
 | Cookie flag               | `application.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                   |
+| Session cookie            | `__Host-VEDS_SESSION` in prod: `Secure`, `Path=/`, no `Domain`                                   |
+| mail-service → SMTP       | STARTTLS required; the chain and the host name are verified, no `ssl.trust` override             |
 
 Two choices worth stating:
 
@@ -221,7 +223,9 @@ Two choices worth stating:
 - **`ssl.endpoint.identification.algorithm: https` for Kafka.** The default in some setups is empty, which disables
   hostname verification and reintroduces the same gap.
 - **`forward-headers-strategy` only behind a trusted proxy.** It makes the application believe `X-Forwarded-*`, so it
-  must stay off wherever something untrusted can set those headers.
+  must stay off wherever something untrusted can set those headers. Only the gateway sits behind the ingress; the
+  services are reached in the cluster, from the gateway and from each other, build no absolute URL from a request, and
+  so trust no forwarded header and carry no `server.ssl` settings.
 - **`server.ssl.enabled` only when TLS terminates in the process.** With an ingress holding the certificate it stays
   off; turning it on there gives a service talking TLS to a proxy that already did.
 

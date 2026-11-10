@@ -4,7 +4,7 @@ spring:
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL}
     security:
-      protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+      protocol: ${KAFKA_SECURITY_PROTOCOL}
     ssl:
       trust-store-location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:}
       trust-store-type: ${KAFKA_SSL_TRUSTSTORE_TYPE:PKCS12}

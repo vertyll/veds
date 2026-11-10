@@ -1,4 +1,8 @@
 spring:
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 10s
   mvc:
     problemdetails:
       enabled: true
@@ -25,8 +29,5 @@ application:
       gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET}
       roles-claim-path: realm_access.roles
       cookie:
-        refresh-token-cookie-name: KEYCLOAK_REFRESH_TOKEN
-        http-only: true
         secure: ${COOKIE_SECURE:true}
-        same-site: Strict
         path: "/"

@@ -10,15 +10,6 @@ spring:
       hibernate:
         format_sql: false
 
-  flyway:
-    clean-disabled: true
-
-server:
-  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
-  ssl:
-    enabled: ${SERVER_SSL_ENABLED:false}
-    bundle: ${SERVER_SSL_BUNDLE:}
-
 springdoc:
   api-docs:
     enabled: false

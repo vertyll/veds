@@ -34,7 +34,11 @@ interface OutboxRepositoryPort {
      *  - it is [OutboxStatus.PROCESSING] whose [OutboxMessage.processedAt]
      *    is older than [stuckBefore] (crash-recovery for messages whose
      *    publisher died after the row was marked PROCESSING but before the
-     *    publishing completed).
+     *    publishing completed),
+     *
+     * and no older message with the same topic and key is [OutboxStatus.PROCESSING],
+     * or [OutboxStatus.PENDING] after a failed attempt, so one key's messages
+     * are dispatched in the order they were written. Messages come oldest first.
      *
      * Implementations MUST be called within an active transaction so the
      * pessimistic lock survives until the caller updates each row.

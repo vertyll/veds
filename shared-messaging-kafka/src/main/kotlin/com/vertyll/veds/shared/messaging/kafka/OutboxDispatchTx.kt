@@ -50,6 +50,16 @@ class OutboxDispatchTx(
     }
 
     /**
+     * Fresh `REQUIRES_NEW` transaction that hands [message] back to the queue
+     * unsent and without counting an attempt: an older message with the same
+     * key failed in this batch, so this one must wait for it.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun release(message: OutboxMessage) {
+        outboxRepository.save(message.markReleased())
+    }
+
+    /**
      * Fresh `REQUIRES_NEW` transaction that either:
      *  - schedules [message] for a retry (back to `PENDING`, `retryCount`
      *    incremented), or

@@ -6,6 +6,7 @@ import com.vertyll.veds.sharedauthz.permissions
 import org.awaitility.Awaitility.await
 import org.springframework.boot.DefaultApplicationArguments
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.RestClient
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.time.Duration
@@ -36,7 +37,7 @@ internal class PermissionCatalogueRegistrationTest {
             baseUrl = "http://${iam.address.hostString}:${iam.address.port}",
             registrationRetryInterval = Duration.ZERO,
         )
-    private val registrar = PermissionCatalogueRegistrarAdapter(properties)
+    private val registrar = PermissionCatalogueRegistrarAdapter(properties, RestClient.builder())
     private val catalogue =
         permissions("task") {
             permission("VIEW_TASKS", description = "See tasks")

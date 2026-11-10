@@ -30,7 +30,8 @@ class EmailService(
         val subject = template.subject
 
         try {
-            logger.info(LOG_SENDING_EMAIL, to, subject)
+            logger.info(LOG_SENDING_EMAIL, template.templateName, subject)
+            logger.debug(LOG_RECIPIENT, template.templateName, to)
 
             val htmlContent = templateRenderer.render(template.templateName, variables)
             mailSender.sendHtml(
@@ -52,7 +53,8 @@ class EmailService(
 
             return true
         } catch (e: Exception) {
-            logger.error(LOG_SEND_FAILURE, to, subject, e)
+            logger.error(LOG_SEND_FAILURE, template.templateName, subject, e)
+            logger.debug(LOG_RECIPIENT, template.templateName, to)
 
             saveEmailLog(
                 recipient = to,
@@ -123,7 +125,9 @@ class EmailService(
     private companion object {
         private const val MAX_VARIABLE_VALUE_LENGTH = 50
 
-        private const val LOG_SENDING_EMAIL = "Sending email to {} with subject: {}"
-        private const val LOG_SEND_FAILURE = "Failed to send email to {} with subject: {}"
+        // The address is personal data: it is logged at DEBUG only, and the template names the email at INFO.
+        private const val LOG_SENDING_EMAIL = "Sending {} email with subject: {}"
+        private const val LOG_SEND_FAILURE = "Failed to send {} email with subject: {}"
+        private const val LOG_RECIPIENT = "Recipient of the {} email: {}"
     }
 }

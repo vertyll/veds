@@ -13,12 +13,16 @@ import org.springframework.web.client.RestClient
  * for belonging to another service is a deployment mistake worth seeing in the
  * logs of the service that made it, not a message failing silently in a consumer
  * somewhere else.
+ *
+ * The client is built from Boot's [RestClient.Builder], so the connect and read timeouts set under
+ * `spring.http.clients` bound every call.
  */
 @Component
 class TranslationCatalogueRegistrarAdapter(
     properties: TranslationClientProperties,
+    restClientBuilder: RestClient.Builder,
 ) : TranslationCatalogueRegistrar {
-    private val client: RestClient = RestClient.builder().baseUrl(properties.baseUrl).build()
+    private val client: RestClient = restClientBuilder.baseUrl(properties.baseUrl).build()
 
     override fun register(catalogue: TranslationCatalogue) {
         client

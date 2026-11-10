@@ -70,18 +70,21 @@ internal class KeycloakIdentityProviderAdapter(
                             mapOf("reason" to "created without a Location header", "email" to email),
                         )
                 val keycloakUserId = UUID.fromString(location.substringAfterLast("/"))
-                logger.info("Created Keycloak user: {} with id: {}", email, keycloakUserId)
+                logger.info("Created Keycloak user: {}", keycloakUserId)
+                logger.debug("Keycloak user {} has the email {}", keycloakUserId, email)
                 assignRole(keycloakUserId.toString(), roleName)
                 keycloakUserId
             }
 
             HttpStatus.CONFLICT.value() -> {
-                logger.warn("User already exists in Keycloak: {}", email)
+                logger.warn("User already exists in Keycloak")
+                logger.debug("Keycloak already has a user with the email {}", email)
                 throw ApiException(IamError.USER_ALREADY_EXISTS, mapOf("email" to email))
             }
 
             else -> {
-                logger.error("Failed to create Keycloak user: {} - status: {}", email, response.status)
+                logger.error("Failed to create Keycloak user - status: {}", response.status)
+                logger.debug("Keycloak refused the user with the email {}", email)
                 throw ApiException(
                     IamError.IDENTITY_PROVIDER_FAILED,
                     mapOf("status" to response.status),
@@ -122,7 +125,8 @@ internal class KeycloakIdentityProviderAdapter(
         userRepresentation.email = newEmail
         userRepresentation.username = newEmail
         userResource.update(userRepresentation)
-        logger.info("Updated email for Keycloak user: {} to {}", keycloakId, newEmail)
+        logger.info("Updated email for Keycloak user: {}", keycloakId)
+        logger.debug("New email of Keycloak user {}: {}", keycloakId, newEmail)
     }
 
     override fun createRole(

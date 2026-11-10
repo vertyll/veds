@@ -38,6 +38,10 @@ internal class KafkaTemplateAutoConfiguration {
     /**
      * Byte-array producer factory used by the outbox: keys are strings,
      * values are pre-serialized bytes (Avro/JSON encoded by the caller).
+     *
+     * A send is bounded: at most [MAX_BLOCK_MS] waiting for metadata or buffer space,
+     * then at most [DELIVERY_TIMEOUT_MS] until the broker acknowledges. Together they stay
+     * below the outbox's `send-timeout`, so the producer reports its own error first.
      */
     @Bean
     fun producerFactory(properties: KafkaInfraProperties): ProducerFactory<String, ByteArray> {
@@ -46,6 +50,9 @@ internal class KafkaTemplateAutoConfiguration {
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to properties.bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to ByteArraySerializer::class.java,
+                ProducerConfig.MAX_BLOCK_MS_CONFIG to MAX_BLOCK_MS,
+                ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG to REQUEST_TIMEOUT_MS,
+                ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG to DELIVERY_TIMEOUT_MS,
             ) + securityProps(properties)
         return DefaultKafkaProducerFactory(configProps)
     }
@@ -142,6 +149,13 @@ internal class KafkaTemplateAutoConfiguration {
 
     private companion object {
         private const val RETRY_INTERVAL_MS = 1000L
+
+        private const val MAX_BLOCK_MS = 10_000
+
+        private const val REQUEST_TIMEOUT_MS = 15_000
+
+        // Must be at least linger.ms plus request.timeout.ms, or the producer refuses to start.
+        private const val DELIVERY_TIMEOUT_MS = 30_000
 
         // Suffix of the dead letter topic, matching `infra/kafka/topics.tf`.
         private const val DLT_SUFFIX = "-dlt"

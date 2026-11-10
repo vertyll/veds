@@ -39,6 +39,15 @@ class KafkaTemplateAutoConfigurationTest {
     }
 
     @Test
+    fun `a send is bounded well below the outbox's stuck threshold`() {
+        val config = producerConfig(properties())
+
+        assertEquals(10_000, config[ProducerConfig.MAX_BLOCK_MS_CONFIG])
+        assertEquals(15_000, config[ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG])
+        assertEquals(30_000, config[ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG])
+    }
+
+    @Test
     fun `plaintext clients carry no security settings`() {
         val config = producerConfig(properties())
 

@@ -110,6 +110,47 @@ internal class MessagingPersistenceIntegrationTest(
         assertEquals(BATCH, batch.size)
     }
 
+    private fun claim(retriableBefore: Instant) =
+        transactions
+            .execute {
+                outbox.lockBatchForDispatch(
+                    maxRetries = 3,
+                    retriableBefore = retriableBefore,
+                    stuckBefore = Instant.now().minus(Duration.ofMinutes(1)),
+                    batchSize = 10,
+                )
+            }.map { it.id }
+
+    @Test
+    fun `a message waits behind an older one with the same key until that one is sent`() {
+        outboxRows.deleteAllInBatch()
+        val first = outbox.save(outbox.create(topic = "orders", key = "order-7", payload = byteArrayOf(1), sagaId = null, eventId = null))
+        val second = outbox.save(outbox.create(topic = "orders", key = "order-7", payload = byteArrayOf(2), sagaId = null, eventId = null))
+        val other = outbox.save(outbox.create(topic = "orders", key = "order-8", payload = byteArrayOf(3), sagaId = null, eventId = null))
+        val inFlight = outbox.save(first.markProcessing())
+
+        assertEquals(listOf(other.id), claim(retriableBefore = Instant.now().plus(Duration.ofMinutes(1))))
+
+        val failed = outbox.save(inFlight.markRetryScheduled("broker unavailable"))
+
+        assertEquals(listOf(other.id), claim(retriableBefore = Instant.now().minus(Duration.ofMinutes(1))))
+        assertEquals(listOf(first.id, other.id), claim(retriableBefore = Instant.now().plus(Duration.ofMinutes(1))))
+
+        outbox.save(failed.markProcessing().markCompleted())
+
+        assertEquals(listOf(second.id, other.id), claim(retriableBefore = Instant.now().plus(Duration.ofMinutes(1))))
+    }
+
+    @Test
+    fun `a dead-lettered message holds back nothing behind it`() {
+        outboxRows.deleteAllInBatch()
+        val first = outbox.save(outbox.create(topic = "orders", key = "order-9", payload = byteArrayOf(1), sagaId = null, eventId = null))
+        val second = outbox.save(outbox.create(topic = "orders", key = "order-9", payload = byteArrayOf(2), sagaId = null, eventId = null))
+        outbox.save(first.markProcessing().markDeadLettered("undeliverable"))
+
+        assertEquals(listOf(second.id), claim(retriableBefore = Instant.now().plus(Duration.ofMinutes(1))))
+    }
+
     @Test
     fun `a consumed event is remembered per consumer group`() {
         inbox.insert(inbox.create("event-seen", "group-a"))

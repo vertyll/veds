@@ -7,6 +7,8 @@ package com.vertyll.veds.shared.messaging.kafka.contract
  * ```
  *   PENDING ──► PROCESSING ──► COMPLETED                 (happy path)
  *                  │
+ *                  ├──► PENDING (released unsent behind a failed older message with the same key)
+ *                  │
  *                  └──► PENDING (retry, with retryCount++ and lastRetryAt)
  *                                    │
  *                                    └──► DEAD_LETTERED   (max retries exhausted)

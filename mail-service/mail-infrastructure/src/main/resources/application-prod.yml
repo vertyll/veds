@@ -12,9 +12,6 @@ spring:
       hibernate:
         format_sql: false
 
-  flyway:
-    clean-disabled: true
-
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -28,13 +25,7 @@ spring:
             enable: true
             required: true
           ssl:
-            trust: ${MAIL_SMTP_TRUST}
-
-server:
-  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
-  ssl:
-    enabled: ${SERVER_SSL_ENABLED:false}
-    bundle: ${SERVER_SSL_BUNDLE:}
+            checkserveridentity: true
 
 springdoc:
   api-docs:
