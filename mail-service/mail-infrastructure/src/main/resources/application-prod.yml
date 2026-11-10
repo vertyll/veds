@@ -6,17 +6,13 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
 
   jpa:
-    show-sql: false
-    open-in-view: false
     properties:
       hibernate:
         format_sql: false
 
   flyway:
-    validate-on-migrate: true
     clean-disabled: true
 
   mail:
@@ -33,12 +29,8 @@ spring:
             required: true
           ssl:
             trust: ${MAIL_SMTP_TRUST}
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
 
 server:
-  port: ${SERVER_PORT:8083}
   forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
   ssl:
     enabled: ${SERVER_SSL_ENABLED:false}
@@ -65,7 +57,6 @@ logging:
     ROOT: WARN
     com.vertyll.veds: INFO
     org.springframework.security: INFO
-    org.springframework.kafka: INFO
     org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.hibernate.orm.jdbc.bind: INFO
     org.springframework.mail: INFO

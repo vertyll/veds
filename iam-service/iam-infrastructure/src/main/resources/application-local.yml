@@ -4,20 +4,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/iam_db
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
 
   jpa:
-    show-sql: false
-    open-in-view: false
     properties:
       hibernate:
         format_sql: true
-
-  flyway:
-    validate-on-migrate: true
-
-server:
-  port: 8082
 
 springdoc:
   api-docs:
@@ -40,6 +31,5 @@ logging:
     ROOT: INFO
     com.vertyll.veds: DEBUG
     org.springframework.security: DEBUG
-    org.springframework.kafka: INFO
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE

@@ -7,17 +7,11 @@ spring:
     url: jdbc:postgresql://localhost:5433/mail_service
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
 
   jpa:
-    show-sql: false
-    open-in-view: false
     properties:
       hibernate:
         format_sql: true
-
-  flyway:
-    validate-on-migrate: true
 
   mail:
     host: localhost
@@ -31,12 +25,6 @@ spring:
           auth: false
           starttls:
             enable: false
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
-
-server:
-  port: 8083
 
 springdoc:
   api-docs:
@@ -64,7 +52,6 @@ logging:
     ROOT: INFO
     com.vertyll.veds: DEBUG
     org.springframework.security: DEBUG
-    org.springframework.kafka: INFO
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.mail: DEBUG

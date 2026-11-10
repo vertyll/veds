@@ -5,16 +5,27 @@ spring:
   profiles:
     default: local
 
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         default_batch_fetch_size: 50
 
+  flyway:
+    validate-on-migrate: true
+
   kafka:
     consumer:
       group-id: project-service-group
+
+server:
+  port: ${SERVER_PORT:8084}
 
 management:
   endpoints:
@@ -31,3 +42,7 @@ management:
 application:
   translation:
     supported-languages: ${SUPPORTED_LANGUAGES:pl,en}
+
+logging:
+  level:
+    org.springframework.kafka: INFO
