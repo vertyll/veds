@@ -7,21 +7,14 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    hibernate:
-      ddl-auto: validate
     show-sql: false
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
-        default_batch_fetch_size: 50
 
   flyway:
     validate-on-migrate: true
-
-  kafka:
-    consumer:
-      group-id: file-service-group
 
 server:
   port: 8088
@@ -48,8 +41,6 @@ application:
       bucket: ${OBJECT_STORAGE_BUCKET:veds-files}
       access-key: ${OBJECT_STORAGE_ACCESS_KEY:GK7b3f9c1e4a5d2086f1c3b5a7}
       secret-key: ${OBJECT_STORAGE_SECRET_KEY:4f8a1c6e9b2d5307a8e1f4c7b0d3a6e92c5f8b1d4a7e0c3f6b9d2a5e8c1f4b7d}
-      upload-url-validity: 15m
-      download-url-validity: 5m
 
 logging:
   level:

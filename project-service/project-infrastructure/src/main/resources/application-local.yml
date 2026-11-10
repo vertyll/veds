@@ -7,21 +7,14 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    hibernate:
-      ddl-auto: validate
     show-sql: false
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
-        default_batch_fetch_size: 50
 
   flyway:
     validate-on-migrate: true
-
-  kafka:
-    consumer:
-      group-id: project-service-group
 
 server:
   port: 8084
@@ -44,7 +37,6 @@ application:
   translation:
     client:
       base-url: http://localhost:8087
-    supported-languages: ${SUPPORTED_LANGUAGES:pl,en}
 
 logging:
   level:

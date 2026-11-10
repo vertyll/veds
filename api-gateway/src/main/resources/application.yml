@@ -8,6 +8,10 @@ spring:
   main:
     web-application-type: reactive
 
+  data:
+    redis:
+      port: ${REDIS_PORT:6379}
+
   session:
     timeout: ${GATEWAY_SESSION_TTL:7d}
     data:
@@ -33,6 +37,12 @@ server:
         secure: ${application.shared.keycloak.cookie.secure}
         path: /
         max-age: ${GATEWAY_SESSION_TTL:7d}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 management:
   endpoints:

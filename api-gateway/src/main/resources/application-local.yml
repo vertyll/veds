@@ -2,7 +2,6 @@ spring:
   data:
     redis:
       host: localhost
-      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:local-redis-password}
 
   cloud:
@@ -55,12 +54,6 @@ spring:
 
 server:
   port: 8080
-
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
 
 application:
   gateway:

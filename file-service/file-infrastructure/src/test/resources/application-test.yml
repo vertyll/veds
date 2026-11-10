@@ -1,11 +1,8 @@
 spring:
   jpa:
-    hibernate:
-      ddl-auto: validate
     properties:
       hibernate:
         format_sql: false
-        default_batch_fetch_size: 50
   flyway:
     enabled: true
   kafka:
@@ -26,8 +23,6 @@ application:
       bucket: veds-files-test
       access-key: test-access-key
       secret-key: test-secret-key
-      upload-url-validity: 15m
-      download-url-validity: 5m
 
 logging:
   level:

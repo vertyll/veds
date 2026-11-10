@@ -11,6 +11,17 @@ spring:
   profiles:
     default: local
 
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_batch_fetch_size: 50
+
+  kafka:
+    consumer:
+      group-id: mail-service-group
+
 management:
   endpoints:
     web:

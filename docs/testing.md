@@ -48,12 +48,12 @@ when the module carries `spring.test.constructor.autowire.mode = all` in
 `junit-platform.properties` — its default is `ANNOTATED`, and without the file it declines to
 resolve them at all, so every test in the module fails before the context is even asked for.
 
-The `test` profile is a full profile, not a patch: a property the service requires has to be set
-there as well. It gets an unroutable value — `http://localhost:1` for the authz and translation
-clients — so a test that unintentionally calls out fails loudly instead of reaching a real
-service. A property left unset surfaces as a bean-creation failure at context start, and only
-under `-PintegrationTests`, which is why `./gradlew build` stays green while the service cannot
-boot.
+The `test` profile sits on `application.yml` alone, never on `local` or `prod`: what every profile shares lives in
+`application.yml`, and a property the service requires that `application-local.yml` and `application-prod.yml` each
+set for themselves has to be set in `application-test.yml` as well. It gets an unroutable value — `http://localhost:1`
+for the authz and translation clients — so a test that unintentionally calls out fails loudly instead of reaching a
+real service. A property left unset surfaces as a bean-creation failure at context start, and only under
+`-PintegrationTests`, which is why `./gradlew build` stays green while the service cannot boot.
 
 The outbox and the saga engine are the two things most worth testing here, and neither can be meaningfully exercised
 against mocks: the outbox exists *because* Kafka does not join the database transaction, so a test with both faked
