@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -42,20 +41,13 @@ internal class UserJpaRepositoryIntegrationTest(
 
     @Test
     @Transactional
-    fun `a user is loaded by email with roles and their permissions`() {
+    fun `a user is loaded by email with its roles`() {
         persistUser()
 
         val found = users.findByEmail(EMAIL)
 
         assertTrue(found.isPresent)
         assertEquals(1, found.get().roles.size)
-        assertNotNull(
-            found
-                .get()
-                .roles
-                .first()
-                .permissions,
-        )
     }
 
     @Test

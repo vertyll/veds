@@ -23,7 +23,7 @@ internal class RoleJpaEntity(
     var name: String,
     @Column(nullable = true)
     var description: String? = null,
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "role_permission_mapping",
         joinColumns = [JoinColumn(name = "role_id")],

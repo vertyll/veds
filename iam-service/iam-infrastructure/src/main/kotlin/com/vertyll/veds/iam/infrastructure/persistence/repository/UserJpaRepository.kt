@@ -12,24 +12,24 @@ import java.util.UUID
 
 @Repository
 internal interface UserJpaRepository : JpaRepository<UserJpaEntity, Long> {
-    @EntityGraph(attributePaths = ["roles", "roles.permissions"])
+    @EntityGraph(attributePaths = ["roles"])
     fun findByEmail(email: String): Optional<UserJpaEntity>
 
-    @EntityGraph(attributePaths = ["roles", "roles.permissions"])
+    @EntityGraph(attributePaths = ["roles"])
     fun findByKeycloakId(keycloakId: UUID): Optional<UserJpaEntity>
 
     fun existsByEmail(email: String): Boolean
 
-    @EntityGraph(attributePaths = ["roles", "roles.permissions"])
+    @EntityGraph(attributePaths = ["roles"])
     override fun findAll(pageable: Pageable): Page<UserJpaEntity>
 
-    @EntityGraph(attributePaths = ["roles", "roles.permissions"])
+    @EntityGraph(attributePaths = ["roles"])
     override fun findById(id: Long): Optional<UserJpaEntity>
 
     @Query("SELECT COUNT(u) FROM UserJpaEntity u JOIN u.roles r WHERE r.name = :roleName")
     fun countByRoleName(roleName: String): Long
 
-    @EntityGraph(attributePaths = ["roles", "roles.permissions"])
+    @EntityGraph(attributePaths = ["roles"])
     fun findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
         email: String,
         firstName: String,
