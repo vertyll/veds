@@ -6,6 +6,8 @@ import org.springframework.data.redis.serializer.RedisSerializer
 import org.springframework.data.redis.serializer.SerializationException
 import org.springframework.security.jackson.SecurityJacksonModules
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
+import java.net.URL
 import java.security.GeneralSecurityException
 
 /**
@@ -29,8 +31,13 @@ internal class EncryptedSessionSerializer(
         GenericJacksonJsonRedisSerializer(
             JsonMapper
                 .builder()
-                .addModules(SecurityJacksonModules.getModules(javaClass.classLoader))
-                .build(),
+                .addModules(
+                    SecurityJacksonModules.getModules(
+                        javaClass.classLoader,
+                        // The issuer of an OIDC ID token, which Spring Security reads as a URL and its own list leaves out.
+                        BasicPolymorphicTypeValidator.builder().allowIfSubType(URL::class.java),
+                    ),
+                ).build(),
         )
 
     override fun serialize(value: Any?): ByteArray = cipher.encrypt(delegate.serialize(value))

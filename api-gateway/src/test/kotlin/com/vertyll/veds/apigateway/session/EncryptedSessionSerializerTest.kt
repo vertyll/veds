@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.core.OAuth2RefreshToken
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority
+import java.net.URI
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Base64
@@ -58,6 +59,7 @@ internal class EncryptedSessionSerializerTest {
         OidcIdToken
             .withTokenValue("id-token")
             .subject("7d1c9a52-3a43-4c34-9a8f-2f5d7c6f1b10")
+            .claim("iss", URI.create("http://localhost:9000/realms/veds").toURL())
             .claim("email", "ada@veds.local")
             .issuedAt(now)
             .expiresAt(now.plusSeconds(300))
