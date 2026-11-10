@@ -64,27 +64,21 @@ dependencies {
 
     // OpenAPI: only contributes a bean when the service already brings springdoc
     compileOnly(libs.swagger.core.models)
-
     // Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it, and the gateway brings it
     compileOnly("io.projectreactor:reactor-core")
-
     // The service brings these: the container's mapper, which a problem document is serialized with,
-    // and the servlet API
+    // the servlet API, and the validator that checks the constraints on the configuration properties
     compileOnly(libs.jackson.databind)
     compileOnly(libs.jakarta.servlet.api)
-    testImplementation(libs.swagger.core.models)
-    testImplementation(libs.jackson.databind)
-    testImplementation(libs.jakarta.servlet.api)
-
-    // Reactor: only ReactiveKeycloakJwtAuthenticationConverter needs it
-    testImplementation("io.projectreactor:reactor-core")
-
-    // The constraints on the configuration properties; the service brings the validator that checks them
     compileOnly(libs.jakarta.validation.api)
 
     kapt(libs.spring.boot.configuration.processor)
 
     testImplementation(libs.bundles.test.common)
+    testImplementation(libs.swagger.core.models)
+    testImplementation(libs.jackson.databind)
+    testImplementation(libs.jakarta.servlet.api)
+    testImplementation("io.projectreactor:reactor-core")
 }
 
 configurations.matching { it.name.startsWith("ktlint") }.configureEach {
