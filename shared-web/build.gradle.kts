@@ -14,10 +14,7 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
-val kotlinVersion =
-    libs.versions.kotlin
-        .asProvider()
-        .get()
+val kotlinVersion = libs.versions.kotlin.get()
 
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"
@@ -58,7 +55,6 @@ dependencies {
     implementation(libs.spring.boot.starter)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib.jdk8)
-    implementation(libs.kotlin.logging)
 
     // Security, part of this module's public surface
     api("com.vertyll.veds:shared-authz")

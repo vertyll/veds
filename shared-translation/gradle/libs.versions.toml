@@ -9,7 +9,6 @@ dokka-plugin = "2.2.0"
 kotlin = "2.4.10"
 
 testcontainers = "2.0.5"
-kotlin-logging = "8.0.4"
 icu4j = "79.1"
 avro = "1.12.2"
 confluent = "8.4.0"
@@ -34,7 +33,6 @@ jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" 
 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-security-test = { module = "org.springframework.security:spring-security-test" }

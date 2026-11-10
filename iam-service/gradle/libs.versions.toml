@@ -11,9 +11,8 @@ kotlin = "2.4.10"
 
 springdoc = "3.2.0"
 testcontainers = "2.0.5"
-kotlin-logging = "8.0.4"
 junit-jupiter = "6.1.3"
-flyway = "13.12.0"
+flyway = "13.12.1"
 keycloak = "26.0.12"
 
 [libraries]
@@ -37,7 +36,6 @@ jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" 
 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
 spring-boot-starter-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
@@ -81,7 +79,6 @@ spring-boot-common = [
     "spring-boot-starter-jackson",
     "jackson-module-kotlin",
     "springframework-kafka",
-    "kotlin-logging",
 ]
 
 spring-boot-webmvc-security = [

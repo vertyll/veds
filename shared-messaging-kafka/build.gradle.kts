@@ -15,10 +15,7 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
-val kotlinVersion =
-    libs.versions.kotlin
-        .asProvider()
-        .get()
+val kotlinVersion = libs.versions.kotlin.get()
 
 group = "com.vertyll.veds"
 version = "0.0.1-SNAPSHOT"

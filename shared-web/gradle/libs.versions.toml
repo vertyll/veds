@@ -10,7 +10,6 @@ detekt-plugin = "2.0.0-alpha.6"
 dokka-plugin = "2.2.0"
 kotlin = "2.4.10"
 
-kotlin-logging = "8.0.4"
 swagger = "2.2.55"
 
 [libraries]
@@ -28,7 +27,6 @@ jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
 jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }

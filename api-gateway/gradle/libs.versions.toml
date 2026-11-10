@@ -11,7 +11,6 @@ kotlin = "2.4.10"
 
 springdoc = "3.2.0"
 testcontainers = "2.0.5"
-kotlin-logging = "8.0.4"
 springframework-cloud = "2025.1.4"
 
 [libraries]
@@ -39,7 +38,6 @@ jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor" }
 reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions" }
@@ -75,7 +73,6 @@ spring-boot-common = [
     "kotlin-stdlib-jdk8",
     "spring-boot-starter-jackson",
     "jackson-module-kotlin",
-    "kotlin-logging"
 ]
 
 spring-boot-gateway = [

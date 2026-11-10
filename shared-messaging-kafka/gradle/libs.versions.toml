@@ -11,7 +11,6 @@ dokka-plugin = "2.2.0"
 kotlin = "2.4.10"
 
 testcontainers = "2.0.5"
-kotlin-logging = "8.0.4"
 avro = "1.12.2"
 confluent = "8.4.0"
 
@@ -32,7 +31,6 @@ confluent-kafka-avro-serializer = { module = "io.confluent:kafka-avro-serializer
 
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
@@ -68,7 +66,6 @@ spring-boot-common = [
     "spring-boot-starter-jackson",
     "jackson-module-kotlin",
     "springframework-kafka",
-    "kotlin-logging"
 ]
 
 test-common = [

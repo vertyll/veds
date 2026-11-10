@@ -20,7 +20,7 @@ description = "File Microservice"
 extra["author"] = "Mikołaj Gawron"
 extra["email"] = "gawrmiko@gmail.com"
 
-val kotlinVersion = libs.versions.kotlin.asProvider().get()
+val kotlinVersion = libs.versions.kotlin.get()
 
 allprojects {
     group = rootProject.group
