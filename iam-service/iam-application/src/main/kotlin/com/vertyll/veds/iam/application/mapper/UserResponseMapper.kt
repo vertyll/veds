@@ -1,18 +1,22 @@
 package com.vertyll.veds.iam.application.mapper
 
 import com.vertyll.veds.iam.application.dto.UserResponse
+import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.model.User
 
 internal object UserResponseMapper {
-    fun toResponse(user: User): UserResponse =
+    fun toResponse(
+        user: User,
+        heldRoles: Collection<Role>,
+    ): UserResponse =
         UserResponse(
             id = user.storedId,
             keycloakId = user.keycloakId?.toString(),
             firstName = user.firstName,
             lastName = user.lastName,
             email = user.email,
-            roles = user.roles.map { it.name }.toSet(),
-            permissions = user.permissions.map { it.name }.toSet(),
+            roles = user.roles,
+            permissions = user.permissionsFrom(heldRoles),
             avatarFileId = user.avatarFileId,
             phoneNumber = user.phoneNumber,
             address = user.address,

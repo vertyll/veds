@@ -30,6 +30,6 @@ class RoleQueryService(
 
     override fun getRolesForUser(userId: Long): List<RoleResponse> {
         val user = userRepository.findById(userId) ?: throw ApiException(IamError.USER_NOT_FOUND)
-        return user.roles.map(RoleResponseMapper::toResponse)
+        return roleRepository.findAllByNames(user.roles).map(RoleResponseMapper::toResponse)
     }
 }

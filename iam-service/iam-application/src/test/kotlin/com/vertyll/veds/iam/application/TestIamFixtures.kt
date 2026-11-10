@@ -15,13 +15,13 @@ internal fun user(
     id: Long = 1L,
     email: String = "ada@example.com",
     keycloakId: UUID? = Uuid.generateV7().toJavaUuid(),
-    roles: Set<Role> = emptySet(),
+    roles: Set<String> = emptySet(),
 ) = User(id = id, keycloakId = keycloakId, email = email, firstName = "Ada", lastName = "Lovelace", roles = roles)
 
 internal fun role(
     id: Long = 1L,
     name: String = "USER",
-    permissions: Set<Permission> = emptySet(),
+    permissions: Set<String> = emptySet(),
     unrestricted: Boolean = false,
 ) = Role(id = id, name = name, permissions = permissions, unrestricted = unrestricted)
 

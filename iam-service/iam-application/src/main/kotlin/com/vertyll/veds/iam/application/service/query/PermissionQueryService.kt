@@ -26,7 +26,7 @@ class PermissionQueryService(
                     grantedByRoles =
                         roles
                             .asSequence()
-                            .filter { role -> role.permissions.any { it.id == permission.id } }
+                            .filter { role -> permission.name in role.permissions }
                             .map { it.name }
                             .sorted()
                             .toList(),

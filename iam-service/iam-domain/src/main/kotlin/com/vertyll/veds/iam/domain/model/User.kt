@@ -9,7 +9,7 @@ data class User(
     val email: String,
     val firstName: String,
     val lastName: String,
-    val roles: Set<Role> = emptySet(),
+    val roles: Set<String> = emptySet(),
     val avatarFileId: UUID? = null,
     val phoneNumber: String? = null,
     val address: String? = null,
@@ -24,8 +24,8 @@ data class User(
     val storedId: Long
         get() = checkNotNull(id) { "user '$keycloakId' has no id" }
 
-    val permissions: Set<Permission>
-        get() = roles.flatMap { it.permissions }.toSet()
+    fun permissionsFrom(heldRoles: Collection<Role>): Set<String> =
+        heldRoles.filter { it.name in roles }.flatMapTo(mutableSetOf()) { it.permissions }
 
     fun withProfile(
         firstName: String,
@@ -43,18 +43,18 @@ data class User(
             updatedAt = Instant.now(),
         )
 
-    fun withRole(role: Role): User {
-        if (role.id == null || roles.any { it.id == role.id }) return this
+    fun withRole(roleName: String): User {
+        if (roleName in roles) return this
         return copy(
-            roles = roles + role,
+            roles = roles + roleName,
             updatedAt = Instant.now(),
         )
     }
 
-    fun withoutRole(roleId: Long): User {
-        if (roles.none { it.id == roleId }) return this
+    fun withoutRole(roleName: String): User {
+        if (roleName !in roles) return this
         return copy(
-            roles = roles.filterNot { it.id == roleId }.toSet(),
+            roles = roles - roleName,
             updatedAt = Instant.now(),
         )
     }

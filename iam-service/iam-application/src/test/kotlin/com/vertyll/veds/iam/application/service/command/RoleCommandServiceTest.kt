@@ -34,7 +34,7 @@ internal class RoleCommandServiceTest {
     private fun givenUser(
         id: Long = 1L,
         vararg granted: Role,
-    ) = user(id = id, roles = granted.toSet()).copy(version = 0L).also { users.given(it) }
+    ) = user(id = id, roles = granted.mapTo(mutableSetOf()) { it.name }).copy(version = 0L).also { users.given(it) }
 
     @Test
     fun `granting a role records it locally and in the identity provider`() {
@@ -42,7 +42,7 @@ internal class RoleCommandServiceTest {
 
         service.assignRoleToUser(existing.id!!, "ADMIN", version = 0L)
 
-        assertTrue(users.findById(existing.id!!)!!.roles.contains(adminRole))
+        assertTrue(users.findById(existing.id!!)!!.roles.contains(adminRole.name))
         assertTrue(identity.calls.contains("assignRole(${existing.keycloakId},ADMIN)"))
     }
 
@@ -90,7 +90,7 @@ internal class RoleCommandServiceTest {
 
         assertFailsWith<ApiException> { service.removeRoleFromUser(existing.id!!, "ADMIN", version = 9L) }
 
-        assertTrue(users.findById(existing.id!!)!!.roles.contains(adminRole))
+        assertTrue(users.findById(existing.id!!)!!.roles.contains(adminRole.name))
         assertTrue(identity.calls.isEmpty())
     }
 
@@ -100,7 +100,7 @@ internal class RoleCommandServiceTest {
 
         service.assignRoleToUser(existing.id!!, "ADMIN", version = 0L)
 
-        assertEquals(setOf(adminRole), users.findById(existing.id!!)!!.roles)
+        assertEquals(setOf(adminRole.name), users.findById(existing.id!!)!!.roles)
     }
 
     @Test
@@ -124,7 +124,7 @@ internal class RoleCommandServiceTest {
             events.changed
                 .single()
                 .permissions
-                .map { it.name },
+                .toList(),
         )
     }
 
@@ -154,7 +154,7 @@ internal class RoleCommandServiceTest {
         val view = permission(id = 1L, name = "TASKS_VIEW")
         val manage = permission(id = 2L, name = "TASKS_MANAGE")
         permissions.given(view, manage)
-        roles.given(role(id = 7L, name = "LEAD", permissions = setOf(view)).copy(version = 0L, scope = RoleScope.PROJECT))
+        roles.given(role(id = 7L, name = "LEAD", permissions = setOf(view.name)).copy(version = 0L, scope = RoleScope.PROJECT))
 
         val updated =
             service.updateRole(
@@ -169,7 +169,7 @@ internal class RoleCommandServiceTest {
             events.changed
                 .single()
                 .permissions
-                .map { it.name },
+                .toList(),
         )
     }
 
@@ -284,7 +284,7 @@ internal class RoleCommandServiceTest {
             users.stored
                 .getValue(holder.id!!)
                 .roles
-                .none { it.name == "ROOT" },
+                .none { it == "ROOT" },
         )
     }
 

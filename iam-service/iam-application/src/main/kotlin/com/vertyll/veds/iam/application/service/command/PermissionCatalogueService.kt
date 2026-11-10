@@ -71,7 +71,7 @@ class PermissionCatalogueService(
                     Role.create(
                         name = declaration.name,
                         description = "iam.role.shipped.description",
-                        permissions = permissionRepository.findAllByNames(declaration.permissions).toSet(),
+                        permissions = permissionRepository.findAllByNames(declaration.permissions).mapTo(mutableSetOf()) { it.name },
                         scope = declaration.scope,
                     ),
                 )
@@ -79,7 +79,7 @@ class PermissionCatalogueService(
             return
         }
 
-        val added = permissionRepository.findAllByNames(declaration.permissions.intersect(firstSeen))
+        val added = permissionRepository.findAllByNames(declaration.permissions.intersect(firstSeen)).map { it.name }
         if (added.isEmpty()) return
 
         val updated = roleRepository.save(existing.withPermissions(existing.permissions + added))
@@ -95,12 +95,12 @@ class PermissionCatalogueService(
         if (withdrawn.isEmpty()) return
 
         val withdrawnNames = withdrawn.map { it.name }.toSet()
-        val affected = roleRepository.findAll().filter { role -> role.permissions.any { it.name in withdrawnNames } }
+        val affected = roleRepository.findAll().filter { role -> role.permissions.any { it in withdrawnNames } }
 
         withdrawn.forEach(permissionRepository::delete)
 
         affected.forEach { role ->
-            val kept = role.permissions.filterNot { it.name in withdrawnNames }.toSet()
+            val kept = role.permissions - withdrawnNames
             eventPublisher.publishChanged(roleRepository.save(role.withPermissions(kept)))
         }
     }

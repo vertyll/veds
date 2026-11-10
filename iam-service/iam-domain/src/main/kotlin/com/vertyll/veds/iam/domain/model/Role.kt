@@ -6,7 +6,7 @@ data class Role(
     val id: Long? = null,
     val name: String,
     val description: String? = null,
-    val permissions: Set<Permission> = emptySet(),
+    val permissions: Set<String> = emptySet(),
     val unrestricted: Boolean = false,
     val scope: RoleScope = RoleScope.GLOBAL,
     val createdAt: Instant = Instant.now(),
@@ -16,27 +16,27 @@ data class Role(
     val storedId: Long
         get() = checkNotNull(id) { "role '$name' has no id" }
 
-    fun grants(permissionName: String): Boolean = unrestricted || permissions.any { it.name == permissionName }
+    fun grants(permissionName: String): Boolean = unrestricted || permissionName in permissions
 
-    fun withPermissions(granted: Set<Permission>): Role = copy(permissions = granted, updatedAt = Instant.now())
+    fun withPermissions(granted: Set<String>): Role = copy(permissions = granted, updatedAt = Instant.now())
 
     fun withDescription(value: String?): Role = copy(description = value, updatedAt = Instant.now())
 
-    fun withPermission(permission: Permission): Role {
-        if (permission.id == null || permissions.any { it.id == permission.id }) return this
-        return copy(permissions = permissions + permission, updatedAt = Instant.now())
+    fun withPermission(permissionName: String): Role {
+        if (permissionName in permissions) return this
+        return copy(permissions = permissions + permissionName, updatedAt = Instant.now())
     }
 
-    fun withoutPermission(permissionId: Long): Role {
-        if (permissions.none { it.id == permissionId }) return this
-        return copy(permissions = permissions.filterNot { it.id == permissionId }.toSet(), updatedAt = Instant.now())
+    fun withoutPermission(permissionName: String): Role {
+        if (permissionName !in permissions) return this
+        return copy(permissions = permissions - permissionName, updatedAt = Instant.now())
     }
 
     companion object {
         fun create(
             name: String,
             description: String? = null,
-            permissions: Set<Permission> = emptySet(),
+            permissions: Set<String> = emptySet(),
             unrestricted: Boolean = false,
             scope: RoleScope = RoleScope.GLOBAL,
         ): Role =

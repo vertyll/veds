@@ -16,16 +16,9 @@ internal class RolePersistenceAdapter(
     private val permissionRepository: PermissionJpaRepository,
 ) : RoleRepository {
     override fun save(role: Role): Role {
-        val managedPermissions =
-            role.permissions
-                .map { permission ->
-                    val id =
-                        permission.id
-                            ?: error("cannot grant an unsaved permission '${permission.name}' to a role")
-                    permissionRepository
-                        .findById(id)
-                        .orElseThrow { IllegalStateException("permission $id no longer exists") }
-                }.toMutableSet()
+        val managedPermissions = permissionRepository.findByNameIn(role.permissions).toMutableSet()
+        val missing = role.permissions - managedPermissions.mapTo(mutableSetOf()) { it.name }
+        check(missing.isEmpty()) { "cannot grant permissions that do not exist to role '${role.name}': $missing" }
         return repository.save(role.toJpaEntity(managedPermissions)).toDomain()
     }
 
@@ -62,7 +55,7 @@ internal fun RoleJpaEntity.toDomain() =
         id = this.id,
         name = this.name,
         description = this.description,
-        permissions = this.permissions.map { it.toDomain() }.toSet(),
+        permissions = this.permissions.mapTo(mutableSetOf()) { it.name },
         unrestricted = this.unrestricted,
         scope = RoleScope.fromString(this.scope) ?: error("role '${this.name}' carries an unknown scope '${this.scope}'"),
         createdAt = this.createdAt,

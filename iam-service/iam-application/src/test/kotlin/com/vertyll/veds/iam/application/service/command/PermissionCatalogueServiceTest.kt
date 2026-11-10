@@ -63,7 +63,7 @@ internal class PermissionCatalogueServiceTest {
     fun `withdrawing a permission announces the roles that granted it`() {
         val withdrawn = permission(id = 1L, name = "TASKS_ARCHIVE")
         permissions.given(withdrawn)
-        roles.given(role(id = 5L, name = "LEAD", permissions = setOf(withdrawn)))
+        roles.given(role(id = 5L, name = "LEAD", permissions = setOf(withdrawn.name)))
 
         register(PermissionDeclaration("TASKS_VIEW", null, RoleScope.PROJECT))
 
@@ -110,7 +110,7 @@ internal class PermissionCatalogueServiceTest {
         val manager = roles.findByName("MANAGER")
 
         assertEquals(RoleScope.PROJECT, manager?.scope)
-        assertEquals(setOf("TASKS_VIEW", "TASKS_MANAGE"), manager!!.permissions.mapTo(mutableSetOf()) { it.name })
+        assertEquals(setOf("TASKS_VIEW", "TASKS_MANAGE"), manager!!.permissions)
     }
 
     @Test
@@ -125,7 +125,7 @@ internal class PermissionCatalogueServiceTest {
             ),
         )
 
-        assertEquals(setOf("TASKS_VIEW"), roles.findByName("MANAGER")!!.permissions.mapTo(mutableSetOf()) { it.name })
+        assertEquals(setOf("TASKS_VIEW"), roles.findByName("MANAGER")!!.permissions)
     }
 
     @Test

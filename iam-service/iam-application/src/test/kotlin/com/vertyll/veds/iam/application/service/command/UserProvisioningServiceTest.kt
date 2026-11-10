@@ -47,7 +47,7 @@ internal class UserProvisioningServiceTest {
         val stored = users.findByKeycloakId(identity.keycloakId)
         assertNotNull(stored)
         assertEquals(identity.email, stored.email)
-        assertEquals(listOf(RoleType.USER.value), stored.roles.map { it.name })
+        assertEquals(listOf(RoleType.USER.value), stored.roles.toList())
     }
 
     @Test

@@ -13,7 +13,7 @@ internal class LocalRolePermissionsSource(
     override fun forRoles(roles: Collection<String>): Set<String> =
         roleRepository
             .findAllByNames(roles)
-            .flatMapTo(mutableSetOf()) { role -> role.permissions.map { it.name } }
+            .flatMapTo(mutableSetOf()) { it.permissions }
 
     @Transactional(readOnly = true)
     override fun isUnrestricted(roles: Collection<String>): Boolean = roleRepository.findAllByNames(roles).any { it.unrestricted }

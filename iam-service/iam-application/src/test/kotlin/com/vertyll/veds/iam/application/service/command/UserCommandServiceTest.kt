@@ -2,6 +2,7 @@
 
 package com.vertyll.veds.iam.application.service.command
 
+import com.vertyll.veds.iam.application.InMemoryRoleRepository
 import com.vertyll.veds.iam.application.InMemoryUserRepository
 import com.vertyll.veds.iam.application.RecordingAuthEventPublisher
 import com.vertyll.veds.iam.application.command.UpdateProfileCommand
@@ -21,7 +22,7 @@ internal class UserCommandServiceTest {
     private val users = InMemoryUserRepository()
     private val events = RecordingAuthEventPublisher()
 
-    private val service = UserCommandService(users, events)
+    private val service = UserCommandService(users, InMemoryRoleRepository(), events)
 
     private val existing = user().copy(version = 0L).also { users.given(it) }
 

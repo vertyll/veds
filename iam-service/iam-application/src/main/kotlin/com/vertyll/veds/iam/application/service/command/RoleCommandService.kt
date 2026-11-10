@@ -8,7 +8,6 @@ import com.vertyll.veds.iam.application.port.inbound.command.RoleCommandUseCase
 import com.vertyll.veds.iam.application.port.outbound.IdentityProviderPort
 import com.vertyll.veds.iam.application.port.outbound.RolePermissionsEventPublisherPort
 import com.vertyll.veds.iam.domain.error.IamError
-import com.vertyll.veds.iam.domain.model.Permission
 import com.vertyll.veds.iam.domain.model.Role
 import com.vertyll.veds.iam.domain.model.RoleScope
 import com.vertyll.veds.iam.domain.model.RoleType
@@ -70,7 +69,7 @@ class RoleCommandService(
         val role = roleRepository.findByName(name) ?: throw ApiException(IamError.ROLE_NOT_FOUND)
         if (RoleType.fromString(role.name) != null) throw ApiException(IamError.ROLE_IS_SYSTEM)
         if (role.unrestricted) throw ApiException(IamError.LAST_UNRESTRICTED_ROLE)
-        if (userRepository.countByRole(role.storedId) > 0) throw ApiException(IamError.ROLE_STILL_ASSIGNED)
+        if (userRepository.countByRole(role.name) > 0) throw ApiException(IamError.ROLE_STILL_ASSIGNED)
 
         roleRepository.delete(role)
         if (role.scope == RoleScope.GLOBAL) identityProvider.deleteRole(role.name)
@@ -89,7 +88,7 @@ class RoleCommandService(
         }
 
         val role = roleRepository.findByName(roleName) ?: throw ApiException(IamError.ROLE_NOT_FOUND)
-        val updated = user.withRole(role)
+        val updated = user.withRole(role.name)
         userRepository.save(updated)
 
         updated.keycloakId?.let { identityProvider.assignRole(it.toString(), roleName) }
@@ -109,7 +108,7 @@ class RoleCommandService(
         val role = roleRepository.findByName(roleName) ?: throw ApiException(IamError.ROLE_NOT_FOUND)
         requireSomebodyKeepsEveryPermission(role)
 
-        val updated = user.withoutRole(role.storedId)
+        val updated = user.withoutRole(role.name)
         userRepository.save(updated)
 
         updated.keycloakId?.let { identityProvider.removeRole(it.toString(), roleName) }
@@ -122,16 +121,16 @@ class RoleCommandService(
             roleRepository
                 .findAll()
                 .filter { it.unrestricted && it.id != role.id }
-                .any { userRepository.countByRole(it.storedId) > 0 }
+                .any { userRepository.countByRole(it.name) > 0 }
         if (stillUnrestricted) return
 
-        if (userRepository.countByRole(role.storedId) <= 1) throw ApiException(IamError.LAST_UNRESTRICTED_ROLE)
+        if (userRepository.countByRole(role.name) <= 1) throw ApiException(IamError.LAST_UNRESTRICTED_ROLE)
     }
 
     private fun resolve(
         names: Set<String>,
         scope: RoleScope,
-    ): Set<Permission> {
+    ): Set<String> {
         if (names.isEmpty()) return emptySet()
 
         val found = permissionRepository.findAllByNames(names)
@@ -140,6 +139,6 @@ class RoleCommandService(
 
         if (found.any { it.scope != scope }) throw ApiException(IamError.PERMISSION_OUT_OF_SCOPE)
 
-        return found.toSet()
+        return names
     }
 }

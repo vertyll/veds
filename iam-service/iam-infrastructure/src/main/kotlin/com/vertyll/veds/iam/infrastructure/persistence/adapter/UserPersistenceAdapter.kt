@@ -18,14 +18,9 @@ internal class UserPersistenceAdapter(
     private val roleJpaRepository: RoleJpaRepository,
 ) : UserRepository {
     override fun save(user: User): User {
-        val managedRoles: MutableSet<RoleJpaEntity> =
-            user.roles
-                .map { role ->
-                    val id = role.id ?: error("cannot assign an unsaved role '${role.name}' to a user")
-                    roleJpaRepository
-                        .findById(id)
-                        .orElseThrow { IllegalStateException("role $id no longer exists") }
-                }.toMutableSet()
+        val managedRoles: MutableSet<RoleJpaEntity> = roleJpaRepository.findByNameIn(user.roles).toMutableSet()
+        val missing = user.roles - managedRoles.mapTo(mutableSetOf()) { it.name }
+        check(missing.isEmpty()) { "cannot assign roles that do not exist to a user: $missing" }
         val entity =
             UserJpaEntity(
                 id = user.id,
@@ -82,7 +77,7 @@ internal class UserPersistenceAdapter(
         )
     }
 
-    override fun countByRole(roleId: Long): Long = repository.countByRoleId(roleId)
+    override fun countByRole(roleName: String): Long = repository.countByRoleName(roleName)
 
     override fun deleteById(id: Long) {
         repository.deleteById(id)
@@ -96,7 +91,7 @@ private fun UserJpaEntity.toDomain(): User =
         email = this.email,
         firstName = this.firstName,
         lastName = this.lastName,
-        roles = this.roles.map { it.toDomain() }.toSet(),
+        roles = this.roles.mapTo(mutableSetOf()) { it.name },
         avatarFileId = this.avatarFileId,
         phoneNumber = this.phoneNumber,
         address = this.address,

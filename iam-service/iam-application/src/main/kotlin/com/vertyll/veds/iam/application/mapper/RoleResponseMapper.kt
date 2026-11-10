@@ -10,7 +10,7 @@ internal object RoleResponseMapper {
             id = role.storedId,
             name = role.name,
             description = role.description,
-            permissions = role.permissions.map { it.name }.sorted(),
+            permissions = role.permissions.sorted(),
             unrestricted = role.unrestricted,
             scope = role.scope.name,
             system = RoleType.fromString(role.name) != null,

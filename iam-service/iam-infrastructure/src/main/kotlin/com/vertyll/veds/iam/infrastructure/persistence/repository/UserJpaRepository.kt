@@ -26,8 +26,8 @@ internal interface UserJpaRepository : JpaRepository<UserJpaEntity, Long> {
     @EntityGraph(attributePaths = ["roles", "roles.permissions"])
     override fun findById(id: Long): Optional<UserJpaEntity>
 
-    @Query("SELECT COUNT(u) FROM UserJpaEntity u JOIN u.roles r WHERE r.id = :roleId")
-    fun countByRoleId(roleId: Long): Long
+    @Query("SELECT COUNT(u) FROM UserJpaEntity u JOIN u.roles r WHERE r.name = :roleName")
+    fun countByRoleName(roleName: String): Long
 
     @EntityGraph(attributePaths = ["roles", "roles.permissions"])
     fun findByEmailContainingIgnoreCaseOrFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(

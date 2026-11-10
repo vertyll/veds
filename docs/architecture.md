@@ -284,8 +284,9 @@ access becomes a list of tick boxes per person, and "what can a manager do" has 
 project roles the same way.
 
 There are **no** per-user exceptions, by design: two sources of truth mean an audit has to consult both, and the
-administration screen could only ever show half the picture. `User.permissions` is derived from the user's roles at
-read time and never stored, so a grant cannot drift from the role that justifies it.
+administration screen could only ever show half the picture. A user references its roles by name, and a role its
+permissions by name; the permissions a user holds are derived from its roles at read time and never stored, so a grant
+cannot drift from the role that justifies it.
 
 Credentials and sessions belong to Keycloak, not here. The schema holds a profile joined to Keycloak by `keycloak_id`,
 and carries no password column and no refresh-token table — see [Keycloak](keycloak.md).

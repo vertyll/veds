@@ -23,7 +23,7 @@ interface UserRepository {
         pageRequest: PageRequest,
     ): PageResult<User>
 
-    fun countByRole(roleId: Long): Long
+    fun countByRole(roleName: String): Long
 
     fun deleteById(id: Long)
 }

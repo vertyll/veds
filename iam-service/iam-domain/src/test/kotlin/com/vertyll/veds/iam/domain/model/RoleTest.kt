@@ -7,8 +7,8 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class RoleTest {
-    private val read = Permission(id = 1, name = "USERS_VIEW")
-    private val write = Permission(id = 2, name = "USERS_MANAGE")
+    private val read = "USERS_VIEW"
+    private val write = "USERS_MANAGE"
 
     @Test
     fun `a role reports what it grants`() {
@@ -32,13 +32,13 @@ class RoleTest {
         val role = Role(id = 1, name = "admin").withPermission(read).withPermission(write)
 
         assertEquals(2, role.permissions.size)
-        assertEquals(setOf(read), role.withoutPermission(write.id!!).permissions)
+        assertEquals(setOf(read), role.withoutPermission(write).permissions)
     }
 
     @Test
     fun `removing something the role never had is a no-op`() {
         val role = Role(id = 1, name = "admin", permissions = setOf(read))
 
-        assertSame(role, role.withoutPermission(999))
+        assertSame(role, role.withoutPermission("NOPE"))
     }
 }

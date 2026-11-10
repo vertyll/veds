@@ -42,7 +42,7 @@ internal class InMemoryUserRepository : UserRepository {
         return PageResult(content = matching, page = 0, size = matching.size, totalElements = matching.size.toLong())
     }
 
-    override fun countByRole(roleId: Long) = stored.values.count { user -> user.roles.any { it.id == roleId } }.toLong()
+    override fun countByRole(roleName: String) = stored.values.count { user -> roleName in user.roles }.toLong()
 
     override fun deleteById(id: Long) {
         stored.remove(id)

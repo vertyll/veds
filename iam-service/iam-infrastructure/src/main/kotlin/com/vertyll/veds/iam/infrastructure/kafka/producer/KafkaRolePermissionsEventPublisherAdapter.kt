@@ -24,7 +24,7 @@ internal class KafkaRolePermissionsEventPublisherAdapter(
             scope = role.scope,
             removed = false,
             unrestricted = role.unrestricted,
-            permissions = role.permissions.map { it.name }.sorted(),
+            permissions = role.permissions.sorted(),
         )
     }
 

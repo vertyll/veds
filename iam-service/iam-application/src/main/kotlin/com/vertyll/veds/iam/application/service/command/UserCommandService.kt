@@ -7,11 +7,13 @@ import com.vertyll.veds.iam.application.port.inbound.command.UserCommandUseCase
 import com.vertyll.veds.iam.application.port.outbound.AuthEventPublisherPort
 import com.vertyll.veds.iam.domain.error.IamError
 import com.vertyll.veds.iam.domain.model.VersionGuard
+import com.vertyll.veds.iam.domain.repository.RoleRepository
 import com.vertyll.veds.iam.domain.repository.UserRepository
 import com.vertyll.veds.sharederror.ApiException
 
 class UserCommandService(
     private val userRepository: UserRepository,
+    private val roleRepository: RoleRepository,
     private val authEventPublisher: AuthEventPublisherPort,
 ) : UserCommandUseCase {
     override fun updateProfile(
@@ -45,6 +47,6 @@ class UserCommandService(
             )
         }
 
-        return UserResponseMapper.toResponse(saved)
+        return UserResponseMapper.toResponse(saved, roleRepository.findAllByNames(saved.roles))
     }
 }

@@ -30,7 +30,7 @@ class UserProvisioningService(
                         email = identity.email,
                         firstName = identity.firstName,
                         lastName = identity.lastName,
-                    ).withRole(defaultRole),
+                    ).withRole(defaultRole.name),
             )
 
         authEventPublisher.publishUserRegistered(

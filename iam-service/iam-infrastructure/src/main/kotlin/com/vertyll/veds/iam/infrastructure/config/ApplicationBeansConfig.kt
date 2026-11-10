@@ -87,12 +87,14 @@ internal class ApplicationBeansConfig {
     fun userCommandUseCase(
         transactions: TransactionalUseCaseFactory,
         userRepository: UserRepository,
+        roleRepository: RoleRepository,
         authEventPublisher: AuthEventPublisherPort,
     ): UserCommandUseCase =
         transactions.wrap(
             UserCommandUseCase::class.java,
             UserCommandService(
                 userRepository,
+                roleRepository,
                 authEventPublisher,
             ),
             NO_METHODS,
@@ -119,11 +121,13 @@ internal class ApplicationBeansConfig {
     fun authQueryUseCase(
         transactions: TransactionalUseCaseFactory,
         userRepository: UserRepository,
+        roleRepository: RoleRepository,
     ): AuthQueryUseCase =
         transactions.wrap(
             AuthQueryUseCase::class.java,
             AuthQueryService(
                 userRepository,
+                roleRepository,
             ),
             ALL_METHODS,
         )
@@ -175,11 +179,13 @@ internal class ApplicationBeansConfig {
     fun userQueryUseCase(
         transactions: TransactionalUseCaseFactory,
         userRepository: UserRepository,
+        roleRepository: RoleRepository,
     ): UserQueryUseCase =
         transactions.wrap(
             UserQueryUseCase::class.java,
             UserQueryService(
                 userRepository,
+                roleRepository,
             ),
             ALL_METHODS,
         )
