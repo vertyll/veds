@@ -15,7 +15,8 @@ spring:
       timeout: 2s
 
   session:
-    timeout: ${GATEWAY_SESSION_TTL:7d}
+    # Keycloak ends the realm's session after 10 hours, and with it the refresh token this session holds.
+    timeout: 10h
     data:
       redis:
         namespace: ${application.redis.key-prefix}:session
@@ -88,7 +89,6 @@ server:
         same-site: strict
         secure: ${application.shared.keycloak.cookie.secure}
         path: /
-        max-age: ${GATEWAY_SESSION_TTL:7d}
 
 springdoc:
   api-docs:

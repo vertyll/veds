@@ -235,6 +235,7 @@ internal class HostedSignInTest {
         val browser = signedIn(LIFETIME_SECONDS)
 
         assertEquals("Strict", browser.cookies[SESSION_COOKIE]?.sameSite)
+        assertTrue(requireNotNull(browser.cookies[SESSION_COOKIE]).maxAge.isNegative, "a session cookie, without Max-Age")
         browser
             .send(client.get().uri("/auth/session"))
             .also { assertEquals(HttpStatus.OK, it.status) }

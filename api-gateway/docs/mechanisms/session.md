@@ -28,10 +28,14 @@ connector, with the connect and read timeouts of `spring.http.clients` (5 s and 
 pending authorization request therefore lives in its own cookie, which must be `Lax` — it is read on the callback, which
 *is* a cross-site redirect — and is encrypted like the session.
 
-| Cookie                  | SameSite | Lifetime | Why                                                                 |
-|-------------------------|----------|----------|---------------------------------------------------------------------|
-| `__Host-VEDS_SESSION`   | `Strict` | 7 days   | The only cookie the SPA relies on; CSRF defense                     |
-| `KEYCLOAK_AUTH_REQUEST` | `Lax`    | 10 min   | State, nonce and PKCE verifier; survives the redirect from Keycloak |
+| Cookie                  | SameSite | Lifetime                   | Why                                                                 |
+|-------------------------|----------|----------------------------|---------------------------------------------------------------------|
+| `__Host-VEDS_SESSION`   | `Strict` | browser session, 10 h idle | The only cookie the SPA relies on; CSRF defense                     |
+| `KEYCLOAK_AUTH_REQUEST` | `Lax`    | 10 min                     | State, nonce and PKCE verifier; survives the redirect from Keycloak |
+
+The session lasts as long as the one Keycloak keeps for the realm: 10 hours, after which the refresh token it holds is
+refused and the session ends anyway, so neither the record in Redis nor the cookie outlives it. The cookie has no
+`Max-Age`: a session cookie in the sense of RFC 6265bis, which the browser drops when it closes.
 
 In production the session cookie carries the `__Host-` prefix, so the browser accepts it only with `Secure`,
 `Path=/` and no `Domain`. Locally, over plain HTTP, the cookie is not `Secure`, and is named `VEDS_SESSION`, since a
