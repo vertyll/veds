@@ -27,6 +27,49 @@ spring:
           httpclient:
             connect-timeout: 5000
             response-timeout: 30s
+          routes:
+            - id: iam-service
+              uri: ${application.gateway.services.iam}
+              predicates:
+                - Path=/auth/**, /users/**, /roles/**, /permissions/**
+              filters:
+                - TokenRelay=veds-iam-service
+            - id: mail-service
+              uri: ${application.gateway.services.mail}
+              predicates:
+                - Path=/mail/**
+              filters:
+                - TokenRelay=veds-mail-service
+            - id: project-service
+              uri: ${application.gateway.services.project}
+              predicates:
+                - Path=/projects/**, /project-types/**, /project-roles/**, /project-user-roles/**
+              filters:
+                - TokenRelay=veds-project-service
+            - id: task-service
+              uri: ${application.gateway.services.task}
+              predicates:
+                - Path=/tasks/**
+              filters:
+                - TokenRelay=veds-task-service
+            - id: translation-service
+              uri: ${application.gateway.services.translation}
+              predicates:
+                - Path=/translations/**, /admin/translations/**
+              filters:
+                - TokenRelay=veds-translation-service
+            - id: file-service
+              uri: ${application.gateway.services.file}
+              predicates:
+                - Path=/files/**
+              filters:
+                - TokenRelay=veds-file-service
+            - id: notification-service
+              uri: ${application.gateway.services.notification}
+              predicates:
+                - Path=/notifications/**, /ws/notifications/**
+              filters:
+                - TokenRelay=veds-notification-service
     config:
       enabled: false
     discovery:

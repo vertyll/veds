@@ -31,6 +31,7 @@ import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -56,6 +57,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 internal class HostedSignInTest {
     @LocalServerPort
     private var port: Int = 0
@@ -441,7 +443,7 @@ internal class HostedSignInTest {
         private const val ID_TOKEN = "id-token"
         private const val SUBJECT = "7d1c9a52-3a43-4c34-9a8f-2f5d7c6f1b10"
         private const val EMAIL = "ada@veds.local"
-        private const val SESSION_COOKIE = "VEDS_SESSION"
+        private const val SESSION_COOKIE = "__Host-VEDS_SESSION"
         private const val AUTH_REQUEST_COOKIE = "KEYCLOAK_AUTH_REQUEST"
         private const val LIFETIME_SECONDS = 300L
         private const val EXPIRING_SECONDS = 5L
@@ -468,8 +470,8 @@ internal class HostedSignInTest {
             registry.add("spring.data.redis.host") { redisContainer.host }
             registry.add("spring.data.redis.port") { redisContainer.getMappedPort(6379) }
             registry.add("spring.data.redis.password") { "" }
-            listOf("IAM", "MAIL", "PROJECT", "TASK", "TRANSLATION", "FILE", "NOTIFICATION").forEach { name ->
-                registry.add("${name}_SERVICE_URL") { "http://localhost:${service.port()}" }
+            listOf("iam", "mail", "project", "task", "translation", "file", "notification").forEach { name ->
+                registry.add("application.gateway.services.$name") { "http://localhost:${service.port()}" }
             }
         }
 

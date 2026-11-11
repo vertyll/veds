@@ -1,0 +1,15 @@
+application:
+  shared:
+    keycloak:
+      cookie:
+        # The shared development defaults turn Secure off; the gateway's tests keep the production cookie.
+        secure: true
+  gateway:
+    cors:
+      allowed-origins:
+        - "http://localhost:4200"
+    session:
+      encryption-key: rgvK4NdVVkKepA2gDMxbSTtikwfSIdU64wjMilUQGio=
+    oauth:
+      redirect-uri: http://localhost:8080/auth/callback
+      post-login-redirect-uri: "http://localhost:4200/"
