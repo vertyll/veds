@@ -64,16 +64,8 @@ server:
   ssl:
     enabled: ${SERVER_SSL_ENABLED:false}
     bundle: ${SERVER_SSL_BUNDLE:}
-  reactive:
-    session:
-      cookie:
-        name: __Host-VEDS_SESSION
 
 application:
-  shared:
-    keycloak:
-      cookie:
-        secure: true
   gateway:
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS}

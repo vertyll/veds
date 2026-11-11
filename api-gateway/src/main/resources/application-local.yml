@@ -52,6 +52,13 @@ spring:
               filters:
                 - TokenRelay=veds-notification-service
 
+server:
+  reactive:
+    session:
+      cookie:
+        # The __Host- prefix requires Secure, which plain HTTP cannot have.
+        name: VEDS_SESSION
+
 application:
   gateway:
     cors:

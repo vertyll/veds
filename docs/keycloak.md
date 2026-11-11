@@ -213,7 +213,7 @@ gateway; flip `SERVER_SSL_ENABLED` when a process holds the certificate itself.
 | Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                    |
 | Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                    |
 | Cookie flag               | `application.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                   |
-| Session cookie            | `__Host-VEDS_SESSION` in prod: `Secure`, `Path=/`, no `Domain`                                   |
+| Session cookie            | `__Host-VEDS_SESSION`: `Secure`, `Path=/`, no `Domain`; `VEDS_SESSION` in the `local` profile    |
 | mail-service → SMTP       | STARTTLS required; the chain and the host name are verified, no `ssl.trust` override             |
 
 Two choices worth stating:

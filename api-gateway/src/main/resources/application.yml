@@ -40,7 +40,7 @@ server:
   reactive:
     session:
       cookie:
-        name: VEDS_SESSION
+        name: __Host-VEDS_SESSION
         http-only: true
         same-site: strict
         secure: ${application.shared.keycloak.cookie.secure}
