@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.UUID
+import kotlin.test.assertEquals
 
 @AutoConfigureMockMvc
 internal class ProjectApiIntegrationTest(
@@ -55,6 +56,13 @@ internal class ProjectApiIntegrationTest(
                 .response.contentAsString,
             "$.id",
         )
+
+    private fun bodyOf(request: MockHttpServletRequestBuilder): String =
+        mockMvc
+            .perform(request)
+            .andExpect(status().is2xxSuccessful)
+            .andReturn()
+            .response.contentAsString
 
     private fun aProject(name: String = "Apollo"): String =
         createdId(post("/projects").asOwner().json("""{"name":"$name","description":"To the moon"}"""))
@@ -161,6 +169,27 @@ internal class ProjectApiIntegrationTest(
         mockMvc
             .perform(get("/projects/{id}/statuses", projectId).asOwner())
             .andExpect(jsonPath("$[?(@.color == '#222222')]").isEmpty)
+    }
+
+    @Test
+    fun `categories and statuses return their translations as language, name and description`() {
+        val projectId = aProject()
+        val described =
+            """{"color":"#333333","translations":[""" +
+                """{"language":"en","name":"Label","description":"Described"},{"language":"pl","name":"Etykieta"}]}"""
+        val expected =
+            setOf(
+                mapOf("language" to "en", "name" to "Label", "description" to "Described"),
+                mapOf("language" to "pl", "name" to "Etykieta", "description" to null),
+            )
+
+        for (collection in listOf("categories", "statuses")) {
+            val created = bodyOf(post("/projects/{id}/$collection", projectId).asOwner().json(described))
+            val listed = bodyOf(get("/projects/{id}/$collection", projectId).asOwner())
+
+            assertEquals(expected, JsonPath.read<List<Map<String, Any?>>>(created, "$.translations").toSet())
+            assertEquals(expected, JsonPath.read<List<Map<String, Any?>>>(listed, "$[0].translations").toSet())
+        }
     }
 
     @Test

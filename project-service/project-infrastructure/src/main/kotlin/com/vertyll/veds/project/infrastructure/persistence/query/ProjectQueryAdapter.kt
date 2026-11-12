@@ -5,6 +5,7 @@ import com.vertyll.veds.project.application.dto.ProjectListItemResponse
 import com.vertyll.veds.project.application.dto.ProjectMemberResponse
 import com.vertyll.veds.project.application.dto.ProjectResponse
 import com.vertyll.veds.project.application.dto.ProjectStatusResponse
+import com.vertyll.veds.project.application.dto.TranslationResponse
 import com.vertyll.veds.project.application.port.outbound.ProjectQueryPort
 import com.vertyll.veds.project.domain.model.LanguageTag
 import com.vertyll.veds.project.domain.model.PageRequest
@@ -222,7 +223,7 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                 nameLanguage = resolved.language.value,
                 color = r[2] as String,
                 isActive = r[3] as Boolean,
-                translations = translations,
+                translations = translations.map(TranslationResponse::from).toSet(),
                 version = r[4] as Long?,
             )
         }
@@ -257,7 +258,7 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
                 nameLanguage = resolved.language.value,
                 color = r[2] as String,
                 isActive = r[3] as Boolean,
-                translations = translations,
+                translations = translations.map(TranslationResponse::from).toSet(),
                 version = r[4] as Long?,
             )
         }

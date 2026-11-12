@@ -2,7 +2,6 @@ package com.vertyll.veds.project.application.dto
 
 import com.vertyll.veds.project.domain.model.LanguageTag
 import com.vertyll.veds.project.domain.model.ProjectCategory
-import com.vertyll.veds.project.domain.model.Translation
 import com.vertyll.veds.project.domain.model.resolveFor
 import java.util.UUID
 
@@ -13,7 +12,7 @@ data class ProjectCategoryResponse(
     val nameLanguage: String,
     val color: String,
     val isActive: Boolean,
-    val translations: Set<Translation>,
+    val translations: Set<TranslationResponse>,
     val version: Long?,
 ) {
     companion object {
@@ -31,7 +30,7 @@ data class ProjectCategoryResponse(
                         .language.value,
                 color = category.color,
                 isActive = category.isActive,
-                translations = category.translations,
+                translations = category.translations.map(TranslationResponse::from).toSet(),
                 version = category.version,
             )
     }
