@@ -1,10 +1,10 @@
 [versions]
-sonarqube = "7.5.0.8588"
+sonarqube = "7.6.0.18749"
 java = "25"
 ktlint-plugin = "14.2.0"
 ktlint-engine = "1.8.0"
 detekt-plugin = "2.0.0-alpha.6"
-dokka-plugin = "2.2.0"
+dokka-plugin = "2.3.0"
 kotlin = "2.4.10"
 junit-jupiter = "6.1.3"
 

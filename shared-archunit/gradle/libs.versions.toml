@@ -1,5 +1,5 @@
 [versions]
-sonarqube = "7.5.0.8588"
+sonarqube = "7.6.0.18749"
 java = "25"
 ktlint-plugin = "14.2.0"
 ktlint-engine = "1.8.0"

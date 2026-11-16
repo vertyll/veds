@@ -1,5 +1,5 @@
-ARG OPENTOFU_IMAGE=ghcr.io/opentofu/opentofu:1.13.2-minimal
-ARG ALPINE_IMAGE=docker.io/library/alpine:3.24.3
+ARG OPENTOFU_IMAGE=ghcr.io/opentofu/opentofu:1.13.9-minimal
+ARG ALPINE_IMAGE=docker.io/library/alpine:3.24.4
 
 FROM ${OPENTOFU_IMAGE} AS tofu
 
