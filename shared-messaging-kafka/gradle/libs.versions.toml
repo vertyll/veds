@@ -35,6 +35,8 @@ kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 spring-boot-starter-security-test = { module = "org.springframework.security:spring-security-test" }
 
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
@@ -78,6 +80,7 @@ test-common = [
     "testcontainers-postgresql",
     "postgresql",
     "spring-boot-starter-security-test",
+    "spring-boot-testcontainers",
 ]
 
 messaging-api = [

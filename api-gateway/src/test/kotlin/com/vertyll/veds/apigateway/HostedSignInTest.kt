@@ -14,6 +14,7 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -40,14 +41,12 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import org.springframework.web.util.UriComponentsBuilder
-import org.testcontainers.containers.GenericContainer
 import reactor.core.publisher.Mono
 import reactor.netty.DisposableServer
 import reactor.netty.http.server.HttpServer
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -58,6 +57,7 @@ import kotlin.test.assertTrue
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@Import(TestcontainersConfiguration::class)
 internal class HostedSignInTest {
     @LocalServerPort
     private var port: Int = 0
@@ -450,12 +450,6 @@ internal class HostedSignInTest {
         private const val EXPIRING_SECONDS = 5L
 
         private val received = ConcurrentLinkedQueue<Pair<String, String?>>()
-        private val redisContainer =
-            GenericContainer(
-                "redis:8-alpine",
-            ).withStartupTimeout(Duration.ofMinutes(2)).withStartupAttempts(3).withExposedPorts(6379).apply {
-                start()
-            }
         private val service: DisposableServer =
             HttpServer
                 .create()
@@ -468,9 +462,6 @@ internal class HostedSignInTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.data.redis.host") { redisContainer.host }
-            registry.add("spring.data.redis.port") { redisContainer.getMappedPort(6379) }
-            registry.add("spring.data.redis.password") { "" }
             listOf("iam", "mail", "project", "task", "translation", "file", "notification").forEach { name ->
                 registry.add("application.gateway.services.$name") { "http://localhost:${service.port()}" }
             }
@@ -478,9 +469,8 @@ internal class HostedSignInTest {
 
         @JvmStatic
         @AfterAll
-        private fun stop() {
+        fun stop() {
             service.disposeNow()
-            redisContainer.stop()
         }
     }
 }

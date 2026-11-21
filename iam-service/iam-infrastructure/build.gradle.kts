@@ -46,4 +46,11 @@ dependencies {
     testImplementation("com.vertyll.veds:shared-archunit")
 
     testImplementation(libs.bundles.test.common)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }

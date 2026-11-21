@@ -48,6 +48,8 @@ caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 springdoc-openapi-starter-webflux-ui = { module = "org.springdoc:springdoc-openapi-starter-webflux-ui", version.ref = "springdoc" }
 
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 spring-boot-starter-security-test = { module = "org.springframework.security:spring-security-test" }
 
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
@@ -101,6 +103,7 @@ test-common = [
     "springframework-kafka-test",
     "testcontainers-junit-jupiter",
     "testcontainers-kafka",
+    "spring-boot-testcontainers",
 ]
 
 test-gateway = [

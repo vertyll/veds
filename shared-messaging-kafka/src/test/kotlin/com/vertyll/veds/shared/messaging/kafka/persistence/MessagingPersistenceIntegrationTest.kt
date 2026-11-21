@@ -1,5 +1,6 @@
 package com.vertyll.veds.shared.messaging.kafka.persistence
 
+import com.vertyll.veds.shared.messaging.kafka.TestcontainersConfiguration
 import com.vertyll.veds.shared.messaging.kafka.contract.OutboxMessage
 import com.vertyll.veds.shared.messaging.kafka.contract.OutboxStatus
 import com.vertyll.veds.shared.messaging.kafka.contract.ProcessedEvent
@@ -19,11 +20,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.transaction.support.TransactionTemplate
-import org.testcontainers.postgresql.PostgreSQLContainer
-import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.Instant
 import kotlin.test.assertEquals
@@ -35,8 +32,16 @@ import kotlin.test.assertTrue
 
 /** The outbox and inbox adapters against a real PostgreSQL, whose row locks and constraints they rely on. */
 @Tag("integration")
-@SpringBootTest(classes = [MessagingPersistenceIntegrationTest.Application::class])
+@SpringBootTest(
+    classes = [MessagingPersistenceIntegrationTest.Application::class],
+    properties = [
+        "spring.jpa.hibernate.ddl-auto=create",
+        "spring.kafka.consumer.group-id=messaging-test",
+        "spring.kafka.consumer.auto-offset-reset=earliest",
+    ],
+)
 @ActiveProfiles("test")
+@Import(TestcontainersConfiguration::class)
 internal class MessagingPersistenceIntegrationTest(
     private val outbox: OutboxJpaAdapter,
     private val inbox: ProcessedEventJpaAdapter,
@@ -176,22 +181,5 @@ internal class MessagingPersistenceIntegrationTest(
 
     companion object {
         private const val BATCH = 2
-
-        private val postgres: PostgreSQLContainer =
-            PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
-                .withStartupTimeout(Duration.ofMinutes(2))
-                .withStartupAttempts(3)
-                .apply { start() }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", postgres::getJdbcUrl)
-            registry.add("spring.datasource.username", postgres::getUsername)
-            registry.add("spring.datasource.password", postgres::getPassword)
-            registry.add("spring.jpa.hibernate.ddl-auto") { "create" }
-            registry.add("spring.kafka.consumer.group-id") { "messaging-test" }
-            registry.add("spring.kafka.consumer.auto-offset-reset") { "earliest" }
-        }
     }
 }

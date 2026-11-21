@@ -127,6 +127,12 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
+}
+
 tasks.withType<Test> {
     jvmArgs("-Xshare:off")
     useJUnitPlatform()

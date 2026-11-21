@@ -80,6 +80,7 @@ dependencies {
     kapt(libs.spring.boot.configuration.processor)
 
     testImplementation(libs.bundles.test.common)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 configurations.matching { it.name.startsWith("ktlint") }.configureEach {
@@ -132,6 +133,12 @@ tasks.withType<KotlinCompile>().configureEach {
             "-Xjsr305=strict",
         )
     }
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }
 
 tasks.withType<Test> {

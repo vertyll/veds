@@ -69,6 +69,7 @@ dependencies {
 
     testImplementation(libs.bundles.test.common)
     testImplementation(libs.bundles.test.gateway)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 configurations.matching { it.name.startsWith("ktlint") }.configureEach {

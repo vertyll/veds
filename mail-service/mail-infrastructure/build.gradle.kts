@@ -49,4 +49,11 @@ dependencies {
 
     testImplementation(libs.bundles.test.common)
     testImplementation(libs.bundles.test.mail)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }
