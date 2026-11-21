@@ -395,7 +395,7 @@ services:
       start_period: 10s
 
   kafbat-ui:
-    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    image: ghcr.io/kafbat/kafka-ui:v1.5.1
     depends_on:
       kafka:
         condition: service_healthy
