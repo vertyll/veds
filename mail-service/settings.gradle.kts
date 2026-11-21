@@ -1,3 +1,10 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "mail-service"
 
 include(":mail-domain", ":mail-application", ":mail-infrastructure")

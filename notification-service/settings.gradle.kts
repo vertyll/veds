@@ -1,3 +1,10 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "notification-service"
 
 include(":notification-domain", ":notification-application", ":notification-infrastructure")

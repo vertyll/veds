@@ -1,3 +1,10 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "translation-service"
 
 include(":translation-domain", ":translation-application", ":translation-infrastructure")

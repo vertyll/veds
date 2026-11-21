@@ -1,3 +1,10 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "file-service"
 
 include(":file-domain", ":file-application", ":file-infrastructure")

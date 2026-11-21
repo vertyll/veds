@@ -1,3 +1,10 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "task-service"
 
 include(":task-domain", ":task-application", ":task-infrastructure")

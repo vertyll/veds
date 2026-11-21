@@ -1,3 +1,10 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "iam-service"
 
 include(":iam-domain", ":iam-application", ":iam-infrastructure")
