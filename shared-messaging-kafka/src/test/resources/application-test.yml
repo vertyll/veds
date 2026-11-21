@@ -1,0 +1,8 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  kafka:
+    consumer:
+      group-id: messaging-test
+      auto-offset-reset: earliest

@@ -77,3 +77,8 @@ infra/**/*.tfstate.backup
 
 ### Generated docs ###
 docs/dokka/*
+
+### SonarQube ###
+.scannerwork/
+.sonar/
+.sonarlint/
