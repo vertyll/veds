@@ -12,7 +12,10 @@ spring:
       add-mappings: false
 
 server:
-  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
+  request:
+    header:
+      forwarded:
+        strategy: ${FORWARD_HEADERS_STRATEGY:framework}
   ssl:
     enabled: ${SERVER_SSL_ENABLED:false}
     bundle: ${SERVER_SSL_BUNDLE:}

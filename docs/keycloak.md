@@ -205,16 +205,16 @@ Role names are owned by **two places only**:
 `application-prod.yml` assumes TLS on every hop. Defaults are set for an ingress that terminates TLS in front of the
 gateway; flip `SERVER_SSL_ENABLED` when a process holds the certificate itself.
 
-| Leg                       | Setting                                                                                          |
-|---------------------------|--------------------------------------------------------------------------------------------------|
-| Browser → ingress/gateway | `SERVER_SSL_ENABLED`, `SERVER_SSL_BUNDLE`                                                        |
-| Ingress → gateway         | `forward-headers-strategy: framework`, on the gateway only (keeps the https scheme in redirects) |
-| Gateway → Redis           | `spring.data.redis.ssl.enabled=true`, `REDIS_SSL_BUNDLE`                                         |
-| Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                    |
-| Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                    |
-| Cookie flag               | `application.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                   |
-| Session cookie            | `__Host-VEDS_SESSION`: `Secure`, `Path=/`, no `Domain`; `VEDS_SESSION` in the `local` profile    |
-| mail-service → SMTP       | STARTTLS required; the chain and the host name are verified, no `ssl.trust` override             |
+| Leg                       | Setting                                                                                                          |
+|---------------------------|------------------------------------------------------------------------------------------------------------------|
+| Browser → ingress/gateway | `SERVER_SSL_ENABLED`, `SERVER_SSL_BUNDLE`                                                                        |
+| Ingress → gateway         | `server.request.header.forwarded.strategy: framework`, on the gateway only (keeps the https scheme in redirects) |
+| Gateway → Redis           | `spring.data.redis.ssl.enabled=true`, `REDIS_SSL_BUNDLE`                                                         |
+| Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                                    |
+| Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                                    |
+| Cookie flag               | `application.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                                   |
+| Session cookie            | `__Host-VEDS_SESSION`: `Secure`, `Path=/`, no `Domain`; `VEDS_SESSION` in the `local` profile                    |
+| mail-service → SMTP       | STARTTLS required; the chain and the host name are verified, no `ssl.trust` override                             |
 
 Two choices worth stating:
 
@@ -222,10 +222,10 @@ Two choices worth stating:
   sniffing and not an active man-in-the-middle.
 - **`ssl.endpoint.identification.algorithm: https` for Kafka.** The default in some setups is empty, which disables
   hostname verification and reintroduces the same gap.
-- **`forward-headers-strategy` only behind a trusted proxy.** It makes the application believe `X-Forwarded-*`, so it
-  must stay off wherever something untrusted can set those headers. Only the gateway sits behind the ingress; the
-  services are reached in the cluster, from the gateway and from each other, build no absolute URL from a request, and
-  so trust no forwarded header and carry no `server.ssl` settings.
+- **`server.request.header.forwarded.strategy` only behind a trusted proxy.** It makes the application believe
+  `X-Forwarded-*`, so it must stay off wherever something untrusted can set those headers. Only the gateway sits behind
+  the ingress; the services are reached in the cluster, from the gateway and from each other, build no absolute URL from
+  a request, and so trust no forwarded header and carry no `server.ssl` settings.
 - **`server.ssl.enabled` only when TLS terminates in the process.** With an ingress holding the certificate it stays
   off; turning it on there gives a service talking TLS to a proxy that already did.
 

@@ -2,7 +2,7 @@
 sonarqube = "7.6.0.18749"
 java = "25"
 
-spring-boot = "4.1.3"
+spring-boot = "4.2.0"
 spring-dependency-management = "1.1.7"
 ktlint-plugin = "14.2.0"
 ktlint-engine = "1.8.0"
@@ -11,7 +11,7 @@ kotlin = "2.4.10"
 
 springdoc = "3.2.1"
 testcontainers = "2.0.5"
-springframework-cloud = "2025.1.4"
+springframework-cloud = "2026.0.0"
 
 [libraries]
 netty-resolver-dns-native-macos = { module = "io.netty:netty-resolver-dns-native-macos" }
