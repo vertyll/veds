@@ -20,7 +20,6 @@ import com.vertyll.veds.task.domain.repository.TaskRepository
 import com.vertyll.veds.task.domain.repository.UserDirectoryRepository
 import java.util.UUID
 
-@Suppress("LongParameterList")
 class TaskCommandService(
     private val taskRepository: TaskRepository,
     private val commentRepository: TaskCommentRepository,

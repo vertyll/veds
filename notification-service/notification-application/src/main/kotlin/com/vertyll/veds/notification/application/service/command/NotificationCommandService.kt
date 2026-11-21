@@ -22,7 +22,6 @@ import com.vertyll.veds.notification.domain.repository.RecipientDirectoryReposit
 import com.vertyll.veds.sharederror.ApiException
 import java.util.UUID
 
-@Suppress("LongParameterList")
 class NotificationCommandService(
     private val notificationRepository: NotificationRepository,
     private val settingsRepository: NotificationSettingsRepository,

@@ -44,6 +44,7 @@ internal class ProjectController(
 ) {
     @GetMapping
     @Operation(summary = "List projects visible to the current user")
+    // Each request parameter is bound and documented on its own, as the endpoint's contract.
     @Suppress("LongParameterList")
     fun getProjects(
         @AuthenticationPrincipal jwt: Jwt,

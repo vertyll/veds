@@ -25,6 +25,7 @@ import com.vertyll.veds.sharederror.ApiException
 import java.time.Instant
 import java.util.UUID
 
+// A use case receives each port it depends on through its constructor.
 @Suppress("LongParameterList")
 class ProjectInvitationCommandService(
     private val invitationRepository: ProjectInvitationRepository,

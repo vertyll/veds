@@ -44,6 +44,7 @@ data class StoredFile(
     fun isOwnedBy(userId: UUID): Boolean = ownerId == userId
 
     companion object {
+        // The factory takes every field a new file starts with; they belong to no smaller concept.
         @Suppress("LongParameterList")
         fun pending(
             objectKey: String,

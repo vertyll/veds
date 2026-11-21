@@ -32,14 +32,7 @@ import kotlin.test.assertTrue
 
 /** The outbox and inbox adapters against a real PostgreSQL, whose row locks and constraints they rely on. */
 @Tag("integration")
-@SpringBootTest(
-    classes = [MessagingPersistenceIntegrationTest.Application::class],
-    properties = [
-        "spring.jpa.hibernate.ddl-auto=create",
-        "spring.kafka.consumer.group-id=messaging-test",
-        "spring.kafka.consumer.auto-offset-reset=earliest",
-    ],
-)
+@SpringBootTest(classes = [MessagingPersistenceIntegrationTest.Application::class])
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration::class)
 internal class MessagingPersistenceIntegrationTest(

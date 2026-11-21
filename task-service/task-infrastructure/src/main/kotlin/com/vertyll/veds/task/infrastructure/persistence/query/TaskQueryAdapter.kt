@@ -260,12 +260,12 @@ internal class TaskQueryAdapter : TaskQueryPort {
     ): Map<UUID, List<TaskCategoryView>> {
         if (taskIds.isEmpty()) return emptyMap()
 
-        @Suppress("UNCHECKED_CAST")
         val links =
             entityManager
                 .createNativeQuery("SELECT task_id, category_id FROM task_category WHERE task_id IN (:ids)")
                 .setParameter("ids", taskIds)
-                .resultList as List<Array<Any?>>
+                .resultList
+                .map { it as Array<*> }
 
         val labels = categoryLabels(projectId, language)
 
@@ -289,7 +289,6 @@ internal class TaskQueryAdapter : TaskQueryPort {
     private fun assigneesFor(taskIds: List<UUID>): Map<UUID, List<TaskUserView>> {
         if (taskIds.isEmpty()) return emptyMap()
 
-        @Suppress("UNCHECKED_CAST")
         val rows =
             entityManager
                 .createNativeQuery(
@@ -300,7 +299,8 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     WHERE a.task_id IN (:ids)
                     """.trimIndent(),
                 ).setParameter("ids", taskIds)
-                .resultList as List<Array<Any?>>
+                .resultList
+                .map { it as Array<*> }
 
         return rows
             .groupBy { it[ASSIGNEE_TASK_ID] as UUID }
@@ -323,13 +323,13 @@ internal class TaskQueryAdapter : TaskQueryPort {
     private fun attachmentsFor(commentIds: List<UUID>): Map<UUID, Set<UUID>> {
         if (commentIds.isEmpty()) return emptyMap()
 
-        @Suppress("UNCHECKED_CAST")
         val rows =
             entityManager
                 .createNativeQuery(
                     "SELECT comment_id, attachment_id FROM task_comment_attachment WHERE comment_id IN (:ids)",
                 ).setParameter("ids", commentIds)
-                .resultList as List<Array<Any?>>
+                .resultList
+                .map { it as Array<*> }
 
         return rows.groupBy { it[0] as UUID }.mapValues { (_, g) -> g.map { it[1] as UUID }.toSet() }
     }
@@ -352,7 +352,6 @@ internal class TaskQueryAdapter : TaskQueryPort {
         projectId: UUID,
         language: LanguageTag,
     ): Map<UUID, ResolvedLabelRow> {
-        @Suppress("UNCHECKED_CAST")
         val rows =
             entityManager
                 .createNativeQuery(
@@ -377,7 +376,8 @@ internal class TaskQueryAdapter : TaskQueryPort {
                     """.trimIndent(),
                 ).setParameter("projectId", projectId)
                 .setParameter("language", language.value)
-                .resultList as List<Array<Any?>>
+                .resultList
+                .map { it as Array<*> }
 
         return rows.associate { row ->
             row[0] as UUID to

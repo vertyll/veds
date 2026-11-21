@@ -78,7 +78,6 @@ internal class KafkaProjectEventPublisherAdapter(
         enqueue(ProjectKafkaTopics.PROJECT_ARCHIVED, projectId, eventId, event, sagaId)
     }
 
-    @Suppress("LongParameterList")
     override fun publishMemberInvited(
         projectId: UUID,
         projectName: String,

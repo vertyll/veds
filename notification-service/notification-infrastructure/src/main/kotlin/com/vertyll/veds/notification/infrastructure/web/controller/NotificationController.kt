@@ -41,6 +41,7 @@ internal class NotificationController(
 ) {
     @GetMapping
     @Operation(summary = "List the caller's notifications")
+    // Each request parameter is bound and documented on its own, as the endpoint's contract.
     @Suppress("LongParameterList")
     fun list(
         @AuthenticationPrincipal jwt: Jwt,

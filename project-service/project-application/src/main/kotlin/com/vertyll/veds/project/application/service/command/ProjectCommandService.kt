@@ -21,6 +21,7 @@ import com.vertyll.veds.project.domain.repository.UserDirectoryRepository
 import com.vertyll.veds.sharederror.ApiException
 import java.util.UUID
 
+// A use case receives each port it depends on through its constructor.
 @Suppress("LongParameterList")
 class ProjectCommandService(
     private val projectRepository: ProjectRepository,

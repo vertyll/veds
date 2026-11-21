@@ -26,7 +26,6 @@ import kotlin.uuid.toJavaUuid
 
 private const val FILE_ID_PARAM = "fileId"
 
-@Suppress("LongParameterList")
 class FileCommandService(
     private val fileRepository: StoredFileRepository,
     private val storage: ObjectStoragePort,

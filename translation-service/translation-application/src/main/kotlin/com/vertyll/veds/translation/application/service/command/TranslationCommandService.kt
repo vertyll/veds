@@ -25,7 +25,6 @@ import java.util.UUID
 
 private const val LANGUAGE_PARAM = "language"
 
-@Suppress("LongParameterList")
 class TranslationCommandService(
     private val keyRepository: TranslationKeyRepository,
     private val valueRepository: TranslationValueRepository,

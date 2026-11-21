@@ -141,6 +141,7 @@ internal class KafkaTemplateAutoConfiguration {
         kafkaErrorHandler: CommonErrorHandler,
     ): ConcurrentKafkaListenerContainerFactory<String, ByteArray> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, ByteArray>()
+        // Property syntax does not compile here: the getter returns a wildcard type the setter does not take.
         @Suppress("UsePropertyAccessSyntax")
         factory.setConsumerFactory(consumerFactory)
         factory.setCommonErrorHandler(kafkaErrorHandler)

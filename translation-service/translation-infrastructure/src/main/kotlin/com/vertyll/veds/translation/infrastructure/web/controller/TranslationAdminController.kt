@@ -38,7 +38,6 @@ internal class TranslationAdminController(
 ) {
     @GetMapping("/keys")
     @Operation(summary = "List keys with their values in every language")
-    @Suppress("LongParameterList")
     fun searchKeys(
         @RequestParam(required = false) searchTerm: String?,
         @RequestParam(required = false) sourceService: String?,

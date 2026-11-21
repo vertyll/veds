@@ -29,7 +29,6 @@ internal class AuthController(
         val roles: List<String>,
     )
 
-    @Suppress("kotlin:S6508")
     @GetMapping("/session")
     @ScopedToCaller("reads the session cookie the caller already holds, and answers 204 when there is none")
     fun session(exchange: ServerWebExchange): Mono<ResponseEntity<SessionResponse>> =
@@ -47,10 +46,9 @@ internal class AuthController(
                 )
             }.defaultIfEmpty(ResponseEntity.noContent().build())
 
-    @Suppress("kotlin:S6508")
     @PostMapping("/logout")
     @ScopedToCaller("invalidates the refresh token in the caller's own session")
-    fun logout(exchange: ServerWebExchange): Mono<ResponseEntity<Void>> =
+    fun logout(exchange: ServerWebExchange): Mono<ResponseEntity<Unit>> =
         exchange
             .getPrincipal<Authentication>()
             .defaultIfEmpty(NOBODY)

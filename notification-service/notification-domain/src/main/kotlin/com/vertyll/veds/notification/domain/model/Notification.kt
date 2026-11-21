@@ -34,7 +34,6 @@ data class Notification(
     fun isFor(userId: UUID): Boolean = recipientId == userId
 
     companion object {
-        @Suppress("LongParameterList")
         fun create(
             recipientId: UUID,
             type: NotificationType,

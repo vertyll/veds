@@ -31,7 +31,6 @@ internal class TransactionalUseCaseFactory(
                 }
             }
 
-        @Suppress("UNCHECKED_CAST")
-        return proxy as T
+        return contract.cast(proxy)
     }
 }

@@ -61,6 +61,7 @@ internal class ProjectMemberController(
 
     @PutMapping("/{memberId}")
     @Operation(summary = "Change a member's project role")
+    // Each request parameter is bound and documented on its own, as the endpoint's contract.
     @Suppress("LongParameterList")
     fun updateMemberRole(
         @AuthenticationPrincipal jwt: Jwt,

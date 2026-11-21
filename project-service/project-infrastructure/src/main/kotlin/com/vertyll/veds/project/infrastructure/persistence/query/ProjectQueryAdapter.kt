@@ -268,11 +268,11 @@ internal class ProjectQueryAdapter : ProjectQueryPort {
         table: String,
         ownerColumn: String,
     ): Map<UUID, Set<Translation>> {
-        @Suppress("UNCHECKED_CAST")
         val rows =
             entityManager
                 .createNativeQuery("SELECT $ownerColumn, language, name, description FROM $table")
-                .resultList as List<Array<Any?>>
+                .resultList
+                .map { it as Array<*> }
 
         return rows
             .groupBy { it[0] as UUID }

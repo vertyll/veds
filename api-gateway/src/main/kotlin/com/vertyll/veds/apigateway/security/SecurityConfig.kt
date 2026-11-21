@@ -24,7 +24,6 @@ internal class SecurityConfig(
     private val reactiveKeycloakJwtConverter: ReactiveKeycloakJwtAuthenticationConverter,
 ) {
     @Bean
-    @Suppress("LongParameterList")
     fun springSecurityFilterChain(
         http: ServerHttpSecurity,
         clientRegistrations: ReactiveClientRegistrationRepository,

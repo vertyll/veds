@@ -73,6 +73,7 @@ internal class ProjectStatusController(
 
     @PutMapping("/{statusId}")
     @Operation(summary = "Update a status")
+    // Each request parameter is bound and documented on its own, as the endpoint's contract.
     @Suppress("LongParameterList")
     fun updateStatus(
         @AuthenticationPrincipal jwt: Jwt,

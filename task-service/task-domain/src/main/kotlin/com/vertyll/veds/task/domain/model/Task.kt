@@ -92,7 +92,8 @@ data class Task(
         if (statusId == removedStatusId) copy(statusId = null, updatedAt = Instant.now()) else this
 
     companion object {
-        @Suppress("LongParameterList", "kotlin:S107")
+        // The factory takes every field a new task starts with; they belong to no smaller concept.
+        @Suppress("LongParameterList")
         fun create(
             projectId: UUID,
             number: Int,
