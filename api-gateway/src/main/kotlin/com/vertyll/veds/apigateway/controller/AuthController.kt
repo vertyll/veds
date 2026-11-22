@@ -7,9 +7,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import org.springframework.security.web.server.csrf.CsrfToken
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,9 +29,21 @@ internal class AuthController(
         val roles: List<String>,
     )
 
+    /**
+     * Who is signed in, or `204` when nobody is, with the CSRF token the caller's writes send back in the response's
+     * `X-XSRF-TOKEN` header, as the caller is on another origin and cannot read the token's cookie.
+     */
     @GetMapping("/session")
     @ScopedToCaller("reads the session cookie the caller already holds, and answers 204 when there is none")
-    fun session(exchange: ServerWebExchange): Mono<ResponseEntity<SessionResponse>> =
+    fun session(exchange: ServerWebExchange): Mono<ResponseEntity<SessionResponse>> = handOverCsrfToken(exchange).then(signedIn(exchange))
+
+    private fun handOverCsrfToken(exchange: ServerWebExchange): Mono<Void> =
+        exchange
+            .getAttributeOrDefault<Mono<CsrfToken>>(CsrfToken::class.java.name, Mono.empty())
+            .doOnNext { token -> exchange.response.headers.set(token.headerName, token.token) }
+            .then()
+
+    private fun signedIn(exchange: ServerWebExchange): Mono<ResponseEntity<SessionResponse>> =
         exchange
             .getPrincipal<Authentication>()
             .ofType(JwtAuthenticationToken::class.java)
@@ -53,8 +65,8 @@ internal class AuthController(
             .getPrincipal<Authentication>()
             .defaultIfEmpty(NOBODY)
             .flatMap { principal ->
-                authorizedClients.loadAuthorizedClient<OAuth2AuthorizedClient>(KeycloakClientConfig.SIGN_IN, principal, exchange)
-            }.mapNotNull<String> { it.refreshToken?.tokenValue }
+                authorizedClients.loadAuthorizedClient(KeycloakClientConfig.SIGN_IN, principal, exchange)
+            }.mapNotNull { it.refreshToken?.tokenValue }
             .flatMap(keycloakSessions::revoke)
             .then(exchange.session.flatMap { it.invalidate() })
             .thenReturn(ResponseEntity.noContent().build())

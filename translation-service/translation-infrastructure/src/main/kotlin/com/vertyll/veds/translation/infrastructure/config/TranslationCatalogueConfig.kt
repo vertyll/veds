@@ -29,6 +29,10 @@ internal class TranslationCatalogueConfig {
                 pl("Nie masz uprawnień do tej operacji.")
                 en("You are not allowed to perform this action.")
             }
+            key("common.csrf_token_invalid") {
+                pl("Nie udało się potwierdzić, że to żądanie pochodzi z tej strony. Odśwież stronę i spróbuj ponownie.")
+                en("This request could not be confirmed as coming from this page. Refresh the page and try again.")
+            }
             key("common.not_authenticated") {
                 pl("Nie jesteś zalogowany.")
                 en("You are not signed in.")

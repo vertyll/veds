@@ -29,5 +29,4 @@ application:
       gateway-client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET}
       roles-claim-path: realm_access.roles
       cookie:
-        secure: ${COOKIE_SECURE:true}
         path: "/"

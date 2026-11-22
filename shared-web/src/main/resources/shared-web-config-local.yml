@@ -15,5 +15,3 @@ application:
       admin-client-secret: "**********"
       gateway-client-id: veds-api-gateway
       gateway-client-secret: "**********"
-      cookie:
-        secure: false

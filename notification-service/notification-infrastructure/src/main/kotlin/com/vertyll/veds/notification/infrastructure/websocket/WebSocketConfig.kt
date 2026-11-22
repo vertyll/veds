@@ -14,6 +14,8 @@ internal class WebSocketConfig(
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry
             .addEndpoint(ENDPOINT)
+            // The gateway refuses a handshake from an origin it does not allow; here every handshake already carries
+            // the bearer token the gateway attached, which no page of another origin can attach itself.
             .setAllowedOriginPatterns("*")
             .setHandshakeHandler(principalHandshakeHandler)
     }

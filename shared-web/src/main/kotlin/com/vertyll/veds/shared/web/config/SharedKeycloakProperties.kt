@@ -48,8 +48,6 @@ data class SharedKeycloakProperties(
 ) {
     /** The attributes the gateway's cookies share. */
     data class CookieProperties(
-        /** Whether the cookies travel over HTTPS only. */
-        val secure: Boolean,
         /** The `Path` attribute of the cookies. */
         @field:NotBlank
         val path: String,

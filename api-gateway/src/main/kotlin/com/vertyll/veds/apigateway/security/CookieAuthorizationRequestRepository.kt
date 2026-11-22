@@ -3,6 +3,7 @@ package com.vertyll.veds.apigateway.security
 import com.vertyll.veds.apigateway.session.SessionCipher
 import com.vertyll.veds.shared.web.config.SharedKeycloakProperties
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.server.autoconfigure.ServerProperties
 import org.springframework.http.ResponseCookie
 import org.springframework.security.oauth2.client.web.server.ServerAuthorizationRequestRepository
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
@@ -29,8 +30,10 @@ import java.util.Base64
 internal class CookieAuthorizationRequestRepository(
     private val cipher: SessionCipher,
     private val sharedConfig: SharedKeycloakProperties,
+    server: ServerProperties,
 ) : ServerAuthorizationRequestRepository<OAuth2AuthorizationRequest> {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val secure = server.reactive.session.cookie.secure == true
     private val encoder = Base64.getUrlEncoder().withoutPadding()
     private val decoder = Base64.getUrlDecoder()
 
@@ -86,7 +89,7 @@ internal class CookieAuthorizationRequestRepository(
         ResponseCookie
             .from(COOKIE, value)
             .httpOnly(true)
-            .secure(sharedConfig.cookie.secure)
+            .secure(secure)
             .sameSite(SAME_SITE_LAX)
             .path(sharedConfig.cookie.path)
             .maxAge(maxAge)

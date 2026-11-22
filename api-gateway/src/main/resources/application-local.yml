@@ -10,6 +10,7 @@ server:
       cookie:
         # The __Host- prefix requires Secure, which plain HTTP cannot have.
         name: VEDS_SESSION
+        secure: false
 
 application:
   gateway:
@@ -22,8 +23,8 @@ application:
       file: ${FILE_SERVICE_URL:http://localhost:8088}
       notification: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
     cors:
-      allowed-origins:
-        - "http://localhost:4200"
+      # A comma-separated value rather than a list, so the WebSocket origins in application.yml can read it too.
+      allowed-origins: "http://localhost:4200"
     session:
       encryption-key: ${GATEWAY_SESSION_ENCRYPTION_KEY:ZTeJ0h/U451Ooa3ePJvmh1K0WaNTk8rq6TsWTNGQBzo=}
     oauth:

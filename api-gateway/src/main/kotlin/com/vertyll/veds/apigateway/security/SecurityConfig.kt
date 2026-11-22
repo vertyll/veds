@@ -2,6 +2,7 @@ package com.vertyll.veds.apigateway.security
 
 import com.vertyll.veds.apigateway.config.GatewayCorsProperties
 import com.vertyll.veds.shared.web.security.ReactiveKeycloakJwtAuthenticationConverter
+import org.springframework.boot.web.server.autoconfigure.ServerProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
@@ -12,6 +13,9 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.csrf.CsrfWebFilter
+import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
@@ -21,6 +25,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 @EnableWebFluxSecurity
 internal class SecurityConfig(
     private val jsonAuthenticationEntryPoint: JsonAuthenticationEntryPoint,
+    private val jsonAccessDeniedHandler: JsonAccessDeniedHandler,
     private val reactiveKeycloakJwtConverter: ReactiveKeycloakJwtAuthenticationConverter,
 ) {
     @Bean
@@ -32,10 +37,19 @@ internal class SecurityConfig(
         authorizationRequests: CookieAuthorizationRequestRepository,
         signInRedirects: SignInRedirects,
         accessTokens: ReactiveJwtDecoder,
+        server: ServerProperties,
     ): SecurityWebFilterChain =
         http
-            .csrf { it.disable() }
-            .formLogin { it.disable() }
+            .csrf { csrf ->
+                csrf
+                    .csrfTokenRepository(CsrfTokenCookie.repository(secure = server.reactive.session.cookie.secure == true))
+                    .requireCsrfProtectionMatcher(
+                        AndServerWebExchangeMatcher(
+                            CsrfWebFilter.DEFAULT_CSRF_MATCHER,
+                            NegatedServerWebExchangeMatcher(BearerTokenRequests()),
+                        ),
+                    ).accessDeniedHandler(jsonAccessDeniedHandler)
+            }.formLogin { it.disable() }
             .httpBasic { it.disable() }
             .exceptionHandling {
                 it.authenticationEntryPoint(jsonAuthenticationEntryPoint)
@@ -95,6 +109,7 @@ internal class SecurityConfig(
         configuration.allowedMethods = properties.allowedMethods
         configuration.allowedHeaders = properties.allowedHeaders
         configuration.allowCredentials = properties.allowCredentials
+        configuration.exposedHeaders = listOf(CsrfTokenCookie.HEADER)
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)

@@ -2,6 +2,8 @@ package com.vertyll.veds.apigateway
 
 import com.vertyll.veds.apigateway.session.KeycloakSessions
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpHeaderValues
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakeException
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,7 +18,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest
 import org.springframework.security.oauth2.client.endpoint.OAuth2RefreshTokenGrantRequest
@@ -40,6 +44,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
+import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import reactor.netty.DisposableServer
@@ -47,10 +52,13 @@ import reactor.netty.http.server.HttpServer
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -332,23 +340,146 @@ internal class HostedSignInTest {
     @Test
     fun `logout revokes the refresh token and ends the session`() {
         val browser = signedIn(LIFETIME_SECONDS)
+        val csrfToken = csrfToken(browser)
 
-        assertEquals(HttpStatus.NO_CONTENT, browser.send(client.post().uri("/auth/logout")).status)
+        assertEquals(HttpStatus.NO_CONTENT, browser.send(client.post().uri("/auth/logout").header(CSRF_HEADER, csrfToken)).status)
         verify(keycloakSessions).revoke(refreshToken)
         assertEquals(HttpStatus.NO_CONTENT, browser.send(client.get().uri("/auth/session")).status)
     }
 
     @Test
     fun `logout without a session revokes nothing`() {
-        client
-            .post()
-            .uri("/auth/logout")
-            .exchange()
-            .expectStatus()
-            .isNoContent
+        val browser = Browser()
+        val csrfToken = csrfToken(browser)
 
+        assertEquals(HttpStatus.NO_CONTENT, browser.send(client.post().uri("/auth/logout").header(CSRF_HEADER, csrfToken)).status)
         verify(keycloakSessions, never()).revoke(anyString())
     }
+
+    @Test
+    fun `the session hands over a CSRF token, kept in a Secure, HttpOnly, Strict host cookie`() {
+        val result = Browser().send(client.get().uri("/auth/session").header(HttpHeaders.ORIGIN, FRONT_END))
+
+        assertNotNull(result.responseHeaders.getFirst(CSRF_HEADER))
+        assertTrue(CSRF_HEADER in result.responseHeaders.accessControlExposeHeaders)
+        val cookie = requireNotNull(cookie(result, CSRF_COOKIE))
+        assertTrue(cookie.isSecure && cookie.isHttpOnly)
+        assertEquals("Strict", cookie.sameSite)
+        assertEquals("/", cookie.path)
+        assertNull(cookie.domain)
+    }
+
+    @Test
+    fun `a session write without the CSRF token is refused with a problem document`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+        csrfToken(browser)
+
+        val result = browser.send(client.post().uri("/tasks"))
+
+        assertEquals(HttpStatus.FORBIDDEN, result.status)
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, result.responseHeaders.contentType)
+        assertTrue(String(requireNotNull(result.responseBodyContent)).contains(CSRF_TOKEN_INVALID))
+        assertTrue(received.isEmpty())
+    }
+
+    @Test
+    fun `a session write with a token the gateway did not issue is refused`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+        csrfToken(browser)
+
+        val result = browser.send(client.post().uri("/tasks").header(CSRF_HEADER, "forged"))
+
+        assertEquals(HttpStatus.FORBIDDEN, result.status)
+        assertTrue(String(requireNotNull(result.responseBodyContent)).contains(CSRF_TOKEN_INVALID))
+        assertTrue(received.isEmpty())
+    }
+
+    @Test
+    fun `a session write with the CSRF token reaches the service`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+        val csrfToken = csrfToken(browser)
+
+        assertEquals(HttpStatus.OK, browser.send(client.post().uri("/tasks").header(CSRF_HEADER, csrfToken)).status)
+        assertEquals(listOf("/tasks" to "Bearer exchanged-for-veds-task-service"), received.toList())
+    }
+
+    @Test
+    fun `a session write with another authorization scheme still needs the CSRF token`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+        csrfToken(browser)
+
+        val result = browser.send(client.post().uri("/tasks").header(HttpHeaders.AUTHORIZATION, "Basic YWRhOnNlY3JldA=="))
+
+        assertEquals(HttpStatus.FORBIDDEN, result.status)
+        assertTrue(received.isEmpty())
+    }
+
+    @Test
+    fun `a write with a bearer token needs no CSRF token`() {
+        client
+            .post()
+            .uri("/tasks")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $ACCESS_TOKEN")
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        assertEquals(listOf("/tasks" to "Bearer exchanged-for-veds-task-service"), received.toList())
+    }
+
+    @Test
+    fun `a WebSocket handshake from the front-end's origin reaches the service with the session's token`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+
+        assertEquals(WEBSOCKET_GREETING, openWebSocket(browser, FRONT_END))
+        assertEquals(listOf(WEBSOCKET_PATH to "Bearer exchanged-for-veds-notification-service"), received.toList())
+    }
+
+    @Test
+    fun `a WebSocket handshake from another site is refused before it reaches the service`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+
+        val refused = assertFailsWith<WebSocketClientHandshakeException> { openWebSocket(browser, "https://attacker.example") }
+
+        assertEquals(HttpStatus.FORBIDDEN.value(), refused.response().status().code())
+        assertTrue(received.isEmpty())
+    }
+
+    @Test
+    fun `a WebSocket handshake from a sibling origin of the same site is refused`() {
+        val browser = signedIn(LIFETIME_SECONDS)
+
+        val refused = assertFailsWith<WebSocketClientHandshakeException> { openWebSocket(browser, "http://sibling.localhost:4200") }
+
+        assertEquals(HttpStatus.FORBIDDEN.value(), refused.response().status().code())
+        assertTrue(received.isEmpty())
+    }
+
+    private fun openWebSocket(
+        browser: Browser,
+        origin: String,
+    ): String? {
+        val headers =
+            HttpHeaders().apply {
+                set(HttpHeaders.ORIGIN, origin)
+                set(HttpHeaders.COOKIE, browser.cookies.values.joinToString("; ") { "${it.name}=${it.value}" })
+            }
+        val greeting = AtomicReference<String>()
+        ReactorNettyWebSocketClient()
+            .execute(URI.create("ws://localhost:$port$WEBSOCKET_PATH"), headers) { session ->
+                session
+                    .receive()
+                    .next()
+                    .doOnNext { greeting.set(it.payloadAsText) }
+                    .then()
+            }.block(WEBSOCKET_TIMEOUT)
+        return greeting.get()
+    }
+
+    private fun csrfToken(browser: Browser): String =
+        requireNotNull(browser.send(client.get().uri("/auth/session")).responseHeaders.getFirst(CSRF_HEADER)) {
+            "GET /auth/session hands over no CSRF token"
+        }
 
     private fun signedIn(
         accessTokenLifetimeSeconds: Long,
@@ -446,6 +577,13 @@ internal class HostedSignInTest {
         private const val EMAIL = "ada@veds.local"
         private const val SESSION_COOKIE = "__Host-VEDS_SESSION"
         private const val AUTH_REQUEST_COOKIE = "KEYCLOAK_AUTH_REQUEST"
+        private const val CSRF_COOKIE = "__Host-XSRF-TOKEN"
+        private const val CSRF_HEADER = "X-XSRF-TOKEN"
+        private const val CSRF_TOKEN_INVALID = "common.csrf_token_invalid"
+        private const val FRONT_END = "http://localhost:4200"
+        private const val WEBSOCKET_PATH = "/ws/notifications"
+        private const val WEBSOCKET_GREETING = "connected"
+        private val WEBSOCKET_TIMEOUT = Duration.ofSeconds(10)
         private const val LIFETIME_SECONDS = 300L
         private const val EXPIRING_SECONDS = 5L
 
@@ -456,7 +594,11 @@ internal class HostedSignInTest {
                 .port(0)
                 .handle { request, response ->
                     received.add(request.uri() to request.requestHeaders().get(HttpHeaderNames.AUTHORIZATION))
-                    response.sendString(Mono.just("{}"))
+                    if (request.requestHeaders().containsValue(HttpHeaderNames.UPGRADE, HttpHeaderValues.WEBSOCKET, true)) {
+                        response.sendWebsocket { _, outbound -> outbound.sendString(Mono.just(WEBSOCKET_GREETING)) }
+                    } else {
+                        response.sendString(Mono.just("{}"))
+                    }
                 }.bindNow()
 
         @JvmStatic

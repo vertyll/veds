@@ -1,13 +1,8 @@
 application:
-  shared:
-    keycloak:
-      cookie:
-        # The shared development defaults turn Secure off; the gateway's tests keep the production cookie.
-        secure: true
   gateway:
     cors:
-      allowed-origins:
-        - "http://localhost:4200"
+      # A comma-separated value rather than a list, so the WebSocket origins in application.yml can read it too.
+      allowed-origins: "http://localhost:4200"
     session:
       encryption-key: rgvK4NdVVkKepA2gDMxbSTtikwfSIdU64wjMilUQGio=
     oauth:

@@ -20,7 +20,6 @@ class KeycloakJwtAuthenticationConverterTest {
             rolesClaimPath = "realm_access.roles",
             cookie =
                 SharedKeycloakProperties.CookieProperties(
-                    secure = false,
                     path = "/",
                 ),
         )

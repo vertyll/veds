@@ -11,15 +11,15 @@ import org.springframework.validation.annotation.Validated
  * Bound from `application.gateway.cors.*`. The gateway is a BFF: the browser holds an HttpOnly session
  * cookie, so the preflight response has to allow credentials, and the CORS specification then
  * forbids `*` as an origin. That is why [allowedOrigins] has no wildcard default — a deployment
- * names the front-end it serves.
+ * names the front-end it serves. The same origins may open a WebSocket through the gateway, so they are one
+ * comma-separated value, which `application.yml` passes on to Spring Cloud Gateway through a placeholder.
  *
  * Example:
  * ```yaml
  * application:
  *   gateway:
  *     cors:
- *       allowed-origins:
- *         - https://app.example.com
+ *       allowed-origins: https://app.example.com,https://admin.example.com
  * ```
  */
 @ConfigurationProperties(prefix = "application.gateway.cors")

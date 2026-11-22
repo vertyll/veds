@@ -75,8 +75,10 @@ sequenceDiagram
    roles, or **`204`** when nobody is. Not being signed in is an answer, not a refusal: a `401` here would be
    indistinguishable from the session store being unreachable, and the SPA would sign the person out over a
    network blip.
-   Never a token.
-4. **`POST /auth/logout`** — revokes the refresh token at Keycloak and deletes the session.
+   Never an access token; the CSRF token every write sends back comes in its `X-XSRF-TOKEN` header, see
+   [Session](../api-gateway/docs/mechanisms/session.md).
+4. **`POST /auth/logout`** — with the CSRF token, as every write; revokes the refresh token at Keycloak and deletes
+   the session.
 
 Each microservice still validates the JWT independently against Keycloak's JWKS endpoint — they are unaware a browser
 session ever existed — and accepts only a token whose audience is its own client, `veds-${spring.application.name}`
@@ -205,16 +207,16 @@ Role names are owned by **two places only**:
 `application-prod.yml` assumes TLS on every hop. Defaults are set for an ingress that terminates TLS in front of the
 gateway; flip `SERVER_SSL_ENABLED` when a process holds the certificate itself.
 
-| Leg                       | Setting                                                                                                          |
-|---------------------------|------------------------------------------------------------------------------------------------------------------|
-| Browser → ingress/gateway | `SERVER_SSL_ENABLED`, `SERVER_SSL_BUNDLE`                                                                        |
-| Ingress → gateway         | `server.request.header.forwarded.strategy: framework`, on the gateway only (keeps the https scheme in redirects) |
-| Gateway → Redis           | `spring.data.redis.ssl.enabled=true`, `REDIS_SSL_BUNDLE`                                                         |
-| Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                                    |
-| Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                                    |
-| Cookie flag               | `application.shared.keycloak.cookie.secure: true` (hardcoded, not overridable)                                   |
-| Session cookie            | `__Host-VEDS_SESSION`: `Secure`, `Path=/`, no `Domain`; `VEDS_SESSION` in the `local` profile                    |
-| mail-service → SMTP       | STARTTLS required; the chain and the host name are verified, no `ssl.trust` override                             |
+| Leg                       | Setting                                                                                                           |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------|
+| Browser → ingress/gateway | `SERVER_SSL_ENABLED`, `SERVER_SSL_BUNDLE`                                                                         |
+| Ingress → gateway         | `server.request.header.forwarded.strategy: framework`, on the gateway only (keeps the https scheme in redirects)  |
+| Gateway → Redis           | `spring.data.redis.ssl.enabled=true`, `REDIS_SSL_BUNDLE`                                                          |
+| Service → PostgreSQL      | `DB_SSL_MODE=verify-full`, `DB_SSL_ROOT_CERT`                                                                     |
+| Service → Kafka           | `KAFKA_SECURITY_PROTOCOL=SASL_SSL`, SCRAM-SHA-512, truststore                                                     |
+| Cookie flag               | `server.reactive.session.cookie.secure: true`, which every gateway cookie follows; `false` in the `local` profile |
+| Session cookie            | `__Host-VEDS_SESSION`: `Secure`, `Path=/`, no `Domain`; `VEDS_SESSION` in the `local` profile                     |
+| mail-service → SMTP       | STARTTLS required; the chain and the host name are verified, no `ssl.trust` override                              |
 
 Two choices worth stating:
 
