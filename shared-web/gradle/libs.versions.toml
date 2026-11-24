@@ -10,7 +10,7 @@ detekt-plugin = "2.0.0-alpha.6"
 dokka-plugin = "2.3.0"
 kotlin = "2.4.10"
 
-swagger = "2.2.55"
+swagger = "3.0.0"
 
 [libraries]
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
